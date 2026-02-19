@@ -380,3 +380,278 @@ export function getOrderDistribution(
     token,
   });
 }
+
+// Advertising - Types
+export interface AdAccount {
+  id: string;
+  advertiser_id: string;
+  advertiser_name: string;
+  currency: string | null;
+  timezone: string | null;
+  last_sync_at: string | null;
+  created_at: string;
+}
+
+export interface CampaignSummary {
+  id: string;
+  platform_campaign_id: string;
+  campaign_name: string;
+  objective_type: string | null;
+  budget_mode: string | null;
+  budget: string | null;
+  operation_status: string;
+  secondary_status: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CampaignDetail extends CampaignSummary {
+  detail_json: Record<string, unknown> | null;
+}
+
+export interface AdGroupSummary {
+  id: string;
+  platform_adgroup_id: string;
+  adgroup_name: string;
+  placement_type: string | null;
+  bid_type: string | null;
+  bid_amount: string | null;
+  budget: string | null;
+  optimization_goal: string | null;
+  operation_status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdGroupDetail extends AdGroupSummary {
+  targeting_json: Record<string, unknown> | null;
+  detail_json: Record<string, unknown> | null;
+}
+
+export interface AdSummary {
+  id: string;
+  platform_ad_id: string;
+  ad_name: string;
+  ad_format: string | null;
+  ad_text: string | null;
+  call_to_action: string | null;
+  landing_page_url: string | null;
+  image_url: string | null;
+  operation_status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdDetail extends AdSummary {
+  detail_json: Record<string, unknown> | null;
+}
+
+export interface ReportRow {
+  dimensions: Record<string, string>;
+  metrics: Record<string, string | number>;
+}
+
+export interface ReportResponse {
+  rows: ReportRow[];
+  total_rows: number;
+}
+
+// Advertising - Ad Accounts
+export function listAdAccounts(workspaceId: string, token: string): Promise<AdAccount[]> {
+  return apiFetch(`/ads/accounts?workspace_id=${workspaceId}`, { token });
+}
+
+export function getAdAccount(adAccountId: string, token: string): Promise<AdAccount> {
+  return apiFetch(`/ads/accounts/${adAccountId}`, { token });
+}
+
+export function syncAdAccounts(
+  workspaceId: string,
+  token: string
+): Promise<{ synced: number }> {
+  return apiFetch(`/ads/accounts/sync?workspace_id=${workspaceId}`, {
+    method: "POST",
+    token,
+  });
+}
+
+// Advertising - Campaigns
+export function listCampaigns(
+  workspaceId: string,
+  token: string,
+  params?: {
+    ad_account_id?: string;
+    objective?: string;
+    status_filter?: string;
+    search?: string;
+    page?: number;
+    page_size?: number;
+  }
+): Promise<PaginatedResponse<CampaignSummary>> {
+  const query = new URLSearchParams({ workspace_id: workspaceId });
+  if (params?.ad_account_id) query.set("ad_account_id", params.ad_account_id);
+  if (params?.objective) query.set("objective", params.objective);
+  if (params?.status_filter) query.set("status_filter", params.status_filter);
+  if (params?.search) query.set("search", params.search);
+  if (params?.page) query.set("page", String(params.page));
+  if (params?.page_size) query.set("page_size", String(params.page_size));
+  return apiFetch(`/ads/campaigns?${query}`, { token });
+}
+
+export function getCampaign(campaignId: string, token: string): Promise<CampaignDetail> {
+  return apiFetch(`/ads/campaigns/${campaignId}`, { token });
+}
+
+export function createCampaign(
+  workspaceId: string,
+  data: {
+    ad_account_id: string;
+    campaign_name: string;
+    objective_type: string;
+    budget_mode: string;
+    budget?: string;
+  },
+  token: string
+): Promise<CampaignDetail> {
+  return apiFetch(`/ads/campaigns?workspace_id=${workspaceId}`, {
+    method: "POST",
+    body: JSON.stringify(data),
+    token,
+  });
+}
+
+export function updateCampaignStatus(
+  campaignId: string,
+  operationStatus: string,
+  token: string
+): Promise<CampaignDetail> {
+  return apiFetch(`/ads/campaigns/${campaignId}/status`, {
+    method: "POST",
+    body: JSON.stringify({ operation_status: operationStatus }),
+    token,
+  });
+}
+
+export function syncCampaigns(
+  workspaceId: string,
+  token: string,
+  adAccountId?: string
+): Promise<{ synced: number }> {
+  const query = new URLSearchParams({ workspace_id: workspaceId });
+  if (adAccountId) query.set("ad_account_id", adAccountId);
+  return apiFetch(`/ads/campaigns/sync?${query}`, { method: "POST", token });
+}
+
+// Advertising - Ad Groups
+export function listAdGroups(
+  workspaceId: string,
+  token: string,
+  params?: {
+    campaign_id?: string;
+    ad_account_id?: string;
+    status_filter?: string;
+    page?: number;
+    page_size?: number;
+  }
+): Promise<PaginatedResponse<AdGroupSummary>> {
+  const query = new URLSearchParams({ workspace_id: workspaceId });
+  if (params?.campaign_id) query.set("campaign_id", params.campaign_id);
+  if (params?.ad_account_id) query.set("ad_account_id", params.ad_account_id);
+  if (params?.status_filter) query.set("status_filter", params.status_filter);
+  if (params?.page) query.set("page", String(params.page));
+  if (params?.page_size) query.set("page_size", String(params.page_size));
+  return apiFetch(`/ads/ad-groups?${query}`, { token });
+}
+
+export function getAdGroup(adGroupId: string, token: string): Promise<AdGroupDetail> {
+  return apiFetch(`/ads/ad-groups/${adGroupId}`, { token });
+}
+
+export function updateAdGroupStatus(
+  adGroupId: string,
+  operationStatus: string,
+  token: string
+): Promise<AdGroupDetail> {
+  return apiFetch(`/ads/ad-groups/${adGroupId}/status`, {
+    method: "POST",
+    body: JSON.stringify({ operation_status: operationStatus }),
+    token,
+  });
+}
+
+export function syncAdGroups(
+  workspaceId: string,
+  token: string,
+  adAccountId?: string
+): Promise<{ synced: number }> {
+  const query = new URLSearchParams({ workspace_id: workspaceId });
+  if (adAccountId) query.set("ad_account_id", adAccountId);
+  return apiFetch(`/ads/ad-groups/sync?${query}`, { method: "POST", token });
+}
+
+// Advertising - Ads (Creatives)
+export function listAds(
+  workspaceId: string,
+  token: string,
+  params?: {
+    adgroup_id?: string;
+    ad_account_id?: string;
+    status_filter?: string;
+    page?: number;
+    page_size?: number;
+  }
+): Promise<PaginatedResponse<AdSummary>> {
+  const query = new URLSearchParams({ workspace_id: workspaceId });
+  if (params?.adgroup_id) query.set("adgroup_id", params.adgroup_id);
+  if (params?.ad_account_id) query.set("ad_account_id", params.ad_account_id);
+  if (params?.status_filter) query.set("status_filter", params.status_filter);
+  if (params?.page) query.set("page", String(params.page));
+  if (params?.page_size) query.set("page_size", String(params.page_size));
+  return apiFetch(`/ads/creatives?${query}`, { token });
+}
+
+export function getAd(adId: string, token: string): Promise<AdDetail> {
+  return apiFetch(`/ads/creatives/${adId}`, { token });
+}
+
+export function updateAdStatus(
+  adId: string,
+  operationStatus: string,
+  token: string
+): Promise<AdDetail> {
+  return apiFetch(`/ads/creatives/${adId}/status`, {
+    method: "POST",
+    body: JSON.stringify({ operation_status: operationStatus }),
+    token,
+  });
+}
+
+export function syncAds(
+  workspaceId: string,
+  token: string,
+  adAccountId?: string
+): Promise<{ synced: number }> {
+  const query = new URLSearchParams({ workspace_id: workspaceId });
+  if (adAccountId) query.set("ad_account_id", adAccountId);
+  return apiFetch(`/ads/creatives/sync?${query}`, { method: "POST", token });
+}
+
+// Advertising - Reports
+export function getSyncReport(
+  data: {
+    ad_account_id: string;
+    report_type?: string;
+    data_level?: string;
+    date_start: string;
+    date_end: string;
+    metrics?: string[];
+    dimensions?: string[];
+  },
+  token: string
+): Promise<ReportResponse> {
+  return apiFetch("/ads/reports/sync", {
+    method: "POST",
+    body: JSON.stringify(data),
+    token,
+  });
+}

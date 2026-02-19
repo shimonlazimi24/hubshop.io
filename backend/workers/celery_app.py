@@ -45,4 +45,20 @@ celery_app.conf.beat_schedule = {
         "task": "backend.workers.data_sync.sync_shop_products",
         "schedule": crontab(minute="*/30"),  # Every 30 minutes
     },
+    "sync-all-ad-accounts": {
+        "task": "backend.workers.ad_sync.sync_all_ad_accounts",
+        "schedule": crontab(minute=0, hour="*/6"),  # Every 6 hours
+    },
+    "sync-ad-campaigns": {
+        "task": "backend.workers.ad_sync.sync_ad_campaigns",
+        "schedule": crontab(minute="*/30"),  # Every 30 minutes
+    },
+    "sync-ad-groups": {
+        "task": "backend.workers.ad_sync.sync_ad_groups",
+        "schedule": crontab(minute="15,45"),  # Every 30 minutes, offset
+    },
+    "sync-ads": {
+        "task": "backend.workers.ad_sync.sync_ads",
+        "schedule": crontab(minute="5,35"),  # Every 30 minutes, offset
+    },
 }

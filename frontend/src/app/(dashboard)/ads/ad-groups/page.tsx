@@ -5,10 +5,10 @@ import { useEffect, useState } from "react";
 
 import {
   listAdAccounts,
-  listCampaigns,
-  syncCampaigns,
+  listAdGroups,
+  syncAdGroups,
   type AdAccount,
-  type CampaignSummary,
+  type AdGroupSummary,
   type PaginatedResponse,
 } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
@@ -21,24 +21,12 @@ const STATUS_COLORS: Record<string, string> = {
   DELETE: "bg-red-100 text-red-800",
 };
 
-const OBJECTIVES = [
-  "TRAFFIC",
-  "CONVERSIONS",
-  "APP_INSTALL",
-  "REACH",
-  "VIDEO_VIEWS",
-  "LEAD_GENERATION",
-  "PRODUCT_SALES",
-];
-
-export default function CampaignsPage() {
-  const [campaigns, setCampaigns] = useState<PaginatedResponse<CampaignSummary> | null>(null);
+export default function AdGroupsPage() {
+  const [adGroups, setAdGroups] = useState<PaginatedResponse<AdGroupSummary> | null>(null);
   const [adAccounts, setAdAccounts] = useState<AdAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
-  const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-  const [objectiveFilter, setObjectiveFilter] = useState("");
   const [accountFilter, setAccountFilter] = useState("");
   const [page, setPage] = useState(1);
 
@@ -50,20 +38,18 @@ export default function CampaignsPage() {
   }, []);
 
   useEffect(() => {
-    loadCampaigns();
-  }, [search, statusFilter, objectiveFilter, accountFilter, page]);
+    loadAdGroups();
+  }, [statusFilter, accountFilter, page]);
 
-  function loadCampaigns() {
+  function loadAdGroups() {
     if (!token) return;
     setLoading(true);
-    listCampaigns(WORKSPACE_ID, token, {
-      search: search || undefined,
+    listAdGroups(WORKSPACE_ID, token, {
       status_filter: statusFilter || undefined,
-      objective: objectiveFilter || undefined,
       ad_account_id: accountFilter || undefined,
       page,
     })
-      .then(setCampaigns)
+      .then(setAdGroups)
       .catch(console.error)
       .finally(() => setLoading(false));
   }
@@ -72,9 +58,9 @@ export default function CampaignsPage() {
     if (!token) return;
     setSyncing(true);
     try {
-      const result = await syncCampaigns(WORKSPACE_ID, token, accountFilter || undefined);
-      alert(`Synced ${result.synced} campaigns`);
-      loadCampaigns();
+      const result = await syncAdGroups(WORKSPACE_ID, token, accountFilter || undefined);
+      alert(`Synced ${result.synced} ad groups`);
+      loadAdGroups();
     } catch (err) {
       console.error(err);
     } finally {
@@ -85,13 +71,6 @@ export default function CampaignsPage() {
   return (
     <div>
       <div className="flex items-center gap-4 mb-4">
-        <input
-          type="text"
-          placeholder="Search campaigns..."
-          value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          className="px-3 py-2 border border-gray-300 rounded-md text-sm w-64"
-        />
         <select
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
@@ -100,16 +79,6 @@ export default function CampaignsPage() {
           <option value="">All Statuses</option>
           <option value="ENABLE">Enabled</option>
           <option value="DISABLE">Disabled</option>
-        </select>
-        <select
-          value={objectiveFilter}
-          onChange={(e) => { setObjectiveFilter(e.target.value); setPage(1); }}
-          className="px-3 py-2 border border-gray-300 rounded-md text-sm"
-        >
-          <option value="">All Objectives</option>
-          {OBJECTIVES.map((o) => (
-            <option key={o} value={o}>{o.replace(/_/g, " ")}</option>
-          ))}
         </select>
         {adAccounts.length > 1 && (
           <select
@@ -129,7 +98,7 @@ export default function CampaignsPage() {
           disabled={syncing}
           className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
         >
-          {syncing ? "Syncing..." : "Sync Campaigns"}
+          {syncing ? "Syncing..." : "Sync Ad Groups"}
         </button>
       </div>
 
@@ -137,59 +106,59 @@ export default function CampaignsPage() {
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-200 text-left">
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Campaign</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Objective</th>
+              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Ad Group</th>
               <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
+              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Bid</th>
               <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Budget</th>
+              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Goal</th>
               <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Updated</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {campaigns?.items.map((campaign) => (
-              <tr key={campaign.id} className="hover:bg-gray-50">
+            {adGroups?.items.map((ag) => (
+              <tr key={ag.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3">
                   <Link
-                    href={`/ads/campaigns/${campaign.id}`}
+                    href={`/ads/ad-groups/${ag.id}`}
                     className="text-sm font-medium text-blue-600 hover:underline"
                   >
-                    {campaign.campaign_name}
+                    {ag.adgroup_name}
                   </Link>
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-600">
-                  {campaign.objective_type?.replace(/_/g, " ") || "-"}
-                </td>
                 <td className="px-4 py-3">
-                  <span className={`px-2 py-1 text-xs rounded-full ${STATUS_COLORS[campaign.operation_status] || "bg-gray-100 text-gray-800"}`}>
-                    {campaign.operation_status}
+                  <span className={`px-2 py-1 text-xs rounded-full ${STATUS_COLORS[ag.operation_status] || "bg-gray-100 text-gray-800"}`}>
+                    {ag.operation_status}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-900">
-                  {campaign.budget ? `$${campaign.budget}` : "-"}
-                  {campaign.budget_mode && (
-                    <span className="text-xs text-gray-400 ml-1">
-                      ({campaign.budget_mode === "BUDGET_MODE_DAY" ? "daily" : campaign.budget_mode === "BUDGET_MODE_TOTAL" ? "total" : "infinite"})
-                    </span>
-                  )}
+                  {ag.bid_amount ? `$${ag.bid_amount}` : "-"}
+                  {ag.bid_type && <span className="text-xs text-gray-400 ml-1">({ag.bid_type})</span>}
+                </td>
+                <td className="px-4 py-3 text-sm text-gray-900">
+                  {ag.budget ? `$${ag.budget}` : "-"}
+                </td>
+                <td className="px-4 py-3 text-sm text-gray-600">
+                  {ag.optimization_goal?.replace(/_/g, " ") || "-"}
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-500">
-                  {new Date(campaign.updated_at).toLocaleDateString()}
+                  {new Date(ag.updated_at).toLocaleDateString()}
                 </td>
               </tr>
             ))}
-            {!loading && campaigns?.items.length === 0 && (
+            {!loading && adGroups?.items.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
-                  No campaigns found
+                <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                  No ad groups found
                 </td>
               </tr>
             )}
           </tbody>
         </table>
 
-        {campaigns && campaigns.total_pages > 1 && (
+        {adGroups && adGroups.total_pages > 1 && (
           <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
             <p className="text-sm text-gray-500">
-              Page {campaigns.page} of {campaigns.total_pages} ({campaigns.total} total)
+              Page {adGroups.page} of {adGroups.total_pages} ({adGroups.total} total)
             </p>
             <div className="flex gap-2">
               <button
@@ -200,8 +169,8 @@ export default function CampaignsPage() {
                 Previous
               </button>
               <button
-                onClick={() => setPage((p) => Math.min(campaigns.total_pages, p + 1))}
-                disabled={page >= campaigns.total_pages}
+                onClick={() => setPage((p) => Math.min(adGroups.total_pages, p + 1))}
+                disabled={page >= adGroups.total_pages}
                 className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50"
               >
                 Next
@@ -211,7 +180,7 @@ export default function CampaignsPage() {
         )}
       </div>
 
-      {loading && <div className="text-center py-8 text-gray-500">Loading campaigns...</div>}
+      {loading && <div className="text-center py-8 text-gray-500">Loading ad groups...</div>}
     </div>
   );
 }

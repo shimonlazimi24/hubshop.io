@@ -1,3 +1,15 @@
+from backend.db.models.advertising import (
+    Ad,
+    AdAccount,
+    AdFormat,
+    AdGroup,
+    AdSyncCursor,
+    BudgetMode,
+    Campaign,
+    CampaignObjective,
+    OperationStatus,
+    ReportCache,
+)
 from backend.db.models.base import Base
 from backend.db.models.commerce import (
     Order,
@@ -21,9 +33,18 @@ from backend.db.models.user import User
 from backend.db.models.webhook import WebhookEvent
 
 __all__ = [
+    "Ad",
+    "AdAccount",
+    "AdFormat",
+    "AdGroup",
+    "AdSyncCursor",
     "Base",
+    "BudgetMode",
+    "Campaign",
+    "CampaignObjective",
     "ConnectedAccount",
     "Membership",
+    "OperationStatus",
     "Order",
     "OrderLineItem",
     "OrderStatus",
@@ -35,6 +56,7 @@ __all__ = [
     "Product",
     "ProductSku",
     "ProductStatus",
+    "ReportCache",
     "ReturnRequest",
     "ReturnStatus",
     "ReturnType",
