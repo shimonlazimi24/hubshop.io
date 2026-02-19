@@ -1,0 +1,93 @@
+import uuid
+
+from fastapi import APIRouter, HTTPException, status
+
+from backend.dependencies import CurrentUser, DBSession
+from backend.modules.commerce.schemas import (
+    PaginatedResponse,
+    ProductDetailResponse,
+    ProductSummaryResponse,
+)
+from backend.modules.commerce.services.product_service import ProductService
+from backend.modules.commerce.services.shop_service import ShopService
+
+router = APIRouter()
+
+
+@router.get(
+    "/products",
+    response_model=PaginatedResponse[ProductSummaryResponse],
+)
+async def list_products(
+    workspace_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+    shop_id: uuid.UUID | None = None,
+    status_filter: str | None = None,
+    search: str | None = None,
+    page: int = 1,
+    page_size: int = 20,
+) -> PaginatedResponse[ProductSummaryResponse]:
+    service = ProductService(db)
+    result = await service.list_products(
+        workspace_id,
+        shop_id=shop_id,
+        status=status_filter,
+        search=search,
+        page=page,
+        page_size=page_size,
+    )
+    return PaginatedResponse(
+        items=[ProductSummaryResponse.model_validate(p) for p in result.items],
+        total=result.total,
+        page=result.page,
+        page_size=result.page_size,
+        total_pages=result.total_pages,
+    )
+
+
+@router.get(
+    "/products/{product_id}",
+    response_model=ProductDetailResponse,
+)
+async def get_product(
+    product_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> ProductDetailResponse:
+    service = ProductService(db)
+    product = await service.get_product(product_id)
+    if not product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Product not found",
+        )
+    return ProductDetailResponse.model_validate(product)
+
+
+@router.post("/products/sync")
+async def sync_products(
+    workspace_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+    shop_id: uuid.UUID | None = None,
+) -> dict:
+    shop_service = ShopService(db)
+    if shop_id:
+        shop = await shop_service.get_shop(shop_id)
+        if not shop:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Shop not found",
+            )
+        shops = [shop]
+    else:
+        shops = await shop_service.list_shops(workspace_id)
+
+    product_service = ProductService(db)
+    total_synced = 0
+    for shop in shops:
+        count = await product_service.sync_products(shop)
+        total_synced += count
+
+    return {"synced": total_synced}

@@ -37,8 +37,12 @@ celery_app.conf.beat_schedule = {
         "task": "backend.workers.token_refresh.check_marketing_tokens",
         "schedule": crontab(minute=0, hour=6),  # Daily at 6 AM
     },
-    "sync-shop-data": {
+    "sync-shop-orders": {
         "task": "backend.workers.data_sync.sync_shop_orders",
         "schedule": crontab(minute="*/15"),  # Every 15 minutes
+    },
+    "sync-shop-products": {
+        "task": "backend.workers.data_sync.sync_shop_products",
+        "schedule": crontab(minute="*/30"),  # Every 30 minutes
     },
 }

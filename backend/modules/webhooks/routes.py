@@ -57,7 +57,7 @@ async def shop_webhook(
         )
 
     payload = json.loads(body)
-    event_type = payload.get("type", "unknown")
+    event_type = str(payload.get("type", "unknown"))
     idempotency_key = f"shop:{payload.get('event_id', uuid.uuid4().hex)}"
 
     is_new = await _deduplicate(idempotency_key)

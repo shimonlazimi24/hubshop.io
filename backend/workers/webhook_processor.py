@@ -62,11 +62,10 @@ def _get_handler(platform: str, event_type: str):  # type: ignore[no-untyped-def
 
     Returns None if no handler is registered (event is stored but not processed).
     """
-    # Handler registry - populated as domain modules are implemented
+    from backend.modules.commerce.webhook_handlers import COMMERCE_WEBHOOK_HANDLERS
+
     _handlers: dict[str, dict[str, object]] = {
-        "shop": {
-            # Phase 2: order.status_change, product.status_change, etc.
-        },
+        "shop": COMMERCE_WEBHOOK_HANDLERS,
         "developer": {
             # Phase 4: video.publish, etc.
         },
