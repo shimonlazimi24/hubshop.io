@@ -1,6 +1,7 @@
 import uuid
 
 from fastapi import APIRouter, HTTPException, status
+from pydantic import BaseModel
 
 from backend.dependencies import CurrentUser, DBSession
 from backend.modules.advertising.schemas import (
@@ -146,3 +147,99 @@ async def sync_audiences(
         total_synced += count
 
     return {"synced": total_synced}
+
+
+class ShareAudienceRequest(BaseModel):
+    target_advertiser_ids: list[str]
+
+
+class AudienceOverlapRequest(BaseModel):
+    audience_ids: list[uuid.UUID]
+
+
+class UploadAudienceFileRequest(BaseModel):
+    file_data: list[str]
+    hash_type: str = "SHA256"
+
+
+class CreateRuleAudienceRequest(BaseModel):
+    ad_account_id: str
+    name: str
+    rules: list[dict]
+
+
+@router.post("/audiences/{audience_id}/share")
+async def share_audience(
+    workspace_id: uuid.UUID,
+    audience_id: uuid.UUID,
+    body: ShareAudienceRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    service = AudienceService(db)
+    try:
+        return await service.share_audience(
+            workspace_id, audience_id, body.target_advertiser_ids
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
+        ) from exc
+
+
+@router.post("/audiences/overlap")
+async def get_audience_overlap(
+    workspace_id: uuid.UUID,
+    body: AudienceOverlapRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    service = AudienceService(db)
+    try:
+        return await service.get_audience_overlap(workspace_id, body.audience_ids)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)
+        ) from exc
+
+
+@router.post("/audiences/{audience_id}/upload")
+async def upload_audience_file(
+    workspace_id: uuid.UUID,
+    audience_id: uuid.UUID,
+    body: UploadAudienceFileRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    service = AudienceService(db)
+    try:
+        return await service.upload_audience_file(
+            workspace_id, audience_id, body.file_data, body.hash_type
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
+        ) from exc
+
+
+@router.post("/audiences/rule", response_model=AudienceResponse)
+async def create_rule_audience(
+    workspace_id: uuid.UUID,
+    body: CreateRuleAudienceRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> AudienceResponse:
+    account_service = AdAccountService(db)
+    ad_account = await account_service.get_ad_account_by_advertiser_id(
+        body.ad_account_id
+    )
+    if not ad_account:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Ad account not found"
+        )
+
+    service = AudienceService(db)
+    audience = await service.create_rule_audience(
+        workspace_id, ad_account, name=body.name, rules=body.rules
+    )
+    return AudienceResponse.model_validate(audience)

@@ -81,4 +81,18 @@ celery_app.conf.beat_schedule = {
         "task": "backend.workers.analytics_sync.run_scheduled_reports",
         "schedule": crontab(minute="*/30"),  # Every 30 minutes, check for due reports
     },
+    # Intelligence sync
+    "sync-trends": {
+        "task": "backend.workers.intelligence_sync.sync_trends",
+        "schedule": crontab(minute=0, hour="*/4"),  # Every 4 hours
+    },
+    "sync-competitor-content": {
+        "task": "backend.workers.intelligence_sync.sync_competitor_content",
+        "schedule": crontab(minute=0, hour="*/6"),  # Every 6 hours
+    },
+    # LIVE sync
+    "cleanup-stale-live-sessions": {
+        "task": "backend.workers.live_sync.cleanup_stale_sessions",
+        "schedule": crontab(minute=0),  # Every hour
+    },
 }

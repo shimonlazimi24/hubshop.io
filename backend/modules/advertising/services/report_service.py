@@ -166,6 +166,57 @@ class ReportService:
         )
         return resp.get("data", {})
 
+    async def cancel_async_report(
+        self, ad_account: AdAccount, task_id: str
+    ) -> dict:
+        """Cancel an async report task."""
+        account_service = AdAccountService(self._session)
+        gateway = await account_service.build_gateway_for_ad_account(ad_account)
+
+        resp = await gateway.post(
+            "/report/task/cancel/",
+            json_body={
+                "advertiser_id": ad_account.advertiser_id,
+                "task_id": task_id,
+            },
+        )
+        return {
+            "task_id": task_id,
+            "cancelled": True,
+            "data": resp.get("data", {}),
+        }
+
+    async def get_gmv_max_report(
+        self,
+        ad_account: AdAccount,
+        *,
+        date_start: str,
+        date_end: str,
+        metrics: list[str] | None = None,
+        dimensions: list[str] | None = None,
+        campaign_ids: list[str] | None = None,
+    ) -> dict:
+        """Get GMV Max performance report for TikTok Shop campaigns."""
+        account_service = AdAccountService(self._session)
+        gateway = await account_service.build_gateway_for_ad_account(ad_account)
+
+        params: dict[str, str] = {
+            "advertiser_id": ad_account.advertiser_id,
+            "start_date": date_start,
+            "end_date": date_end,
+        }
+        if metrics:
+            params["metrics"] = str(metrics)
+        if dimensions:
+            params["dimensions"] = str(dimensions)
+        if campaign_ids:
+            params["campaign_ids"] = str(campaign_ids)
+
+        resp = await gateway.get("/report/gmv_max/get/", params=params)
+        data = resp.get("data", {})
+        rows = data.get("list", [])
+        return {"rows": rows, "total_rows": len(rows)}
+
     async def _find_cache(
         self,
         ad_account_id: uuid.UUID,

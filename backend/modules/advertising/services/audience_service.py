@@ -1,3 +1,4 @@
+import hashlib
 import logging
 import uuid
 
@@ -201,4 +202,137 @@ class AudienceService:
             self._session.add(audience)
             await self._session.flush()
 
+        return audience
+
+    async def share_audience(
+        self,
+        workspace_id: uuid.UUID,
+        audience_id: uuid.UUID,
+        target_advertiser_ids: list[str],
+    ) -> dict:
+        """Share an audience with other advertiser accounts."""
+        audience = await self.get_audience(audience_id)
+        if not audience:
+            raise ValueError(f"Audience {audience_id} not found")
+
+        account_service = AdAccountService(self._session)
+        ad_account = await account_service.get_ad_account(audience.ad_account_id)
+        if not ad_account:
+            raise ValueError(f"Ad account not found for audience {audience_id}")
+
+        gateway = await account_service.build_gateway_for_ad_account(ad_account)
+        resp = await gateway.post(
+            "/audience/share/",
+            json_body={
+                "advertiser_id": ad_account.advertiser_id,
+                "custom_audience_ids": [audience.platform_audience_id],
+                "target_advertiser_ids": target_advertiser_ids,
+            },
+        )
+        return resp.get("data", {})
+
+    async def get_audience_overlap(
+        self,
+        workspace_id: uuid.UUID,
+        audience_ids: list[uuid.UUID],
+    ) -> dict:
+        """Get overlap analysis between multiple audiences."""
+        if len(audience_ids) < 2:
+            raise ValueError("At least 2 audience IDs required for overlap analysis")
+
+        # Resolve platform IDs and get an ad account for gateway
+        platform_ids: list[str] = []
+        ad_account: AdAccount | None = None
+        for aid in audience_ids:
+            audience = await self.get_audience(aid)
+            if not audience:
+                raise ValueError(f"Audience {aid} not found")
+            platform_ids.append(audience.platform_audience_id)
+            if ad_account is None:
+                account_service = AdAccountService(self._session)
+                ad_account = await account_service.get_ad_account(
+                    audience.ad_account_id
+                )
+
+        if not ad_account:
+            raise ValueError("No ad account found for audiences")
+
+        account_service = AdAccountService(self._session)
+        gateway = await account_service.build_gateway_for_ad_account(ad_account)
+        resp = await gateway.post(
+            "/audience/overlap/",
+            json_body={
+                "advertiser_id": ad_account.advertiser_id,
+                "custom_audience_ids": platform_ids,
+            },
+        )
+        return resp.get("data", {})
+
+    async def upload_audience_file(
+        self,
+        workspace_id: uuid.UUID,
+        audience_id: uuid.UUID,
+        file_data: list[str],
+        hash_type: str = "SHA256",
+    ) -> dict:
+        """Upload PII data for a custom audience, hashing with SHA-256 before sending."""
+        audience = await self.get_audience(audience_id)
+        if not audience:
+            raise ValueError(f"Audience {audience_id} not found")
+
+        account_service = AdAccountService(self._session)
+        ad_account = await account_service.get_ad_account(audience.ad_account_id)
+        if not ad_account:
+            raise ValueError(f"Ad account not found for audience {audience_id}")
+
+        # SHA-256 hash all PII entries before sending
+        hashed_data = [
+            hashlib.sha256(entry.strip().lower().encode()).hexdigest()
+            for entry in file_data
+        ]
+
+        gateway = await account_service.build_gateway_for_ad_account(ad_account)
+        resp = await gateway.post(
+            "/dmp/custom_audience/file/upload/",
+            json_body={
+                "advertiser_id": ad_account.advertiser_id,
+                "custom_audience_id": audience.platform_audience_id,
+                "file_signature": hashed_data,
+                "signature_type": hash_type,
+            },
+        )
+        return resp.get("data", {})
+
+    async def create_rule_audience(
+        self,
+        workspace_id: uuid.UUID,
+        ad_account: AdAccount,
+        *,
+        name: str,
+        rules: list[dict],
+    ) -> Audience:
+        """Create a rule-based audience."""
+        account_service = AdAccountService(self._session)
+        gateway = await account_service.build_gateway_for_ad_account(ad_account)
+
+        body: dict = {
+            "advertiser_id": ad_account.advertiser_id,
+            "custom_audience_name": name,
+            "rules": rules,
+        }
+
+        resp = await gateway.post("/audience/rule/create/", json_body=body)
+        data = resp.get("data", {})
+        platform_id = str(data.get("custom_audience_id", ""))
+
+        audience = Audience(
+            workspace_id=workspace_id,
+            ad_account_id=ad_account.id,
+            platform_audience_id=platform_id,
+            name=name,
+            audience_type="RULE",
+            detail_json=data,
+        )
+        self._session.add(audience)
+        await self._session.flush()
         return audience

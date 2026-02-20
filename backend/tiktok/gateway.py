@@ -3,12 +3,16 @@ from typing import Any
 from backend.db.models.platform import Platform
 from backend.tiktok.circuit_breaker import CircuitBreaker, CircuitBreakerOpen
 from backend.tiktok.developer.client import TikTokDeveloperClient
+from backend.tiktok.live.client import TikTokLiveClientWrapper
 from backend.tiktok.marketing.client import TikTokMarketingClient
 from backend.tiktok.rate_limiter import (
     developer_rate_limiter,
+    live_rate_limiter,
     marketing_rate_limiter,
+    research_rate_limiter,
     shop_rate_limiter,
 )
+from backend.tiktok.research.client import TikTokResearchClient
 from backend.tiktok.retry import with_retry
 from backend.tiktok.shop.client import TikTokShopClient
 
@@ -17,13 +21,26 @@ _circuit_breakers: dict[Platform, CircuitBreaker] = {
     Platform.SHOP: CircuitBreaker(),
     Platform.DEVELOPER: CircuitBreaker(),
     Platform.MARKETING: CircuitBreaker(),
+    Platform.LIVE: CircuitBreaker(),
+    Platform.RESEARCH: CircuitBreaker(),
 }
 
 _rate_limiters = {
     Platform.SHOP: shop_rate_limiter,
     Platform.DEVELOPER: developer_rate_limiter,
     Platform.MARKETING: marketing_rate_limiter,
+    Platform.LIVE: live_rate_limiter,
+    Platform.RESEARCH: research_rate_limiter,
 }
+
+# Type alias for all supported client types
+PlatformClient = (
+    TikTokShopClient
+    | TikTokDeveloperClient
+    | TikTokMarketingClient
+    | TikTokResearchClient
+    | TikTokLiveClientWrapper
+)
 
 
 class PlatformGateway:
@@ -36,7 +53,7 @@ class PlatformGateway:
         self,
         platform: Platform,
         account_id: str,
-        client: TikTokShopClient | TikTokDeveloperClient | TikTokMarketingClient,
+        client: PlatformClient,
     ) -> None:
         self._platform = platform
         self._account_id = account_id

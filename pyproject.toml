@@ -18,6 +18,8 @@ dependencies = [
     "httpx>=0.28.0",
     "cryptography>=44.0.0",
     "python-multipart>=0.0.17",
+    "tiktok-business-api-sdk>=1.0.0",
+    "TikTokLive>=6.0.0",
 ]
 
 [project.optional-dependencies]

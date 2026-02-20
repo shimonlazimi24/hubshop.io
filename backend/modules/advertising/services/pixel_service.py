@@ -1,3 +1,4 @@
+import hashlib
 import logging
 import uuid
 
@@ -158,3 +159,96 @@ class PixelService:
             await self._session.flush()
 
         return pixel
+
+    @staticmethod
+    def _hash_pii(value: str) -> str:
+        """SHA-256 hash a PII value (email, phone) after normalizing."""
+        return hashlib.sha256(value.strip().lower().encode()).hexdigest()
+
+    @classmethod
+    def _hash_user_data(cls, user_data: dict) -> dict:
+        """Hash PII fields in user data before sending to Events API."""
+        hashed = dict(user_data)
+        pii_fields = ("email", "phone", "phone_number")
+        for field in pii_fields:
+            if field in hashed and hashed[field]:
+                hashed[field] = cls._hash_pii(hashed[field])
+        return hashed
+
+    async def track_event(
+        self,
+        workspace_id: uuid.UUID,
+        pixel_id: uuid.UUID,
+        event_type: str,
+        event_data: dict,
+        user_data: dict | None = None,
+    ) -> dict:
+        """Track a single server-side event via the Events API."""
+        pixel = await self.get_pixel(pixel_id)
+        if not pixel:
+            raise ValueError(f"Pixel {pixel_id} not found")
+
+        account_service = AdAccountService(self._session)
+        ad_account = await account_service.get_ad_account(pixel.ad_account_id)
+        if not ad_account:
+            raise ValueError(f"Ad account not found for pixel {pixel_id}")
+
+        gateway = await account_service.build_gateway_for_ad_account(ad_account)
+
+        event_payload: dict = {
+            "pixel_code": pixel.platform_pixel_id,
+            "event": event_type,
+            "event_id": str(uuid.uuid4()),
+            "properties": event_data,
+        }
+        if user_data:
+            event_payload["context"] = {"user": self._hash_user_data(user_data)}
+
+        resp = await gateway.post(
+            "/pixel/track/",
+            json_body={
+                "pixel_code": pixel.platform_pixel_id,
+                "data": [event_payload],
+            },
+        )
+        return resp.get("data", {})
+
+    async def batch_track_events(
+        self,
+        workspace_id: uuid.UUID,
+        pixel_id: uuid.UUID,
+        events: list[dict],
+    ) -> dict:
+        """Track multiple server-side events in a single batch request."""
+        pixel = await self.get_pixel(pixel_id)
+        if not pixel:
+            raise ValueError(f"Pixel {pixel_id} not found")
+
+        account_service = AdAccountService(self._session)
+        ad_account = await account_service.get_ad_account(pixel.ad_account_id)
+        if not ad_account:
+            raise ValueError(f"Ad account not found for pixel {pixel_id}")
+
+        gateway = await account_service.build_gateway_for_ad_account(ad_account)
+
+        event_payloads = []
+        for event in events:
+            payload: dict = {
+                "pixel_code": pixel.platform_pixel_id,
+                "event": event.get("event_type", ""),
+                "event_id": event.get("event_id", str(uuid.uuid4())),
+                "properties": event.get("event_data", {}),
+            }
+            user_data = event.get("user_data")
+            if user_data:
+                payload["context"] = {"user": self._hash_user_data(user_data)}
+            event_payloads.append(payload)
+
+        resp = await gateway.post(
+            "/pixel/batch/",
+            json_body={
+                "pixel_code": pixel.platform_pixel_id,
+                "data": event_payloads,
+            },
+        )
+        return resp.get("data", {})

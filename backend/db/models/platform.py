@@ -13,6 +13,7 @@ class Platform(str, enum.Enum):
     DEVELOPER = "developer"
     MARKETING = "marketing"
     LIVE = "live"
+    RESEARCH = "research"
 
 
 class AccountStatus(str, enum.Enum):

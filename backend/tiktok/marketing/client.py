@@ -1,10 +1,16 @@
+"""TikTok Marketing API client — SDK adapter with raw HTTP fallback."""
+
 from typing import Any
 
 import httpx
 
 
 class TikTokMarketingClient:
-    """TikTok Marketing API client with custom Access-Token header."""
+    """TikTok Marketing API client with optional official SDK support.
+
+    Maintains backward-compatible .get()/.post() interface for PlatformGateway
+    while exposing the official SDK via .sdk property when available.
+    """
 
     BASE_URL = "https://business-api.tiktok.com/open_api/v1.3"
 
@@ -18,6 +24,26 @@ class TikTokMarketingClient:
                 "Content-Type": "application/json",
             },
         )
+
+        # Try to initialize official SDK for typed API access
+        self.sdk_config: Any = None
+        self._sdk_client: Any = None
+        try:
+            from business_api_client import ApiClient, Configuration
+
+            self.sdk_config = Configuration()
+            self.sdk_config.access_token = access_token
+            self._sdk_client = ApiClient(configuration=self.sdk_config)
+        except ImportError:
+            pass  # SDK not available, raw HTTP fallback
+
+    @property
+    def sdk(self) -> Any:
+        """Direct access to SDK ApiClient for typed API classes.
+
+        Returns None if the official SDK is not installed.
+        """
+        return self._sdk_client
 
     async def request(
         self,

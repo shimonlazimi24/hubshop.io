@@ -64,3 +64,9 @@ developer_rate_limiter = TokenBucketRateLimiter(
 marketing_rate_limiter = TokenBucketRateLimiter(
     max_tokens=10, refill_rate=10.0, key_prefix="marketing"  # Conservative default
 )
+research_rate_limiter = TokenBucketRateLimiter(
+    max_tokens=5, refill_rate=5.0, key_prefix="research"  # Research API: 5 QPS
+)
+live_rate_limiter = TokenBucketRateLimiter(
+    max_tokens=100, refill_rate=100.0, key_prefix="live"  # LIVE has no formal limit
+)
