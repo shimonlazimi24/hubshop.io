@@ -11,6 +11,15 @@ from backend.modules.advertising.routes.comments import router as comments_route
 from backend.modules.advertising.routes.creatives import router as creatives_router
 from backend.modules.advertising.routes.pixels import router as pixels_router
 from backend.modules.advertising.routes.reports import router as reports_router
+from backend.modules.advertising.routes.change_log import router as change_log_router
+from backend.modules.advertising.routes.custom_conversions import (
+    router as custom_conversions_router,
+)
+from backend.modules.advertising.routes.identities import router as identities_router
+from backend.modules.advertising.routes.leads import router as leads_router
+from backend.modules.advertising.routes.search import router as search_router
+from backend.modules.advertising.routes.split_tests import router as split_tests_router
+from backend.modules.advertising.routes.symphony import router as symphony_router
 
 router = APIRouter(prefix="/ads", tags=["advertising"])
 
@@ -25,3 +34,10 @@ router.include_router(catalogs_router)
 router.include_router(creatives_router)
 router.include_router(automation_router)
 router.include_router(comments_router)
+router.include_router(search_router)
+router.include_router(symphony_router)
+router.include_router(split_tests_router)
+router.include_router(leads_router)
+router.include_router(identities_router)
+router.include_router(change_log_router)
+router.include_router(custom_conversions_router)
