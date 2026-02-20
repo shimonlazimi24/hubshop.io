@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Megaphone, Layers, Image, BarChart3, UsersRound, Crosshair, BookOpen, Zap, Activity, MessageSquare } from "lucide-react";
+import { Megaphone, Layers, Image, BarChart3, UsersRound, Crosshair, BookOpen, Zap, Activity, MessageSquare, Search, Wand2, FlaskConical, UserPlus, Fingerprint } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { cn } from "@/lib/utils";
 
@@ -76,6 +76,41 @@ const TABS = [
     icon: MessageSquare,
     exact: [],
     prefix: ["/ads/comments"],
+  },
+  {
+    href: "/ads/search",
+    label: "Search Ads",
+    icon: Search,
+    exact: [],
+    prefix: ["/ads/search"],
+  },
+  {
+    href: "/ads/symphony",
+    label: "Symphony AI",
+    icon: Wand2,
+    exact: [],
+    prefix: ["/ads/symphony"],
+  },
+  {
+    href: "/ads/split-tests",
+    label: "Split Tests",
+    icon: FlaskConical,
+    exact: [],
+    prefix: ["/ads/split-tests"],
+  },
+  {
+    href: "/ads/leads",
+    label: "Leads",
+    icon: UserPlus,
+    exact: [],
+    prefix: ["/ads/leads"],
+  },
+  {
+    href: "/ads/identities",
+    label: "Identities",
+    icon: Fingerprint,
+    exact: [],
+    prefix: ["/ads/identities"],
   },
 ];
 

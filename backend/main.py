@@ -15,6 +15,8 @@ from backend.modules.content.routes import router as content_router
 from backend.modules.creators.routes import router as creators_router
 from backend.modules.intelligence.routes import router as intelligence_router
 from backend.modules.live.routes import router as live_router
+from backend.modules.messaging.routes import router as messaging_router
+from backend.modules.organic.routes import router as organic_router
 from backend.modules.webhooks.routes import router as webhooks_router
 
 logging.basicConfig(
@@ -53,6 +55,8 @@ def create_app() -> FastAPI:
     app.include_router(creators_router, prefix=api_prefix)
     app.include_router(intelligence_router, prefix=api_prefix)
     app.include_router(live_router, prefix=api_prefix)
+    app.include_router(messaging_router, prefix=api_prefix)
+    app.include_router(organic_router, prefix=api_prefix)
     app.include_router(analytics_router, prefix=api_prefix)
 
     # Webhooks at root (no /api prefix - external callbacks)

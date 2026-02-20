@@ -95,4 +95,13 @@ celery_app.conf.beat_schedule = {
         "task": "backend.workers.live_sync.cleanup_stale_sessions",
         "schedule": crontab(minute=0),  # Every hour
     },
+    # Messaging sync
+    "sync-conversations": {
+        "task": "backend.workers.messaging_sync.sync_conversations",
+        "schedule": crontab(minute="*/30"),  # Every 30 minutes
+    },
+    "sync-mentions": {
+        "task": "backend.workers.messaging_sync.sync_mentions",
+        "schedule": crontab(minute=0, hour="*/2"),  # Every 2 hours
+    },
 }
