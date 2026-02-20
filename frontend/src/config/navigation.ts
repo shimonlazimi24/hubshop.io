@@ -7,6 +7,8 @@ import {
   Users,
   BarChart3,
   Settings,
+  Lightbulb,
+  Radio,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -25,6 +27,8 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/ads", label: "Advertising", icon: Megaphone, group: "Modules" },
   { href: "/content", label: "Content", icon: Play, group: "Modules" },
   { href: "/creators", label: "Creators", icon: Users, group: "Modules" },
+  { href: "/live", label: "LIVE", icon: Radio, group: "Modules" },
+  { href: "/intelligence", label: "Intelligence", icon: Lightbulb, group: "Insights" },
   { href: "/analytics", label: "Analytics", icon: BarChart3, group: "Insights" },
 ];
 

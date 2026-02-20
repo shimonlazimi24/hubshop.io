@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Megaphone, Layers, Image, BarChart3, UsersRound, Crosshair, BookOpen } from "lucide-react";
+import { Megaphone, Layers, Image, BarChart3, UsersRound, Crosshair, BookOpen, Zap, Activity, MessageSquare } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { cn } from "@/lib/utils";
 
@@ -55,6 +55,27 @@ const TABS = [
     icon: BookOpen,
     exact: [],
     prefix: ["/ads/catalogs"],
+  },
+  {
+    href: "/ads/automation",
+    label: "Automation",
+    icon: Zap,
+    exact: [],
+    prefix: ["/ads/automation"],
+  },
+  {
+    href: "/ads/events",
+    label: "Events",
+    icon: Activity,
+    exact: [],
+    prefix: ["/ads/events"],
+  },
+  {
+    href: "/ads/comments",
+    label: "Comments",
+    icon: MessageSquare,
+    exact: [],
+    prefix: ["/ads/comments"],
   },
 ];
 
