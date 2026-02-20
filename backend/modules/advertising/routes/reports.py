@@ -1,6 +1,7 @@
 import uuid
 
 from fastapi import APIRouter, HTTPException, status
+from pydantic import BaseModel
 
 from backend.dependencies import CurrentUser, DBSession
 from backend.modules.advertising.schemas import (
@@ -126,3 +127,69 @@ async def download_async_report(
 
     service = ReportService(db)
     return await service.download_async_report(ad_account, task_id)
+
+
+@router.post("/reports/async/{task_id}/cancel")
+async def cancel_async_report(
+    task_id: str,
+    ad_account_id: str,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    account_service = AdAccountService(db)
+    ad_account = await account_service.get_ad_account_by_advertiser_id(
+        ad_account_id
+    )
+    if not ad_account:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Ad account not found",
+        )
+
+    service = ReportService(db)
+    return await service.cancel_async_report(ad_account, task_id)
+
+
+class GmvMaxReportRequest(BaseModel):
+    ad_account_id: str
+    date_start: str
+    date_end: str
+    metrics: list[str] = []
+    dimensions: list[str] = []
+    campaign_ids: list[str] = []
+
+
+@router.post("/reports/gmv-max", response_model=ReportResponse)
+async def get_gmv_max_report(
+    body: GmvMaxReportRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> ReportResponse:
+    account_service = AdAccountService(db)
+    ad_account = await account_service.get_ad_account_by_advertiser_id(
+        body.ad_account_id
+    )
+    if not ad_account:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Ad account not found",
+        )
+
+    service = ReportService(db)
+    report_data = await service.get_gmv_max_report(
+        ad_account,
+        date_start=body.date_start,
+        date_end=body.date_end,
+        metrics=body.metrics or None,
+        dimensions=body.dimensions or None,
+        campaign_ids=body.campaign_ids or None,
+    )
+
+    rows = [
+        ReportRowResponse(
+            dimensions=row.get("dimensions", {}),
+            metrics=row.get("metrics", {}),
+        )
+        for row in report_data.get("rows", [])
+    ]
+    return ReportResponse(rows=rows, total_rows=len(rows))

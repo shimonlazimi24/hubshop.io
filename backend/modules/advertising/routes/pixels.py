@@ -1,6 +1,7 @@
 import uuid
 
 from fastapi import APIRouter, HTTPException, status
+from pydantic import BaseModel
 
 from backend.dependencies import CurrentUser, DBSession
 from backend.modules.advertising.schemas import CreatePixelRequest, PixelResponse
@@ -79,3 +80,59 @@ async def get_pixel_code(
 
     code = await service.get_pixel_code(pixel, ad_account)
     return {"pixel_id": str(pixel.id), "pixel_code": code}
+
+
+class TrackEventRequest(BaseModel):
+    event_type: str
+    event_data: dict
+    user_data: dict | None = None
+
+
+class BatchTrackEventsRequest(BaseModel):
+    events: list[dict]
+
+
+@router.post("/pixels/{pixel_id}/track")
+async def track_event(
+    pixel_id: uuid.UUID,
+    workspace_id: uuid.UUID,
+    body: TrackEventRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    service = PixelService(db)
+    try:
+        result = await service.track_event(
+            workspace_id,
+            pixel_id,
+            event_type=body.event_type,
+            event_data=body.event_data,
+            user_data=body.user_data,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
+        ) from exc
+    return result
+
+
+@router.post("/pixels/{pixel_id}/batch")
+async def batch_track_events(
+    pixel_id: uuid.UUID,
+    workspace_id: uuid.UUID,
+    body: BatchTrackEventsRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    service = PixelService(db)
+    try:
+        result = await service.batch_track_events(
+            workspace_id,
+            pixel_id,
+            events=body.events,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
+        ) from exc
+    return result
