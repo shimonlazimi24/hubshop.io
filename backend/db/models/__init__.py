@@ -72,6 +72,20 @@ from backend.db.models.creators import (
     InvitationStatus,
 )
 from backend.db.models.finance import Payment, Settlement, Transaction
+from backend.db.models.intelligence import (
+    CompetitorContent,
+    CompetitorTracker,
+    ResearchQuery,
+    TrendSnapshot,
+    TrendType,
+)
+from backend.db.models.live import (
+    LiveAnalytics,
+    LiveEvent,
+    LiveEventType,
+    LiveSession,
+    SessionStatus,
+)
 from backend.db.models.organization import Membership, Organization, Workspace
 from backend.db.models.platform import (
     ConnectedAccount,
@@ -101,6 +115,8 @@ __all__ = [
     "Catalog",
     "CollaborationStatus",
     "CollaborationType",
+    "CompetitorContent",
+    "CompetitorTracker",
     "ConnectedAccount",
     "ContentAuthorization",
     "ContentPublishJob",
@@ -112,6 +128,10 @@ __all__ = [
     "CreatorTier",
     "InvitationStatus",
     "InviteStatus",
+    "LiveAnalytics",
+    "LiveEvent",
+    "LiveEventType",
+    "LiveSession",
     "Membership",
     "Notification",
     "NotificationChannel",
@@ -137,16 +157,20 @@ __all__ = [
     "ReportCache",
     "ReportFormat",
     "ReportFrequency",
+    "ResearchQuery",
     "ReturnRequest",
     "ReturnStatus",
     "ReturnType",
     "ScheduledReport",
+    "SessionStatus",
     "Settlement",
     "Shop",
     "SyncCursor",
     "TargetCollaboration",
     "TokenVault",
     "Transaction",
+    "TrendSnapshot",
+    "TrendType",
     "UnifiedKpiSnapshot",
     "User",
     "Video",
