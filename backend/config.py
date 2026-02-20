@@ -47,6 +47,10 @@ class Settings(BaseSettings):
     tiktok_marketing_app_id: str = ""
     tiktok_marketing_app_secret: str = ""
 
+    # TikTok Research API
+    tiktok_research_client_key: str = ""
+    tiktok_research_client_secret: str = ""
+
     # Celery
     celery_broker_url: str = "redis://localhost:6379/1"
     celery_result_backend: str = "redis://localhost:6379/2"
