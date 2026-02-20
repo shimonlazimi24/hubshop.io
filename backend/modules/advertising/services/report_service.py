@@ -1,6 +1,6 @@
 import logging
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -29,7 +29,7 @@ class ReportService:
         dimensions: list[str] | None = None,
     ) -> dict:
         """Check cache, then call /v1.3/report/integrated/get/ if miss."""
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
 
         # Check cache
         cache = await self._find_cache(

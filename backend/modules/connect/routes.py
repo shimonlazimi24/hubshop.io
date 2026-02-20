@@ -7,7 +7,12 @@ from pydantic import BaseModel
 from sqlalchemy import select
 
 from backend.config import settings
-from backend.db.models.platform import AccountStatus, ConnectedAccount, Platform, TokenVault
+from backend.db.models.platform import (
+    AccountStatus,
+    ConnectedAccount,
+    Platform,
+    TokenVault,
+)
 from backend.dependencies import CurrentUser, DBSession
 from backend.utils.crypto import encrypt_token
 

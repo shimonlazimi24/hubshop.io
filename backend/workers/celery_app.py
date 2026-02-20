@@ -61,4 +61,24 @@ celery_app.conf.beat_schedule = {
         "task": "backend.workers.ad_sync.sync_ads",
         "schedule": crontab(minute="5,35"),  # Every 30 minutes, offset
     },
+    "sync-all-videos": {
+        "task": "backend.workers.content_sync.sync_all_videos",
+        "schedule": crontab(minute="*/30"),  # Every 30 minutes
+    },
+    "sync-video-metrics": {
+        "task": "backend.workers.content_sync.sync_video_metrics",
+        "schedule": crontab(minute=0, hour="*/6"),  # Every 6 hours
+    },
+    "refresh-creator-profiles": {
+        "task": "backend.workers.creator_sync.refresh_creator_profiles",
+        "schedule": crontab(minute=0, hour="*/12"),  # Every 12 hours
+    },
+    "take-daily-kpi-snapshots": {
+        "task": "backend.workers.analytics_sync.take_daily_kpi_snapshots",
+        "schedule": crontab(minute=0, hour=1),  # Daily at 1 AM
+    },
+    "run-scheduled-reports": {
+        "task": "backend.workers.analytics_sync.run_scheduled_reports",
+        "schedule": crontab(minute="*/30"),  # Every 30 minutes, check for due reports
+    },
 }

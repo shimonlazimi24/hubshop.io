@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 
 from fastapi import APIRouter
 
@@ -25,7 +25,7 @@ async def get_summary(
     db: DBSession,
     days: int = 30,
 ) -> RevenueSummaryResponse:
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
     period_start = now - timedelta(days=days)
     service = CommerceAnalyticsService(db)
     data = await service.get_revenue_summary(
@@ -44,7 +44,7 @@ async def get_revenue(
     db: DBSession,
     days: int = 30,
 ) -> list[RevenueTimeseriesPoint]:
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
     period_start = now - timedelta(days=days)
     service = CommerceAnalyticsService(db)
     data = await service.get_revenue_timeseries(

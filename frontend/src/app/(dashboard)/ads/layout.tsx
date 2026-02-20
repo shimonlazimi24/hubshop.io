@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Megaphone, Layers, Image, BarChart3 } from "lucide-react";
+import { Megaphone, Layers, Image, BarChart3, UsersRound, Crosshair, BookOpen } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { cn } from "@/lib/utils";
 
@@ -34,6 +34,27 @@ const TABS = [
     icon: BarChart3,
     exact: [],
     prefix: ["/ads/reports"],
+  },
+  {
+    href: "/ads/audiences",
+    label: "Audiences",
+    icon: UsersRound,
+    exact: [],
+    prefix: ["/ads/audiences"],
+  },
+  {
+    href: "/ads/pixels",
+    label: "Pixels",
+    icon: Crosshair,
+    exact: [],
+    prefix: ["/ads/pixels"],
+  },
+  {
+    href: "/ads/catalogs",
+    label: "Catalogs",
+    icon: BookOpen,
+    exact: [],
+    prefix: ["/ads/catalogs"],
   },
 ];
 

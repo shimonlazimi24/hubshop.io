@@ -1,10 +1,34 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Sparkles, Clock, TrendingUp, Zap } from "lucide-react";
+import { Clock, TrendingUp, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+
+function OneRing({ id }: { id: string }) {
+  const pathId = `ring-path-${id}`;
+  return (
+    <div className="one-ring" style={{ marginLeft: -32, marginTop: -32 }}>
+      <svg
+        className="one-ring-text"
+        viewBox="0 0 64 64"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <defs>
+          <path
+            id={pathId}
+            d="M 32,9 a 23,23 0 1,1 0,46 a 23,23 0 1,1 0,-46"
+          />
+        </defs>
+        <text fontSize="5.2" letterSpacing="0.8" fill="#4a3000">
+          <textPath href={`#${pathId}`}>
+            ONE PLATFORM TO RULE THEM ALL ·
+          </textPath>
+        </text>
+      </svg>
+    </div>
+  );
+}
 
 const valueProps = [
   { icon: Clock, text: "Save 10+ hours/week" },
@@ -33,14 +57,40 @@ export function Hero() {
             transition={{ duration: 0.7, ease: "easeOut" }}
             className="flex flex-col items-start"
           >
-            <Badge className="mb-6">
-              <Sparkles className="h-3.5 w-3.5 text-coral" />
-              All-in-one TikTok platform
-            </Badge>
+            {/* Badge with orbiting One Ring */}
+            <div className="relative mb-6 inline-flex items-center justify-center">
+              <span className="relative z-10 inline-flex items-center gap-1.5 rounded-full bg-surface px-5 py-2 text-sm font-semibold text-foreground-secondary border border-border">
+                One platform to rule them all
+              </span>
+
+              {/* Front ring layer — visible when ring passes in front of text */}
+              <div
+                className="ring-orbit-layer absolute top-1/2 left-1/2 pointer-events-none"
+                style={{
+                  zIndex: 20,
+                  animation:
+                    "ring-orbit-3d 7s linear infinite, ring-show-front 7s linear infinite",
+                }}
+              >
+                <OneRing id="front" />
+              </div>
+
+              {/* Back ring layer — visible when ring passes behind text */}
+              <div
+                className="ring-orbit-layer absolute top-1/2 left-1/2 pointer-events-none"
+                style={{
+                  zIndex: 0,
+                  animation:
+                    "ring-orbit-3d 7s linear infinite, ring-show-back 7s linear infinite",
+                }}
+              >
+                <OneRing id="back" />
+              </div>
+            </div>
 
             <h1 className="text-5xl font-extrabold leading-[1.1] tracking-tight text-foreground sm:text-6xl lg:text-7xl">
-              Your Entire TikTok Business.{" "}
-              <span className="gradient-text">One Platform.</span>
+              One Platform to{" "}
+              <span className="gradient-text">Rule Them All.</span>
             </h1>
 
             <p className="mt-6 max-w-lg text-lg leading-relaxed text-foreground-secondary">

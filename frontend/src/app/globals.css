@@ -88,6 +88,13 @@ body {
   .animate-scroll-logos {
     animation: none;
   }
+  .one-ring,
+  .one-ring::after {
+    animation: none;
+  }
+  .ring-orbit-layer {
+    animation: none !important;
+  }
 }
 
 /* Grain texture overlay */
@@ -110,4 +117,102 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ===== The One Ring ===== */
+.one-ring {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  position: relative;
+  background: conic-gradient(
+    from 0deg,
+    #ffd700, #b8860b, #daa520, #ffd700, #b8860b, #ffd700
+  );
+  mask: radial-gradient(circle, transparent 42%, black 46%);
+  -webkit-mask: radial-gradient(circle, transparent 42%, black 46%);
+  animation: ring-spin 4s linear infinite;
+}
+
+/* Inscription text overlay */
+.one-ring-text {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  animation: inscription-shine 3s ease-in-out infinite;
+}
+
+.one-ring-text text {
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+@keyframes ring-spin {
+  from { transform: rotateX(20deg) rotateZ(0deg); }
+  to { transform: rotateX(20deg) rotateZ(360deg); }
+}
+
+@keyframes inscription-shine {
+  0%, 100% {
+    opacity: 0.4;
+    filter: none;
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.9));
+  }
+}
+
+/* 3D orbit path around text */
+@keyframes ring-orbit-3d {
+  0%, 100% {
+    transform: translateX(120px) translateY(0px) scale(0.9);
+    filter: brightness(1) drop-shadow(0 0 10px rgba(255, 215, 0, 0.4));
+  }
+  25% {
+    transform: translateX(0px) translateY(30px) scale(1.15);
+    filter: brightness(1.15) drop-shadow(0 0 22px rgba(255, 215, 0, 0.7));
+  }
+  50% {
+    transform: translateX(-120px) translateY(0px) scale(0.9);
+    filter: brightness(1) drop-shadow(0 0 10px rgba(255, 215, 0, 0.4));
+  }
+  75% {
+    transform: translateX(0px) translateY(-30px) scale(0.55);
+    filter: brightness(0.65) drop-shadow(0 0 4px rgba(255, 215, 0, 0.15));
+  }
+}
+
+@media (min-width: 640px) {
+  @keyframes ring-orbit-3d {
+    0%, 100% {
+      transform: translateX(170px) translateY(0px) scale(0.9);
+      filter: brightness(1) drop-shadow(0 0 12px rgba(255, 215, 0, 0.4));
+    }
+    25% {
+      transform: translateX(0px) translateY(32px) scale(1.2);
+      filter: brightness(1.15) drop-shadow(0 0 25px rgba(255, 215, 0, 0.7));
+    }
+    50% {
+      transform: translateX(-170px) translateY(0px) scale(0.9);
+      filter: brightness(1) drop-shadow(0 0 12px rgba(255, 215, 0, 0.4));
+    }
+    75% {
+      transform: translateX(0px) translateY(-32px) scale(0.55);
+      filter: brightness(0.65) drop-shadow(0 0 4px rgba(255, 215, 0, 0.15));
+    }
+  }
+}
+
+/* Front/back layer visibility for z-order trick */
+@keyframes ring-show-front {
+  0%, 46% { opacity: 1; }
+  50%, 96% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes ring-show-back {
+  0%, 46% { opacity: 0; }
+  50%, 96% { opacity: 1; }
+  100% { opacity: 0; }
 }

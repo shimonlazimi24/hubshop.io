@@ -38,12 +38,12 @@ export function Footer() {
                 Frodo
               </span>
             </Link>
+            <p className="mt-1 text-sm font-medium text-foreground-secondary italic">
+              One platform to rule them all.
+            </p>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-foreground-secondary">
               The all-in-one platform for managing your entire TikTok business.
               Shop, Ads, Creators — unified.
-            </p>
-            <p className="mt-6 text-xs text-foreground-secondary">
-              Built with love for TikTok sellers
             </p>
           </div>
 

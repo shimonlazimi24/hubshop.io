@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 
 from sqlalchemy import select
 
@@ -69,7 +69,7 @@ async def _sync_single_shop_orders(session, shop: Shop) -> int:  # type: ignore[
     """Sync orders for a single shop. Returns synced count."""
     cursor = await _get_or_create_cursor(session, shop.id, "orders")
 
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
     now_ts = int(now.timestamp())
 
     if cursor.last_sync_at:
@@ -111,7 +111,7 @@ async def _sync_shop_products() -> None:
 async def _sync_single_shop_products(session, shop: Shop) -> int:  # type: ignore[no-untyped-def]
     """Sync products for a single shop. Returns synced count."""
     cursor = await _get_or_create_cursor(session, shop.id, "products")
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
 
     product_service = ProductService(session)
     synced = await product_service.sync_products(shop)

@@ -226,3 +226,148 @@ class ShippingServiceResponse(BaseModel):
 
 class ReturnActionRequest(BaseModel):
     reason: str | None = None
+
+
+# --- Affiliate ---
+
+
+class AffiliateProductResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    product_id: str
+    commission_rate: str | None = None
+    status: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class AddToMarketplaceRequest(BaseModel):
+    shop_id: str
+    product_id: str
+    commission_rate: str
+
+
+class OpenCollaborationResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    product_id: str
+    commission_rate: str
+    status: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class CreateOpenCollaborationRequest(BaseModel):
+    shop_id: str
+    product_id: str
+    commission_rate: str
+
+
+class TargetCollaborationResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    product_id: str
+    creator_id: str
+    commission_rate: str
+    status: str
+    invite_status: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class CreateTargetCollaborationRequest(BaseModel):
+    shop_id: str
+    product_id: str
+    creator_id: str
+    commission_rate: str
+
+
+class RespondToApplicationRequest(BaseModel):
+    approved: bool
+
+
+# --- Promotions ---
+
+
+class PromotionResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    platform_activity_id: str
+    promotion_type: str
+    title: str
+    status: str
+    start_time: datetime | None = None
+    end_time: datetime | None = None
+    discount_type: str | None = None
+    discount_value: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class CreatePromotionRequest(BaseModel):
+    shop_id: str
+    title: str
+    promotion_type: str
+    start_time: str | None = None
+    end_time: str | None = None
+    discount_type: str | None = None
+    discount_value: str | None = None
+    product_ids: list[str] | None = None
+
+
+class UpdatePromotionRequest(BaseModel):
+    title: str | None = None
+    discount_value: str | None = None
+
+
+# --- Finance ---
+
+
+class SettlementResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    platform_settlement_id: str
+    amount: str
+    currency: str
+    status: str
+    period_start: datetime | None = None
+    period_end: datetime | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class TransactionResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    platform_transaction_id: str
+    transaction_type: str
+    amount: str
+    currency: str
+    order_id: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class PaymentResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    platform_payment_id: str
+    amount: str
+    currency: str
+    status: str
+    created_at: datetime
+    updated_at: datetime
+
+
+# --- Customer Service ---
+
+
+class SendMessageRequest(BaseModel):
+    content: str

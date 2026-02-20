@@ -1,93 +1,141 @@
 "use client";
 
-import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 
 import { getMe, type UserResponse } from "@/lib/api";
 import { clearTokens, getAccessToken, isAuthenticated } from "@/lib/auth";
+import { useSidebarState } from "@/hooks/useSidebarState";
+import { Sidebar } from "@/components/dashboard/sidebar";
+import { TopBar } from "@/components/dashboard/top-bar";
+import { CommandPalette } from "@/components/dashboard/command-palette";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const NAV_ITEMS = [
-  { href: "/overview", label: "Overview", icon: "grid" },
-  { href: "/connect", label: "Connect", icon: "link" },
-  { href: "/commerce", label: "Commerce", icon: "shopping-bag" },
-  { href: "/ads", label: "Advertising", icon: "megaphone" },
-  { href: "/content", label: "Content", icon: "video" },
-  { href: "/creators", label: "Creators", icon: "users" },
-  { href: "/analytics", label: "Analytics", icon: "bar-chart" },
-  { href: "/settings", label: "Settings", icon: "settings" },
-];
+function DashboardSkeleton() {
+  return (
+    <div className="flex h-screen bg-gray-50">
+      {/* Sidebar skeleton */}
+      <div className="hidden md:flex w-64 flex-col border-r border-gray-200 bg-white p-4 gap-4">
+        <Skeleton className="h-8 w-24" />
+        <div className="space-y-2 mt-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-8 w-full" />
+          ))}
+        </div>
+      </div>
+      {/* Main skeleton */}
+      <div className="flex-1 p-8">
+        <Skeleton className="h-6 w-48 mb-6" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-28 w-full rounded-xl" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<UserResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const { collapsed, toggle } = useSidebarState();
 
   useEffect(() => {
+    // DEV MODE: skip auth when backend is not running
+    const isDev = process.env.NODE_ENV === "development";
+
     if (!isAuthenticated()) {
+      if (isDev) {
+        setUser({ id: "dev", email: "admin@frodo.dev", full_name: "Amit Kolton", is_active: true });
+        setLoading(false);
+        return;
+      }
       router.push("/login");
       return;
     }
     const token = getAccessToken();
     if (token) {
-      getMe(token).then(setUser).catch(() => {
-        clearTokens();
-        router.push("/login");
-      });
+      getMe(token)
+        .then(setUser)
+        .catch(() => {
+          if (isDev) {
+            setUser({ id: "dev", email: "admin@frodo.dev", full_name: "Amit Kolton", is_active: true });
+            setLoading(false);
+            return;
+          }
+          clearTokens();
+          router.push("/login");
+        })
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
     }
   }, [router]);
 
-  function handleLogout() {
+  const handleLogout = useCallback(() => {
     clearTokens();
     router.push("/login");
-  }
+  }, [router]);
+
+  // Global Cmd+K shortcut
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setCommandPaletteOpen((prev) => !prev);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  if (loading) return <DashboardSkeleton />;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="flex h-screen overflow-hidden bg-gray-50">
+      {/* Gradient accent line */}
+      <div className="fixed inset-x-0 top-0 z-50 h-0.5 gradient-bg-horizontal" />
+
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
-        <div className="p-6 border-b border-gray-200">
-          <h1 className="text-2xl font-bold text-gray-900">Frodo</h1>
-          <p className="text-xs text-gray-500 mt-1">Unified TikTok Platform</p>
-        </div>
+      <Sidebar
+        collapsed={collapsed}
+        onToggle={toggle}
+        user={user}
+        onLogout={handleLogout}
+      />
 
-        <nav className="flex-1 p-4 space-y-1">
-          {NAV_ITEMS.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  isActive
-                    ? "bg-blue-50 text-blue-700"
-                    : "text-gray-700 hover:bg-gray-100"
-                }`}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+      {/* Main area */}
+      <div className="flex flex-1 flex-col overflow-hidden pt-0.5">
+        <TopBar
+          onOpenCommandPalette={() => setCommandPaletteOpen(true)}
+          user={user}
+          onLogout={handleLogout}
+        />
 
-        <div className="p-4 border-t border-gray-200">
-          {user && (
-            <div className="mb-3">
-              <p className="text-sm font-medium text-gray-900">{user.full_name}</p>
-              <p className="text-xs text-gray-500">{user.email}</p>
-            </div>
-          )}
-          <button
-            onClick={handleLogout}
-            className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md"
+        {/* Page content with subtle fade transition */}
+        <main className="flex-1 overflow-y-auto">
+          <motion.div
+            key={pathname}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="p-4 md:p-6 lg:p-8"
           >
-            Sign out
-          </button>
-        </div>
-      </aside>
+            {children}
+          </motion.div>
+        </main>
+      </div>
 
-      {/* Main content */}
-      <main className="flex-1 p-8">{children}</main>
+      {/* Command Palette overlay */}
+      <CommandPalette
+        open={commandPaletteOpen}
+        onClose={() => setCommandPaletteOpen(false)}
+      />
     </div>
   );
 }

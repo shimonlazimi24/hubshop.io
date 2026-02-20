@@ -2,7 +2,6 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
 
-
 # --- Ad Account ---
 
 
@@ -215,3 +214,78 @@ class AsyncReportStatusResponse(BaseModel):
     task_id: str
     status: str
     download_url: str | None = None
+
+
+# --- Audience ---
+
+
+class AudienceResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    platform_audience_id: str
+    name: str
+    audience_type: str
+    size: int | None = None
+    status: str
+    detail_json: dict | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class CreateCustomAudienceRequest(BaseModel):
+    ad_account_id: str
+    name: str
+    file_paths: list[str] | None = None
+
+
+class CreateLookalikeAudienceRequest(BaseModel):
+    ad_account_id: str
+    name: str
+    source_audience_id: str
+    lookalike_ratio: float = 0.01
+
+
+# --- Pixel ---
+
+
+class PixelResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    platform_pixel_id: str
+    name: str
+    pixel_code: str | None = None
+    detail_json: dict | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class CreatePixelRequest(BaseModel):
+    ad_account_id: str
+    name: str
+
+
+# --- Catalog ---
+
+
+class CatalogResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    platform_catalog_id: str
+    name: str
+    product_count: int
+    status: str
+    detail_json: dict | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class CreateCatalogRequest(BaseModel):
+    ad_account_id: str
+    name: str
+
+
+class AddProductsToCatalogRequest(BaseModel):
+    product_ids: list[str]

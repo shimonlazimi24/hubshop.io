@@ -23,10 +23,10 @@ def _run_async(coro):  # type: ignore[no-untyped-def]
 
 async def _sync_all_ad_accounts() -> None:
     """Discover advertiser IDs from Marketing ConnectedAccounts."""
+    from backend.db.models.organization import Workspace
     from backend.modules.advertising.services.ad_account_service import (
         AdAccountService,
     )
-    from backend.db.models.organization import Workspace
 
     async with async_session_factory() as session:
         result = await session.execute(select(Workspace))

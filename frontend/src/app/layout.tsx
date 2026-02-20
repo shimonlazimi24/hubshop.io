@@ -13,13 +13,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Frodo — Your Entire TikTok Business, One Platform",
+  title: "Frodo — One Platform to Rule Them All",
   description:
-    "Connect TikTok Shop, Ads, and Creator tools in one dashboard. Manage orders, campaigns, content, and analytics — stop switching between platforms.",
+    "Frodo unifies TikTok Shop, Ads, and Creator tools into one platform. Manage orders, campaigns, content, and analytics — one platform to rule them all.",
   openGraph: {
-    title: "Frodo — Your Entire TikTok Business, One Platform",
+    title: "Frodo — One Platform to Rule Them All",
     description:
-      "Connect TikTok Shop, Ads, and Creator tools in one dashboard. Manage orders, campaigns, content, and analytics — stop switching between platforms.",
+      "Frodo unifies TikTok Shop, Ads, and Creator tools into one platform. Manage orders, campaigns, content, and analytics — one platform to rule them all.",
     type: "website",
   },
 };

@@ -6,7 +6,12 @@ from sqlalchemy import select
 
 from backend.config import settings
 from backend.db.engine import async_session_factory
-from backend.db.models.platform import AccountStatus, ConnectedAccount, Platform, TokenVault
+from backend.db.models.platform import (
+    AccountStatus,
+    ConnectedAccount,
+    Platform,
+    TokenVault,
+)
 from backend.utils.crypto import decrypt_token, encrypt_token
 from backend.workers.celery_app import celery_app
 

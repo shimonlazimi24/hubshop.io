@@ -8,7 +8,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.db.models.base import Base, TimestampMixin, UUIDMixin
 
-
 # --- Enums ---
 
 
@@ -268,6 +267,101 @@ class AdSyncCursor(Base, UUIDMixin, TimestampMixin):
             "sync_type",
             unique=True,
         ),
+    )
+
+
+class AudienceType(str, enum.Enum):
+    CUSTOM = "CUSTOM"
+    LOOKALIKE = "LOOKALIKE"
+
+
+class Audience(Base, UUIDMixin, TimestampMixin):
+    __tablename__ = "audiences"
+
+    workspace_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("workspaces.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    ad_account_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("ad_accounts.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    platform_audience_id: Mapped[str] = mapped_column(
+        String(255), nullable=False, unique=True
+    )
+    name: Mapped[str] = mapped_column(String(500), nullable=False)
+    audience_type: Mapped[str] = mapped_column(
+        String(50), nullable=False, comment="CUSTOM or LOOKALIKE"
+    )
+    size: Mapped[int | None] = mapped_column(nullable=True)
+    status: Mapped[str] = mapped_column(
+        String(50), nullable=False, default="ENABLE"
+    )
+    detail_json: Mapped[dict | None] = mapped_column(
+        JSONB, nullable=True, comment="Full API snapshot"
+    )
+
+    __table_args__ = (
+        Index("ix_audiences_workspace_type", "workspace_id", "audience_type"),
+    )
+
+
+class Pixel(Base, UUIDMixin, TimestampMixin):
+    __tablename__ = "pixels"
+
+    workspace_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("workspaces.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    ad_account_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("ad_accounts.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    platform_pixel_id: Mapped[str] = mapped_column(
+        String(255), nullable=False, unique=True
+    )
+    name: Mapped[str] = mapped_column(String(500), nullable=False)
+    pixel_code: Mapped[str | None] = mapped_column(
+        nullable=True, comment="JavaScript pixel code snippet"
+    )
+    detail_json: Mapped[dict | None] = mapped_column(
+        JSONB, nullable=True, comment="Full API snapshot"
+    )
+
+
+class Catalog(Base, UUIDMixin, TimestampMixin):
+    __tablename__ = "catalogs"
+
+    workspace_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("workspaces.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    ad_account_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("ad_accounts.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    platform_catalog_id: Mapped[str] = mapped_column(
+        String(255), nullable=False, unique=True
+    )
+    name: Mapped[str] = mapped_column(String(500), nullable=False)
+    product_count: Mapped[int] = mapped_column(nullable=False, default=0)
+    status: Mapped[str] = mapped_column(
+        String(50), nullable=False, default="ACTIVE"
+    )
+    detail_json: Mapped[dict | None] = mapped_column(
+        JSONB, nullable=True, comment="Full API snapshot"
     )
 
 

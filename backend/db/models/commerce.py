@@ -17,7 +17,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.db.models.base import Base, TimestampMixin, UUIDMixin
 
-
 # --- Enums ---
 
 
@@ -341,6 +340,48 @@ class ReturnRequest(Base, UUIDMixin, TimestampMixin):
     refund_amount: Mapped[str | None] = mapped_column(String(20), nullable=True)
 
     order: Mapped["Order"] = relationship(lazy="noload")
+
+
+class Promotion(Base, UUIDMixin, TimestampMixin):
+    __tablename__ = "promotions"
+
+    workspace_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("workspaces.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    shop_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("shops.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    platform_activity_id: Mapped[str] = mapped_column(
+        String(255), nullable=False, unique=True
+    )
+    promotion_type: Mapped[str] = mapped_column(
+        String(100), nullable=False, comment="DISCOUNT, FLASH_SALE, FREE_SHIPPING, etc."
+    )
+    title: Mapped[str] = mapped_column(String(500), nullable=False)
+    status: Mapped[str] = mapped_column(String(50), nullable=False, default="ACTIVE")
+    start_time: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    end_time: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    discount_type: Mapped[str | None] = mapped_column(
+        String(50), nullable=True, comment="PERCENTAGE, FIXED_AMOUNT"
+    )
+    discount_value: Mapped[str | None] = mapped_column(
+        String(20), nullable=True
+    )
+    detail_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+
+    __table_args__ = (
+        Index("ix_promotions_workspace_status", "workspace_id", "status"),
+    )
 
 
 class SyncCursor(Base, UUIDMixin, TimestampMixin):

@@ -36,7 +36,7 @@ def verify_developer_webhook(body: bytes, signature_header: str) -> bool:
 
     expected = hmac.new(
         settings.tiktok_developer_client_secret.encode("utf-8"),
-        f"{timestamp}.{body.decode('utf-8')}".encode("utf-8"),
+        f"{timestamp}.{body.decode('utf-8')}".encode(),
         hashlib.sha256,
     ).hexdigest()
     return hmac.compare_digest(expected, provided_sig)

@@ -22,12 +22,12 @@ export function CTA() {
           transition={{ duration: 0.6 }}
         >
           <h2 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-            Ready to Unify Your{" "}
-            <span className="gradient-text">TikTok Business?</span>
+            One Platform to{" "}
+            <span className="gradient-text">Rule Them All.</span>
           </h2>
           <p className="mx-auto mt-6 max-w-xl text-lg text-foreground-secondary">
-            Join thousands of sellers who manage everything from one platform.
-            Free to start, no credit card required.
+            Join thousands of sellers who manage their entire TikTok business
+            from Frodo. Free to start, no credit card required.
           </p>
 
           <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">

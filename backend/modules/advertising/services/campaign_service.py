@@ -1,6 +1,6 @@
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -193,7 +193,7 @@ class CampaignService:
                 break
             page += 1
 
-        ad_account.last_sync_at = datetime.now(tz=timezone.utc)
+        ad_account.last_sync_at = datetime.now(tz=UTC)
         return synced
 
     async def upsert_campaign_from_api(
