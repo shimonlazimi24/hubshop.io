@@ -339,3 +339,18 @@ class CreateBillingGroupRequest(BaseModel):
     ad_account_id: str
     billing_group_name: str
     advertiser_ids: list[str] | None = None
+
+
+# --- Creative Upload ---
+
+
+class UploadVideoRequest(BaseModel):
+    ad_account_id: str
+    video_url: str
+    video_name: str | None = None
+
+
+class UploadImageRequest(BaseModel):
+    ad_account_id: str
+    image_url: str
+    image_name: str | None = None
