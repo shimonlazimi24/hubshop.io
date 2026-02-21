@@ -67,6 +67,25 @@ export function getMe(token: string): Promise<UserResponse> {
   return apiFetch("/auth/me", { token });
 }
 
+// Social Login
+export function getTikTokLoginUrl(): Promise<{ authorize_url: string }> {
+  return apiFetch("/auth/tiktok/login");
+}
+
+export function getGoogleLoginUrl(): Promise<{ authorize_url: string }> {
+  return apiFetch("/auth/google/login");
+}
+
+export function socialCallback(
+  provider: "tiktok" | "google",
+  code: string,
+  state?: string
+): Promise<TokenResponse> {
+  const params = new URLSearchParams({ code });
+  if (state) params.set("state", state);
+  return apiFetch(`/auth/${provider}/callback?${params}`);
+}
+
 // Connect
 export interface ConnectedAccount {
   id: string;
