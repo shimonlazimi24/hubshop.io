@@ -21,6 +21,86 @@ class FulfillmentService:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
+    async def _get_gateway(self, shop_id: uuid.UUID):
+        shop_service = ShopService(self._session)
+        shop = await shop_service.get_shop(shop_id)
+        if not shop:
+            raise ValueError(f"Shop {shop_id} not found")
+        return await shop_service.build_gateway_for_shop(shop)
+
+    async def split_order(
+        self,
+        shop_id: uuid.UUID,
+        order_id: str,
+        groups: list[list[str]],
+    ) -> list[dict]:
+        """Split an order into multiple packages."""
+        gateway = await self._get_gateway(shop_id)
+        resp = await gateway.post(
+            "/fulfillment/202309/orders/split",
+            json_body={"order_id": order_id, "groups": groups},
+        )
+        return resp.get("data", {}).get("packages", [])
+
+    async def batch_ship_packages(
+        self,
+        shop_id: uuid.UUID,
+        packages: list[dict],
+    ) -> list[dict]:
+        """Batch ship multiple packages at once."""
+        gateway = await self._get_gateway(shop_id)
+        resp = await gateway.post(
+            "/fulfillment/202309/packages/batch_ship",
+            json_body={"packages": packages},
+        )
+        return resp.get("data", {}).get("results", [])
+
+    async def search_packages(
+        self,
+        shop_id: uuid.UUID,
+        **filters,
+    ) -> list[dict]:
+        """Search packages with optional filters."""
+        gateway = await self._get_gateway(shop_id)
+        resp = await gateway.post(
+            "/fulfillment/202309/packages/search",
+            json_body=filters or {},
+        )
+        return resp.get("data", {}).get("packages", [])
+
+    async def get_shipping_document(
+        self,
+        shop_id: uuid.UUID,
+        package_id: str,
+        document_type: str = "SHIPPING_LABEL",
+    ) -> dict:
+        """Get a shipping document (label, invoice, etc.) for a package."""
+        gateway = await self._get_gateway(shop_id)
+        resp = await gateway.get(
+            f"/fulfillment/202309/packages/{package_id}/shipping_document",
+            params={"document_type": document_type},
+        )
+        return resp.get("data", {})
+
+    async def update_shipping_info(
+        self,
+        shop_id: uuid.UUID,
+        order_id: str,
+        tracking_number: str,
+        shipping_provider_id: str,
+    ) -> dict:
+        """Update shipping info (tracking number, provider) for an order."""
+        gateway = await self._get_gateway(shop_id)
+        resp = await gateway.post(
+            "/fulfillment/202309/packages/shipping_info/update",
+            json_body={
+                "order_id": order_id,
+                "tracking_number": tracking_number,
+                "shipping_provider_id": shipping_provider_id,
+            },
+        )
+        return resp.get("data", {})
+
     async def get_eligible_shipping_services(
         self, order: Order
     ) -> list[dict]:

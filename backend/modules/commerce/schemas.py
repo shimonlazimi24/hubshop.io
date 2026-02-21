@@ -201,6 +201,24 @@ class OrderStatusDistributionResponse(BaseModel):
 # --- Fulfillment Request ---
 
 
+class SplitOrderRequest(BaseModel):
+    shop_id: str
+    order_id: str
+    groups: list[list[str]]
+
+
+class BatchShipRequest(BaseModel):
+    shop_id: str
+    packages: list[dict]
+
+
+class UpdateShippingInfoRequest(BaseModel):
+    shop_id: str
+    order_id: str
+    tracking_number: str
+    shipping_provider_id: str
+
+
 class ShipPackageRequest(BaseModel):
     order_id: str
     shipping_provider: str

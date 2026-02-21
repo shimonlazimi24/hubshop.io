@@ -4,11 +4,14 @@ from fastapi import APIRouter, HTTPException, status
 
 from backend.dependencies import CurrentUser, DBSession
 from backend.modules.commerce.schemas import (
+    BatchShipRequest,
     MarkShippedRequest,
     PackageResponse,
     ShipPackageRequest,
     ShippingServiceResponse,
     ShippingServicesRequest,
+    SplitOrderRequest,
+    UpdateShippingInfoRequest,
 )
 from backend.modules.commerce.services.fulfillment_service import FulfillmentService
 from backend.modules.commerce.services.order_service import OrderService
@@ -95,3 +98,68 @@ async def get_package(
             detail="Package not found",
         )
     return PackageResponse.model_validate(package)
+
+
+@router.post("/fulfillment/split-order")
+async def split_order(
+    body: SplitOrderRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> list[dict]:
+    service = FulfillmentService(db)
+    return await service.split_order(
+        uuid.UUID(body.shop_id), body.order_id, body.groups
+    )
+
+
+@router.post("/fulfillment/batch-ship")
+async def batch_ship(
+    body: BatchShipRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> list[dict]:
+    service = FulfillmentService(db)
+    return await service.batch_ship_packages(
+        uuid.UUID(body.shop_id), body.packages
+    )
+
+
+@router.post("/fulfillment/packages/search")
+async def search_packages(
+    shop_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> list[dict]:
+    service = FulfillmentService(db)
+    return await service.search_packages(shop_id)
+
+
+@router.get(
+    "/fulfillment/packages/{package_id}/shipping-document",
+)
+async def get_shipping_document(
+    package_id: str,
+    shop_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+    document_type: str = "SHIPPING_LABEL",
+) -> dict:
+    service = FulfillmentService(db)
+    return await service.get_shipping_document(
+        shop_id, package_id, document_type
+    )
+
+
+@router.post("/fulfillment/shipping-info/update")
+async def update_shipping_info(
+    body: UpdateShippingInfoRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    service = FulfillmentService(db)
+    return await service.update_shipping_info(
+        uuid.UUID(body.shop_id),
+        body.order_id,
+        body.tracking_number,
+        body.shipping_provider_id,
+    )
