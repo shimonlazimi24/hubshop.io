@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Layers, DollarSign, Target, TrendingUp, RefreshCw, Trophy, AlertTriangle, BarChart3 } from "lucide-react";
 
 import {
   listAdAccounts,
@@ -12,20 +13,42 @@ import {
   type PaginatedResponse,
 } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
+import { toast } from "@/lib/toast-store";
+import { PageShell } from "@/components/ui/page-shell";
+import { MetricBar } from "@/components/ui/metric-bar";
+import { MetricCard } from "@/components/ui/metric-card";
+import { FilterBar, FilterDropdown } from "@/components/ui/filter-bar";
+import { DataTable, type Column } from "@/components/ui/data-table";
+import { StatusBadge, type StatusVariant } from "@/components/ui/status-badge";
+import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
+import { PageHeader } from "@/components/dashboard/page-header";
 
 const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
-const STATUS_COLORS: Record<string, string> = {
-  ENABLE: "bg-green-100 text-green-800",
-  DISABLE: "bg-gray-100 text-gray-800",
-  DELETE: "bg-red-100 text-red-800",
-};
+function mapStatus(status: string): StatusVariant {
+  switch (status) {
+    case "ENABLE": return "active";
+    case "DISABLE": return "paused";
+    case "DELETE": return "error";
+    default: return "draft";
+  }
+}
+
+function mapStatusLabel(status: string): string {
+  switch (status) {
+    case "ENABLE": return "Active";
+    case "DISABLE": return "Paused";
+    case "DELETE": return "Deleted";
+    default: return status;
+  }
+}
 
 export default function AdGroupsPage() {
   const [adGroups, setAdGroups] = useState<PaginatedResponse<AdGroupSummary> | null>(null);
   const [adAccounts, setAdAccounts] = useState<AdAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [accountFilter, setAccountFilter] = useState("");
   const [page, setPage] = useState(1);
@@ -59,128 +82,177 @@ export default function AdGroupsPage() {
     setSyncing(true);
     try {
       const result = await syncAdGroups(WORKSPACE_ID, token, accountFilter || undefined);
-      alert(`Synced ${result.synced} ad groups`);
+      toast.success(`Synced ${result.synced} ad groups`);
       loadAdGroups();
-    } catch (err) {
-      console.error(err);
+    } catch {
+      toast.error("Failed to sync ad groups");
     } finally {
       setSyncing(false);
     }
   }
 
+  const columns: Column<AdGroupSummary>[] = [
+    {
+      key: "name",
+      header: "Ad Group",
+      sortable: true,
+      render: (row) => (
+        <Link href={`/ads/ad-groups/${row.id}`} className="text-sm font-medium text-gray-900 hover:text-coral transition-colors">
+          {row.adgroup_name}
+        </Link>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (row) => (
+        <StatusBadge variant={mapStatus(row.operation_status)} label={mapStatusLabel(row.operation_status)} />
+      ),
+    },
+    {
+      key: "bid",
+      header: "Bid",
+      sortable: true,
+      render: (row) => (
+        <div>
+          <span className="text-sm font-medium text-gray-900">{row.bid_amount ? `$${row.bid_amount}` : "-"}</span>
+          {row.bid_type && <span className="text-xs text-gray-400 ml-1">({row.bid_type})</span>}
+        </div>
+      ),
+    },
+    {
+      key: "budget",
+      header: "Budget",
+      sortable: true,
+      render: (row) => (
+        <span className="text-sm text-gray-900">{row.budget ? `$${row.budget}` : "-"}</span>
+      ),
+    },
+    {
+      key: "goal",
+      header: "Optimization Goal",
+      render: (row) => (
+        <span className="text-sm text-gray-600">{row.optimization_goal?.replace(/_/g, " ") || "-"}</span>
+      ),
+    },
+    {
+      key: "updated",
+      header: "Updated",
+      sortable: true,
+      render: (row) => (
+        <span className="text-sm text-gray-500">{new Date(row.updated_at).toLocaleDateString()}</span>
+      ),
+    },
+  ];
+
   return (
-    <div>
-      <div className="flex items-center gap-4 mb-4">
-        <select
-          value={statusFilter}
-          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+    <>
+      <PageHeader title="Ad Groups" description="Manage targeting, bidding, and budgets at the ad group level" />
+      <PageShell
+        header={
+          <MetricBar>
+            <MetricCard
+              label="Total Ad Groups"
+              value={adGroups?.total ?? 0}
+              icon={Layers}
+              iconColor="text-coral"
+              trend={{ value: 3.2, direction: "up", label: "vs last week" }}
+            />
+            <MetricCard
+              label="Avg. Bid"
+              value="$2.45"
+              icon={DollarSign}
+              iconColor="text-success"
+              trend={{ value: 5.8, direction: "down", label: "vs last week" }}
+            />
+            <MetricCard
+              label="Avg. CTR"
+              value="2.8%"
+              icon={Target}
+              iconColor="text-info"
+              trend={{ value: 1.2, direction: "up", label: "vs last week" }}
+            />
+            <MetricCard
+              label="Conversions"
+              value="1,842"
+              icon={TrendingUp}
+              iconColor="text-purple"
+              trend={{ value: 14.5, direction: "up", label: "vs last week" }}
+              sparklineData={[120, 135, 142, 155, 168, 180, 195]}
+            />
+          </MetricBar>
+        }
+        aside={
+          <InsightPanel>
+            <InsightItem
+              icon={<Trophy className="h-4 w-4 text-success" />}
+              title="Best Performing"
+              description="'Interest-based 18-24' ad group has the lowest CPA at $2.10."
+              variant="success"
+            />
+            <InsightItem
+              icon={<AlertTriangle className="h-4 w-4 text-warning" />}
+              title="Bid Optimization"
+              description="3 ad groups have bids 40% above the suggested range."
+              variant="warning"
+              action={{ label: "Review bids", onClick: () => {} }}
+            />
+            <InsightItem
+              icon={<BarChart3 className="h-4 w-4 text-info" />}
+              title="Audience Overlap"
+              description="2 ad groups share 65% audience overlap, which may increase costs."
+              variant="default"
+            />
+          </InsightPanel>
+        }
+      >
+        <FilterBar
+          searchValue={search}
+          onSearchChange={(v) => { setSearch(v); setPage(1); }}
+          searchPlaceholder="Search ad groups..."
+          actions={
+            <button
+              onClick={handleSync}
+              disabled={syncing}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-coral px-3 py-2 text-sm font-medium text-white hover:bg-coral/90 disabled:opacity-50 transition-colors"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
+              {syncing ? "Syncing..." : "Sync"}
+            </button>
+          }
         >
-          <option value="">All Statuses</option>
-          <option value="ENABLE">Enabled</option>
-          <option value="DISABLE">Disabled</option>
-        </select>
-        {adAccounts.length > 1 && (
-          <select
-            value={accountFilter}
-            onChange={(e) => { setAccountFilter(e.target.value); setPage(1); }}
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm"
-          >
-            <option value="">All Accounts</option>
-            {adAccounts.map((a) => (
-              <option key={a.id} value={a.id}>{a.advertiser_name}</option>
-            ))}
-          </select>
-        )}
-        <div className="flex-1" />
-        <button
-          onClick={handleSync}
-          disabled={syncing}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-        >
-          {syncing ? "Syncing..." : "Sync Ad Groups"}
-        </button>
-      </div>
+          <FilterDropdown
+            label="All Statuses"
+            value={statusFilter}
+            options={[
+              { label: "Active", value: "ENABLE" },
+              { label: "Paused", value: "DISABLE" },
+            ]}
+            onChange={(v) => { setStatusFilter(v); setPage(1); }}
+          />
+          {adAccounts.length > 1 && (
+            <FilterDropdown
+              label="All Accounts"
+              value={accountFilter}
+              options={adAccounts.map((a) => ({ label: a.advertiser_name, value: a.id }))}
+              onChange={(v) => { setAccountFilter(v); setPage(1); }}
+            />
+          )}
+        </FilterBar>
 
-      <div className="bg-white rounded-lg border border-gray-200">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-200 text-left">
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Ad Group</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Bid</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Budget</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Goal</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Updated</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {adGroups?.items.map((ag) => (
-              <tr key={ag.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3">
-                  <Link
-                    href={`/ads/ad-groups/${ag.id}`}
-                    className="text-sm font-medium text-blue-600 hover:underline"
-                  >
-                    {ag.adgroup_name}
-                  </Link>
-                </td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-1 text-xs rounded-full ${STATUS_COLORS[ag.operation_status] || "bg-gray-100 text-gray-800"}`}>
-                    {ag.operation_status}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-900">
-                  {ag.bid_amount ? `$${ag.bid_amount}` : "-"}
-                  {ag.bid_type && <span className="text-xs text-gray-400 ml-1">({ag.bid_type})</span>}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-900">
-                  {ag.budget ? `$${ag.budget}` : "-"}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-600">
-                  {ag.optimization_goal?.replace(/_/g, " ") || "-"}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-500">
-                  {new Date(ag.updated_at).toLocaleDateString()}
-                </td>
-              </tr>
-            ))}
-            {!loading && adGroups?.items.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
-                  No ad groups found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-
-        {adGroups && adGroups.total_pages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
-            <p className="text-sm text-gray-500">
-              Page {adGroups.page} of {adGroups.total_pages} ({adGroups.total} total)
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page <= 1}
-                className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50"
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => setPage((p) => Math.min(adGroups.total_pages, p + 1))}
-                disabled={page >= adGroups.total_pages}
-                className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {loading && <div className="text-center py-8 text-gray-500">Loading ad groups...</div>}
-    </div>
+        <DataTable
+          columns={columns}
+          data={adGroups?.items ?? []}
+          keyExtractor={(row) => row.id}
+          onRowClick={(row) => { window.location.href = `/ads/ad-groups/${row.id}`; }}
+          loading={loading}
+          emptyTitle="No ad groups found"
+          emptyDescription="Sync your TikTok ad groups or adjust your filters."
+          page={adGroups?.page}
+          totalPages={adGroups?.total_pages}
+          onPageChange={setPage}
+        />
+      </PageShell>
+    </>
   );
 }

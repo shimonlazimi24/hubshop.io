@@ -1,8 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Activity, Send, Eye, ShoppingCart, CreditCard, UserPlus } from "lucide-react";
+import { Activity, Send, Eye, ShoppingCart, CreditCard, UserPlus, TrendingUp, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PageShell } from "@/components/ui/page-shell";
+import { MetricBar } from "@/components/ui/metric-bar";
+import { MetricCard } from "@/components/ui/metric-card";
+import { DataTable, type Column } from "@/components/ui/data-table";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
+import { PageHeader } from "@/components/dashboard/page-header";
 
 interface ServerEvent {
   id: string;
@@ -13,22 +20,6 @@ interface ServerEvent {
   event_source: string;
   properties: Record<string, string | number>;
 }
-
-const EVENT_ICONS: Record<string, typeof Activity> = {
-  PageView: Eye,
-  AddToCart: ShoppingCart,
-  Purchase: CreditCard,
-  CompleteRegistration: UserPlus,
-  SubmitForm: Send,
-};
-
-const EVENT_COLORS: Record<string, string> = {
-  PageView: "bg-blue-100 text-blue-800",
-  AddToCart: "bg-orange-100 text-orange-800",
-  Purchase: "bg-green-100 text-green-800",
-  CompleteRegistration: "bg-purple-100 text-purple-800",
-  SubmitForm: "bg-cyan-100 text-cyan-800",
-};
 
 const MOCK_EVENTS: ServerEvent[] = [
   { id: "evt-1", event_type: "Purchase", timestamp: "2026-02-20T10:45:00Z", user_data_hashed: "a1b2c3...f8e9", pixel_id: "px-001", event_source: "server", properties: { currency: "USD", value: 89.99 } },
@@ -50,114 +41,96 @@ const STATS = {
   page_views: 846,
 };
 
-function formatNumber(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
-  return String(n);
-}
+const EVENT_VARIANT: Record<string, string> = {
+  Purchase: "active",
+  AddToCart: "warning",
+  PageView: "syncing",
+  CompleteRegistration: "completed",
+  SubmitForm: "draft",
+};
 
 export default function EventTrackingPage() {
   const [events] = useState<ServerEvent[]>(MOCK_EVENTS);
 
+  const columns: Column<ServerEvent>[] = [
+    {
+      key: "event_type",
+      header: "Event Type",
+      render: (row) => (
+        <StatusBadge
+          variant={(EVENT_VARIANT[row.event_type] || "draft") as "active" | "warning" | "syncing" | "completed" | "draft"}
+          label={row.event_type}
+        />
+      ),
+    },
+    {
+      key: "timestamp",
+      header: "Timestamp",
+      sortable: true,
+      render: (row) => <span className="text-sm text-gray-500">{new Date(row.timestamp).toLocaleTimeString()}</span>,
+    },
+    {
+      key: "user_data",
+      header: "User Data",
+      render: (row) => <code className="text-xs font-mono text-gray-500 bg-gray-50 px-1.5 py-0.5 rounded">{row.user_data_hashed}</code>,
+    },
+    {
+      key: "pixel",
+      header: "Pixel",
+      render: (row) => <span className="text-sm text-gray-600">{row.pixel_id}</span>,
+    },
+    {
+      key: "properties",
+      header: "Properties",
+      render: (row) => (
+        <div className="flex flex-wrap gap-1">
+          {Object.entries(row.properties).map(([key, val]) => (
+            <span key={key} className="text-xs bg-gray-50 px-1.5 py-0.5 rounded text-gray-500">{key}: {val}</span>
+          ))}
+        </div>
+      ),
+    },
+  ];
+
   return (
-    <div className="max-w-6xl">
-      {/* Stats Bar */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="rounded-xl border border-gray-100 bg-white p-5">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 border border-blue-100">
-              <Activity className="h-[18px] w-[18px] text-blue-500" />
-            </div>
-          </div>
-          <p className="text-2xl font-semibold text-gray-900">{formatNumber(STATS.total_today)}</p>
-          <p className="text-xs text-gray-400 mt-1">Events Today</p>
-        </div>
-        <div className="rounded-xl border border-gray-100 bg-white p-5">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-green-50 border border-green-100">
-              <CreditCard className="h-[18px] w-[18px] text-green-500" />
-            </div>
-          </div>
-          <p className="text-2xl font-semibold text-gray-900">{STATS.purchases}</p>
-          <p className="text-xs text-gray-400 mt-1">Purchases</p>
-        </div>
-        <div className="rounded-xl border border-gray-100 bg-white p-5">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-orange-50 border border-orange-100">
-              <ShoppingCart className="h-[18px] w-[18px] text-orange-500" />
-            </div>
-          </div>
-          <p className="text-2xl font-semibold text-gray-900">{STATS.add_to_cart}</p>
-          <p className="text-xs text-gray-400 mt-1">Add to Cart</p>
-        </div>
-        <div className="rounded-xl border border-gray-100 bg-white p-5">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-purple/5 border border-purple/10">
-              <Eye className="h-[18px] w-[18px] text-purple" />
-            </div>
-          </div>
-          <p className="text-2xl font-semibold text-gray-900">{STATS.page_views}</p>
-          <p className="text-xs text-gray-400 mt-1">Page Views</p>
-        </div>
-      </div>
-
-      {/* Recent Events Table */}
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="px-4 py-3 border-b border-gray-200">
-          <h3 className="text-sm font-medium text-gray-900">Recent Server-Side Events</h3>
-        </div>
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-200 text-left">
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Event Type</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Timestamp</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">User Data</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Pixel</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Properties</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {events.map((event) => {
-              const Icon = EVENT_ICONS[event.event_type] || Activity;
-              const colorClass = EVENT_COLORS[event.event_type] || "bg-gray-100 text-gray-800";
-              return (
-                <tr key={event.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3">
-                    <span className={cn("inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full", colorClass)}>
-                      <Icon className="h-3 w-3" />
-                      {event.event_type}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-500">
-                    {new Date(event.timestamp).toLocaleTimeString()}
-                  </td>
-                  <td className="px-4 py-3">
-                    <code className="text-xs font-mono text-gray-500 bg-gray-50 px-1.5 py-0.5 rounded">
-                      {event.user_data_hashed}
-                    </code>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{event.pixel_id}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-1">
-                      {Object.entries(event.properties).map(([key, val]) => (
-                        <span key={key} className="text-xs bg-gray-50 px-1.5 py-0.5 rounded text-gray-500">
-                          {key}: {val}
-                        </span>
-                      ))}
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-
-        {events.length === 0 && (
-          <div className="px-4 py-8 text-center text-gray-500">
-            No events tracked yet
-          </div>
-        )}
-      </div>
-    </div>
+    <>
+      <PageHeader title="Event Tracking" description="Server-side event monitoring and diagnostics" />
+      <PageShell
+        header={
+          <MetricBar>
+            <MetricCard label="Events Today" value={STATS.total_today.toLocaleString()} icon={Activity} iconColor="text-info" trend={{ value: 12, direction: "up", label: "vs yesterday" }} sparklineData={[800, 900, 1050, 1100, 1180, 1220, 1247]} />
+            <MetricCard label="Purchases" value={STATS.purchases} icon={CreditCard} iconColor="text-success" trend={{ value: 8.5, direction: "up", label: "vs yesterday" }} />
+            <MetricCard label="Add to Cart" value={STATS.add_to_cart} icon={ShoppingCart} iconColor="text-warning" />
+            <MetricCard label="Page Views" value={STATS.page_views} icon={Eye} iconColor="text-purple" />
+          </MetricBar>
+        }
+        aside={
+          <InsightPanel>
+            <InsightItem
+              icon={<TrendingUp className="h-4 w-4 text-success" />}
+              title="Event Volume"
+              description="Event volume is up 12% compared to yesterday. All pixels are firing correctly."
+              variant="success"
+            />
+            <InsightItem
+              icon={<AlertTriangle className="h-4 w-4 text-warning" />}
+              title="Data Quality"
+              description="2 events are missing user_data fields. Review your server-side integration."
+              variant="warning"
+              action={{ label: "Review events", onClick: () => {} }}
+            />
+          </InsightPanel>
+        }
+      >
+        <h2 className="text-sm font-semibold text-gray-900 mb-4">Recent Server-Side Events</h2>
+        <DataTable
+          columns={columns}
+          data={events}
+          keyExtractor={(row) => row.id}
+          emptyTitle="No events tracked yet"
+          emptyDescription="Events will appear here once your pixel starts firing."
+        />
+      </PageShell>
+    </>
   );
 }

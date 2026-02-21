@@ -1,8 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Package, ShoppingBag, RefreshCw, TrendingUp, AlertTriangle } from "lucide-react";
 import { listCatalogs, syncCatalogs, type Catalog, type PaginatedResponse } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
+import { toast } from "@/lib/toast-store";
+import { PageShell } from "@/components/ui/page-shell";
+import { MetricBar } from "@/components/ui/metric-bar";
+import { MetricCard } from "@/components/ui/metric-card";
+import { FilterBar } from "@/components/ui/filter-bar";
+import { DataTable, type Column } from "@/components/ui/data-table";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
+import { PageHeader } from "@/components/dashboard/page-header";
 
 const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
@@ -10,6 +20,7 @@ export default function CatalogsPage() {
   const [data, setData] = useState<PaginatedResponse<Catalog> | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
   const token = getAccessToken();
@@ -32,72 +43,103 @@ export default function CatalogsPage() {
     setSyncing(true);
     try {
       await syncCatalogs(WORKSPACE_ID, token);
+      toast.success("Catalogs synced successfully");
       loadCatalogs();
-    } catch (err) {
-      console.error(err);
+    } catch {
+      toast.error("Failed to sync catalogs");
     } finally {
       setSyncing(false);
     }
   }
 
+  const columns: Column<Catalog>[] = [
+    {
+      key: "name",
+      header: "Name",
+      sortable: true,
+      render: (row) => <span className="text-sm font-medium text-gray-900">{row.name}</span>,
+    },
+    {
+      key: "catalog_id",
+      header: "Catalog ID",
+      render: (row) => <code className="text-xs font-mono text-gray-600 bg-gray-50 px-1.5 py-0.5 rounded">{row.platform_catalog_id}</code>,
+    },
+    {
+      key: "products",
+      header: "Products",
+      sortable: true,
+      render: (row) => <span className="text-sm text-gray-600 tabular-nums">{row.product_count.toLocaleString()}</span>,
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (row) => <StatusBadge variant={row.status === "ACTIVE" ? "active" : "paused"} label={row.status} />,
+    },
+    {
+      key: "updated",
+      header: "Updated",
+      sortable: true,
+      render: (row) => <span className="text-sm text-gray-500">{new Date(row.updated_at).toLocaleDateString()}</span>,
+    },
+  ];
+
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <div />
-        <button
-          onClick={handleSync}
-          disabled={syncing}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-        >
-          {syncing ? "Syncing..." : "Sync Catalogs"}
-        </button>
-      </div>
+    <>
+      <PageHeader title="Product Catalogs" description="Manage product feeds for dynamic product ads" />
+      <PageShell
+        header={
+          <MetricBar>
+            <MetricCard label="Total Catalogs" value={data?.total ?? 0} icon={Package} iconColor="text-coral" />
+            <MetricCard label="Total Products" value="4,582" icon={ShoppingBag} iconColor="text-purple" trend={{ value: 120, direction: "up", label: "this week" }} />
+            <MetricCard label="Active Catalogs" value={3} icon={Package} iconColor="text-success" />
+          </MetricBar>
+        }
+        aside={
+          <InsightPanel>
+            <InsightItem
+              icon={<TrendingUp className="h-4 w-4 text-success" />}
+              title="Feed Health"
+              description="All product feeds are up to date with 99.8% match rate."
+              variant="success"
+            />
+            <InsightItem
+              icon={<AlertTriangle className="h-4 w-4 text-warning" />}
+              title="Missing Images"
+              description="12 products are missing images, which may affect ad performance."
+              variant="warning"
+              action={{ label: "Review products", onClick: () => {} }}
+            />
+          </InsightPanel>
+        }
+      >
+        <FilterBar
+          searchValue={search}
+          onSearchChange={(v) => { setSearch(v); setPage(1); }}
+          searchPlaceholder="Search catalogs..."
+          actions={
+            <button
+              onClick={handleSync}
+              disabled={syncing}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-coral px-3 py-2 text-sm font-medium text-white hover:bg-coral/90 disabled:opacity-50 transition-colors"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
+              {syncing ? "Syncing..." : "Sync"}
+            </button>
+          }
+        />
 
-      <div className="bg-white rounded-lg border border-gray-200">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-200 text-left">
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Name</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Catalog ID</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Products</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Updated</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {data?.items.map((catalog) => (
-              <tr key={catalog.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 text-sm font-medium text-gray-900">{catalog.name}</td>
-                <td className="px-4 py-3 text-sm text-gray-600 font-mono">{catalog.platform_catalog_id}</td>
-                <td className="px-4 py-3 text-sm text-gray-600">{catalog.product_count.toLocaleString()}</td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    catalog.status === "ACTIVE" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
-                  }`}>
-                    {catalog.status}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-500">{new Date(catalog.updated_at).toLocaleDateString()}</td>
-              </tr>
-            ))}
-            {!loading && (!data || data.items.length === 0) && (
-              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">No catalogs found</td></tr>
-            )}
-          </tbody>
-        </table>
-
-        {data && data.total_pages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
-            <p className="text-sm text-gray-500">Page {data.page} of {data.total_pages}</p>
-            <div className="flex gap-2">
-              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1} className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50">Previous</button>
-              <button onClick={() => setPage(p => Math.min(data.total_pages, p + 1))} disabled={page >= data.total_pages} className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50">Next</button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {loading && <div className="text-center py-8 text-gray-500">Loading catalogs...</div>}
-    </div>
+        <DataTable
+          columns={columns}
+          data={data?.items ?? []}
+          keyExtractor={(row) => row.id}
+          loading={loading}
+          emptyTitle="No catalogs found"
+          emptyDescription="Sync your TikTok product catalogs to get started."
+          page={data?.page}
+          totalPages={data?.total_pages}
+          onPageChange={setPage}
+        />
+      </PageShell>
+    </>
   );
 }

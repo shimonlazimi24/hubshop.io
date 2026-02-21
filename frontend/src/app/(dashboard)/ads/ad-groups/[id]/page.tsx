@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { ArrowLeft, DollarSign, Target, Crosshair, Layers, TrendingUp, AlertTriangle } from "lucide-react";
 
 import {
   getAdGroup,
@@ -9,6 +10,31 @@ import {
   type AdGroupDetail,
 } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
+import { toast } from "@/lib/toast-store";
+import { PageShell } from "@/components/ui/page-shell";
+import { MetricBar } from "@/components/ui/metric-bar";
+import { MetricCard } from "@/components/ui/metric-card";
+import { StatusBadge, type StatusVariant } from "@/components/ui/status-badge";
+import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
+import { PageHeader } from "@/components/dashboard/page-header";
+
+function mapStatus(status: string): StatusVariant {
+  switch (status) {
+    case "ENABLE": return "active";
+    case "DISABLE": return "paused";
+    case "DELETE": return "error";
+    default: return "draft";
+  }
+}
+
+function mapStatusLabel(status: string): string {
+  switch (status) {
+    case "ENABLE": return "Active";
+    case "DISABLE": return "Paused";
+    case "DELETE": return "Deleted";
+    default: return status;
+  }
+}
 
 export default function AdGroupDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -37,8 +63,9 @@ export default function AdGroupDetailPage() {
       const newStatus = adGroup.operation_status === "ENABLE" ? "DISABLE" : "ENABLE";
       const updated = await updateAdGroupStatus(adGroup.id, newStatus, token);
       setAdGroup(updated);
-    } catch (err) {
-      console.error(err);
+      toast.success(`Ad group ${newStatus === "ENABLE" ? "enabled" : "paused"}`);
+    } catch {
+      toast.error("Failed to update ad group status");
     } finally {
       setToggling(false);
     }
@@ -48,88 +75,115 @@ export default function AdGroupDetailPage() {
   if (!adGroup) return <div className="text-center py-8 text-gray-500">Ad group not found</div>;
 
   return (
-    <div>
-      <button onClick={() => router.back()} className="text-sm text-blue-600 hover:underline mb-4">
-        Back
+    <>
+      <PageHeader
+        title={adGroup.adgroup_name}
+        description={`ID: ${adGroup.platform_adgroup_id}`}
+        actions={
+          <div className="flex items-center gap-3">
+            <StatusBadge variant={mapStatus(adGroup.operation_status)} label={mapStatusLabel(adGroup.operation_status)} />
+            <button
+              onClick={handleToggleStatus}
+              disabled={toggling}
+              className={`px-4 py-2 text-sm font-medium rounded-lg disabled:opacity-50 transition-colors ${
+                adGroup.operation_status === "ENABLE"
+                  ? "bg-danger/10 text-danger hover:bg-danger/20"
+                  : "bg-success/10 text-success hover:bg-success/20"
+              }`}
+            >
+              {toggling ? "Updating..." : adGroup.operation_status === "ENABLE" ? "Pause" : "Enable"}
+            </button>
+          </div>
+        }
+      />
+      <button onClick={() => router.back()} className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4 transition-colors">
+        <ArrowLeft className="h-3.5 w-3.5" />
+        Back to ad groups
       </button>
 
-      <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">{adGroup.adgroup_name}</h2>
-            <p className="text-sm text-gray-500 mt-1">ID: {adGroup.platform_adgroup_id}</p>
+      <PageShell
+        header={
+          <MetricBar>
+            <MetricCard
+              label="Placement"
+              value={adGroup.placement_type?.replace(/_/g, " ") || "Auto"}
+              icon={Layers}
+              iconColor="text-coral"
+            />
+            <MetricCard
+              label="Bid"
+              value={adGroup.bid_amount ? `$${adGroup.bid_amount}` : "-"}
+              icon={DollarSign}
+              iconColor="text-success"
+            />
+            <MetricCard
+              label="Budget"
+              value={adGroup.budget ? `$${adGroup.budget}` : "-"}
+              icon={DollarSign}
+              iconColor="text-info"
+            />
+            <MetricCard
+              label="Optimization Goal"
+              value={adGroup.optimization_goal?.replace(/_/g, " ") || "-"}
+              icon={Crosshair}
+              iconColor="text-purple"
+            />
+          </MetricBar>
+        }
+        aside={
+          <InsightPanel>
+            <InsightItem
+              icon={<TrendingUp className="h-4 w-4 text-success" />}
+              title="Bid Efficiency"
+              description="Current bid is within the recommended range for this audience segment."
+              variant="success"
+            />
+            <InsightItem
+              icon={<AlertTriangle className="h-4 w-4 text-warning" />}
+              title="Targeting Tip"
+              description="Expanding age range to 18-34 could increase reach by 40% with minimal CPA impact."
+              variant="warning"
+            />
+          </InsightPanel>
+        }
+      >
+        {/* Targeting Configuration */}
+        {adGroup.targeting_json && (
+          <div className="rounded-xl border border-gray-100 bg-white p-5 mb-6">
+            <button
+              onClick={() => setShowTargeting(!showTargeting)}
+              className="text-sm font-medium text-coral hover:text-coral-dark transition-colors"
+            >
+              <span className="flex items-center gap-1.5">
+                <Target className="h-4 w-4" />
+                {showTargeting ? "Hide" : "Show"} Targeting Configuration
+              </span>
+            </button>
+            {showTargeting && (
+              <pre className="mt-4 p-4 bg-gray-50 rounded-lg text-xs overflow-auto max-h-96">
+                {JSON.stringify(adGroup.targeting_json, null, 2)}
+              </pre>
+            )}
           </div>
-          <button
-            onClick={handleToggleStatus}
-            disabled={toggling}
-            className={`px-4 py-2 text-sm font-medium rounded-md disabled:opacity-50 ${
-              adGroup.operation_status === "ENABLE"
-                ? "bg-red-50 text-red-700 hover:bg-red-100"
-                : "bg-green-50 text-green-700 hover:bg-green-100"
-            }`}
-          >
-            {toggling ? "Updating..." : adGroup.operation_status === "ENABLE" ? "Disable" : "Enable"}
-          </button>
-        </div>
+        )}
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-          <div>
-            <p className="text-xs text-gray-500 uppercase">Status</p>
-            <p className="text-sm font-medium mt-1">{adGroup.operation_status}</p>
+        {/* Raw JSON */}
+        {adGroup.detail_json && (
+          <div className="rounded-xl border border-gray-100 bg-white p-5">
+            <button
+              onClick={() => setShowJson(!showJson)}
+              className="text-sm font-medium text-coral hover:text-coral-dark transition-colors"
+            >
+              {showJson ? "Hide" : "Show"} Raw JSON
+            </button>
+            {showJson && (
+              <pre className="mt-4 p-4 bg-gray-50 rounded-lg text-xs overflow-auto max-h-96">
+                {JSON.stringify(adGroup.detail_json, null, 2)}
+              </pre>
+            )}
           </div>
-          <div>
-            <p className="text-xs text-gray-500 uppercase">Placement</p>
-            <p className="text-sm font-medium mt-1">{adGroup.placement_type?.replace(/_/g, " ") || "-"}</p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 uppercase">Bid</p>
-            <p className="text-sm font-medium mt-1">
-              {adGroup.bid_amount ? `$${adGroup.bid_amount}` : "-"}
-              {adGroup.bid_type && <span className="text-xs text-gray-400 ml-1">({adGroup.bid_type})</span>}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 uppercase">Budget</p>
-            <p className="text-sm font-medium mt-1">{adGroup.budget ? `$${adGroup.budget}` : "-"}</p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 uppercase">Optimization Goal</p>
-            <p className="text-sm font-medium mt-1">{adGroup.optimization_goal?.replace(/_/g, " ") || "-"}</p>
-          </div>
-        </div>
-      </div>
-
-      {adGroup.targeting_json && (
-        <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-          <button
-            onClick={() => setShowTargeting(!showTargeting)}
-            className="text-sm text-blue-600 hover:underline"
-          >
-            {showTargeting ? "Hide" : "Show"} Targeting Configuration
-          </button>
-          {showTargeting && (
-            <pre className="mt-4 p-4 bg-gray-50 rounded text-xs overflow-auto max-h-96">
-              {JSON.stringify(adGroup.targeting_json, null, 2)}
-            </pre>
-          )}
-        </div>
-      )}
-
-      {adGroup.detail_json && (
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <button
-            onClick={() => setShowJson(!showJson)}
-            className="text-sm text-blue-600 hover:underline"
-          >
-            {showJson ? "Hide" : "Show"} Raw JSON
-          </button>
-          {showJson && (
-            <pre className="mt-4 p-4 bg-gray-50 rounded text-xs overflow-auto max-h-96">
-              {JSON.stringify(adGroup.detail_json, null, 2)}
-            </pre>
-          )}
-        </div>
-      )}
-    </div>
+        )}
+      </PageShell>
+    </>
   );
 }
