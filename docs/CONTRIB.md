@@ -110,7 +110,7 @@ docker compose up
 | `alembic upgrade head` | Run database migrations |
 | `alembic revision --autogenerate -m "description"` | Generate new migration |
 | `alembic downgrade -1` | Rollback last migration |
-| `pytest` | Run all tests |
+| `pytest` | Run all tests (550+ tests) |
 | `pytest tests/unit` | Run unit tests only |
 | `pytest tests/integration` | Run integration tests only |
 | `pytest --cov=backend --cov-report=term-missing` | Run tests with coverage |
@@ -160,19 +160,75 @@ frodo/
     config.py               # pydantic-settings
     dependencies.py         # DI (DB sessions, current user)
     auth/                   # JWT, RBAC, passwords, routes
-    db/                     # SQLAlchemy engine, models, migrations
-    tiktok/                 # Platform clients (shop/developer/marketing)
-    modules/                # Business domains (connect, commerce, ads, content, creators, analytics, webhooks)
-    workers/                # Celery tasks (token refresh, webhook processing, data sync)
+    db/
+      models/               # SQLAlchemy ORM models (16 files, 120 entity classes)
+        advertising.py      #   AdAccount, Campaign, AdGroup, Ad, Audience, Pixel, Catalog, Creative, SplitTest
+        affiliate.py        #   AffiliateProduct, OpenCollaboration, TargetCollaboration
+        analytics.py        #   ScheduledReport, Notification, ApiKey, UnifiedKpiSnapshot
+        commerce.py         #   Shop, Product, Order, Return, Promotion, Fulfillment
+        content.py          #   Video, VideoMetrics, ContentPublishJob
+        creators.py         #   Creator, CreatorCampaign, CreatorInvitation, ContentAuthorization
+        finance.py          #   Settlement, Transaction, Payment
+        intelligence.py     #   TrendSnapshot, CompetitorTracker, CompetitorContent, ResearchQuery
+        live.py             #   LiveSession, LiveEvent, LiveAnalytics
+        messaging.py        #   Conversation, Message, AutoMessage
+        organic.py          #   BrandMention, MentionKeyword, OrganicComment
+    tiktok/                 # Platform clients (5 clients)
+      shop_client.py        #   TikTokShopClient (HMAC-SHA256)
+      developer_client.py   #   TikTokDeveloperClient (OAuth 2.0)
+      marketing_client.py   #   TikTokMarketingClient (SDK adapter)
+      research_client.py    #   TikTokResearchClient (client credentials)
+      live_client.py        #   TikTokLiveClientWrapper (WebSocket)
+      gateway.py            #   PlatformGateway (rate limiter, circuit breaker, retry)
+    modules/
+      connect/              # TikTok OAuth flows, account management
+      commerce/             # Shop: products, orders, fulfillment, returns, affiliate, promotions, finance
+      advertising/          # Marketing: campaigns, ad groups, ads, reports, audiences, pixels, catalogs, creatives, search, symphony, split tests, leads, automation, comments
+      content/              # Developer: videos, publishing, calendar
+      creators/             # TTCM: discovery, profiles, campaigns, invitations, Spark Ads
+      analytics/            # Cross-platform: KPIs, reports, notifications, API keys
+      intelligence/         # Research: trends, competitors, creator insights, data sources
+      live/                 # LIVE: stream monitoring, sessions, analytics
+      messaging/            # Messaging: conversations, auto-messages
+      organic/              # Organic: brand mentions, keywords, comments
+      webhooks/             # Webhook ingestion + signature verification
+    workers/                # Celery tasks (12 modules)
+      token_refresh.py      #   Token refresh (Shop, Developer, Marketing)
+      webhook_processor.py  #   Async webhook processing
+      data_sync.py          #   Commerce data sync (orders, products)
+      ad_sync.py            #   Advertising sync (accounts, campaigns, ad groups, ads)
+      content_sync.py       #   Content sync (videos, metrics)
+      creator_sync.py       #   Creator metrics sync
+      analytics_sync.py     #   Analytics aggregation
+      intelligence_sync.py  #   Trend + competitor sync
+      live_sync.py          #   Live stream monitoring + cleanup
+      messaging_sync.py     #   Conversation sync
     middleware/             # Tenant, logging middleware
     utils/                  # Crypto, pagination
   frontend/
     src/app/(auth)/         # Login, register pages
-    src/app/(dashboard)/    # Dashboard pages with sidebar layout
+    src/app/(dashboard)/    # 70+ dashboard pages with sidebar layout
+      overview/             #   KPI dashboard + Quick Actions
+      connect/              #   Account connection
+      commerce/             #   Products, orders, returns, analytics, affiliate, promotions, finance
+      ads/                  #   Campaigns (list/detail/wizard), ad groups, ads, creatives, reports, audiences, pixels, catalogs, search, symphony, split tests, leads, automation, comments
+      content/              #   Videos, publish, calendar
+      creatives/            #   Creative Hub: library, performance, generate
+      creators/             #   Discover, profiles, campaigns, spark ads
+      intelligence/         #   Trends, competitors, creator insights, research
+      live/                 #   Monitor, sessions, analytics, history
+      messaging/            #   Conversations, auto-messages
+      organic/              #   Mentions, keywords, publish
+      analytics/            #   Overview, reports, notifications, API keys
+      settings/             #   User settings
+    src/components/
+      ui/                   #   Component library (13+ components with barrel export)
+      dashboard/            #   Page header, sidebar, top bar
+    src/config/             # Navigation config (14 sidebar items)
+    src/lib/                # API client, auth helpers, toast store
   tests/
-    unit/                   # Unit tests (37+ passing)
-    integration/            # Integration tests
-    e2e/                    # End-to-end tests (placeholder)
+    unit/                   # Unit tests by module
+    integration/            # Integration tests (routes, sync, webhooks, WebSocket)
   knowledge-base/           # TikTok API research (60 markdown files)
   docs/                     # Project documentation
 ```
@@ -182,7 +238,7 @@ frodo/
 ### Running tests
 
 ```bash
-# All tests
+# All tests (550+ passing)
 pytest
 
 # Unit tests only
@@ -194,29 +250,41 @@ pytest tests/integration -v
 # With coverage report
 pytest --cov=backend --cov-report=term-missing
 
-# Specific test file
-pytest tests/unit/test_jwt.py -v
+# Specific module
+pytest tests/unit/advertising -v
+pytest tests/unit/commerce -v
+pytest tests/unit/content -v
+pytest tests/unit/creators -v
+pytest tests/unit/analytics -v
+pytest tests/unit/intelligence -v
+pytest tests/unit/live -v
+pytest tests/unit/messaging -v
+pytest tests/unit/organic -v
 ```
 
 ### Test markers
 
 ```bash
-pytest -m unit       # Unit tests
+pytest -m unit         # Unit tests
 pytest -m integration  # Integration tests
-pytest -m e2e        # E2E tests
+pytest -m e2e          # E2E tests
 ```
 
-### Current test coverage
+### Test coverage by module
 
-- JWT token creation/validation
-- AES-256-GCM encryption/decryption
-- Password hashing (bcrypt)
-- RBAC role/permission checks
-- Circuit breaker state transitions
-- Webhook signature verification (all 3 platforms)
-- HMAC-SHA256 request signing (Shop API)
-- Pagination utilities
-- Commerce schemas, webhook handlers, services
+| Module | Test Count | Areas Covered |
+|--------|-----------|---------------|
+| Foundation | 37 | JWT, AES-256-GCM, bcrypt, RBAC, circuit breaker, webhooks, HMAC, pagination |
+| Commerce | 66 | Products, orders, schemas, webhook handlers, analytics, fulfillment, returns |
+| Advertising | 130+ | Ad accounts, campaigns, ad groups, ads, reports, audiences, pixels, search, symphony, split tests, automation |
+| Content | 20+ | Content models, publish service, video sync |
+| Creators | 25+ | Campaigns, profiles, creator models, discovery |
+| Analytics | 86 | KPIs, reports, notifications, API keys, models |
+| Intelligence | 60+ | Trends, competitors, research queries, data sources |
+| LIVE | 30+ | Sessions, events, analytics, stream monitoring |
+| Messaging | 40+ | Conversations, messages, auto-messages |
+| Organic | 30+ | Mentions, keywords, comments |
+| Integration | 25+ | Route integration, sync pipelines, webhooks, WebSocket |
 
 ## Code Quality
 
@@ -259,13 +327,17 @@ When running in debug mode (`DEBUG=true`), interactive API docs are available at
 
 ### API Route Prefixes
 
-| Prefix | Module | Description |
-|--------|--------|-------------|
-| `/api/auth` | auth | Login, register, token refresh |
-| `/api/connect` | connect | TikTok OAuth flows, account management |
-| `/api/commerce` | commerce | Shop, products, orders, fulfillment, returns |
-| `/api/ads` | advertising | Ad accounts, campaigns, reporting |
-| `/api/content` | content | Video management, content posting |
-| `/api/creators` | creators | Creator discovery, partnerships |
-| `/api/analytics` | analytics | Cross-platform dashboards |
-| `/webhooks` | webhooks | TikTok webhook ingestion (no `/api` prefix) |
+| Prefix | Module | Endpoints | Description |
+|--------|--------|-----------|-------------|
+| `/api/auth` | auth | 4 | Login, register, token refresh, profile |
+| `/api/connect` | connect | 3 | TikTok OAuth flows, account management |
+| `/api/commerce` | commerce | 43+ | Shops, products, orders, fulfillment, returns, analytics, affiliate, promotions, finance |
+| `/api/ads` | advertising | 96+ | Ad accounts, campaigns (CRUD + wizard), ad groups, ads, reports, audiences, pixels, catalogs, creatives, search, symphony, split tests, leads, automation, comments |
+| `/api/content` | content | 9+ | Video list/detail, metrics, publish, calendar |
+| `/api/creators` | creators | 14+ | Discovery (TTCM), profiles, campaigns, invitations, Spark Ads |
+| `/api/analytics` | analytics | 24+ | Overview KPIs, reports, notifications, API keys |
+| `/api/intelligence` | intelligence | 13+ | Trends, competitors, creator insights, research queries |
+| `/api/live` | live | 9+ | Stream monitoring, sessions, analytics |
+| `/api/messaging` | messaging | 11+ | Conversations, messages, auto-messages |
+| `/api/organic` | organic | 15+ | Brand mentions, keywords, comments |
+| `/webhooks` | webhooks | 1 | TikTok webhook ingestion (no `/api` prefix) |

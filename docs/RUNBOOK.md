@@ -106,6 +106,12 @@ curl http://localhost:8000/health
 | PostgreSQL connections | `pg_stat_activity` | > 80% of `max_connections` |
 | Redis memory usage | `redis-cli info memory` | > 80% of `maxmemory` |
 | Webhook processing lag | `webhook_events` where `status = 'received'` older than 5min | Any |
+| Ad sync staleness | `ad_sync_cursors.last_synced_at` older than 2h | Any account |
+| Content sync staleness | Video `updated_at` older than 24h with active account | Any |
+| Intelligence sync staleness | `trend_snapshots` older than 8h | Any |
+| Live session cleanup | `live_sessions` with `status = 'active'` older than 12h | Any |
+| Messaging sync staleness | `conversations.last_synced_at` older than 2h | Any |
+| Mention sync staleness | `brand_mentions` not updated in 4h | Any |
 | Disk usage | OS metrics | > 85% |
 
 ### Log Locations
@@ -132,6 +138,21 @@ docker compose logs celery-worker 2>&1 | grep "webhook"
 
 # Token refresh issues
 docker compose logs celery-worker 2>&1 | grep "token_refresh"
+
+# Ad sync issues
+docker compose logs celery-worker 2>&1 | grep "ad_sync"
+
+# Content sync issues
+docker compose logs celery-worker 2>&1 | grep "content_sync"
+
+# Intelligence sync issues
+docker compose logs celery-worker 2>&1 | grep "intelligence_sync"
+
+# Live stream monitoring
+docker compose logs celery-worker 2>&1 | grep "live_sync"
+
+# Messaging sync
+docker compose logs celery-worker 2>&1 | grep "messaging_sync"
 ```
 
 ---
@@ -275,6 +296,68 @@ docker compose build --no-cache api
 pip install -e ".[dev]" --dry-run
 ```
 
+### 9. Ad sync data stale
+
+**Symptoms:** Campaign/ad group/ad data not updating in dashboard
+
+**Diagnosis:**
+```sql
+SELECT ad_account_id, entity_type, last_synced_at, cursor_value
+FROM ad_sync_cursors
+ORDER BY last_synced_at;
+```
+
+**Fix:**
+- Trigger manual sync: `POST /api/ads/campaigns/sync`
+- Check Celery beat is running (scheduler for periodic sync)
+- Check Marketing API token is still valid
+
+### 10. Content publish job stuck
+
+**Symptoms:** Publish job stays in `PROCESSING` status
+
+**Diagnosis:**
+```sql
+SELECT id, status, publish_id, error_message, created_at
+FROM content_publish_jobs
+WHERE status = 'PROCESSING'
+ORDER BY created_at DESC;
+```
+
+**Fix:**
+- Check publish status via `GET /api/content/publish/{publish_id}/status`
+- TikTok processing can take up to 15 minutes for video encoding
+- If stuck > 30min, check Developer API token validity
+
+### 11. Intelligence data not updating
+
+**Symptoms:** Trends or competitor data is stale
+
+**Diagnosis:**
+```sql
+SELECT category, collected_at FROM trend_snapshots ORDER BY collected_at DESC LIMIT 5;
+SELECT tracker_id, last_synced_at FROM competitor_content ORDER BY last_synced_at DESC LIMIT 5;
+```
+
+**Fix:**
+- Check `intelligence_sync` worker logs
+- Verify Research API credentials are valid
+- Trigger manual sync via intelligence endpoints
+
+### 12. Live session stuck as active
+
+**Symptoms:** Session shows as `active` but stream ended
+
+**Diagnosis:**
+```sql
+SELECT id, stream_id, status, started_at FROM live_sessions
+WHERE status = 'active' AND started_at < NOW() - INTERVAL '12 hours';
+```
+
+**Fix:**
+- `cleanup_stale_sessions` task runs hourly to close stale sessions
+- Manual: `PATCH /api/live/sessions/{id}` with `status: ended`
+
 ---
 
 ## Rollback Procedures
@@ -344,13 +427,30 @@ docker compose start api celery-worker celery-beat
 
 ## Scheduled Tasks (Celery Beat)
 
-| Task | Schedule | Description |
-|------|----------|-------------|
-| Token refresh (Developer) | Every 12h | Refresh OAuth access tokens (24h expiry) |
-| Token refresh (Shop) | Every 24h | Refresh Shop access tokens (7d expiry) |
-| Token health check (Marketing) | Daily | Verify long-term Marketing tokens |
-| Data sync (orders) | Every 5-15 min | Polling fallback for missed webhooks |
-| Data sync (products) | Every 15 min | Reconcile product catalog |
+| Task | Schedule | Worker File | Description |
+|------|----------|-------------|-------------|
+| Token refresh (Developer) | Every 12h | `token_refresh.py` | Refresh OAuth access tokens (24h expiry) |
+| Token refresh (Shop) | Every 24h | `token_refresh.py` | Refresh Shop access tokens (7d expiry) |
+| Token health check (Marketing) | Daily | `token_refresh.py` | Verify long-term Marketing tokens |
+| Data sync (orders) | Every 5-15 min | `data_sync.py` | Polling fallback for missed webhooks |
+| Data sync (products) | Every 15 min | `data_sync.py` | Reconcile product catalog |
+| Ad account sync | Every 6h | `ad_sync.py` | Sync ad account list and status |
+| Campaign sync | Every 30 min | `ad_sync.py` | Sync campaign data from Marketing API |
+| Ad group sync | Every 30 min | `ad_sync.py` | Sync ad group data |
+| Ad sync | Every 30 min | `ad_sync.py` | Sync individual ad data |
+| Video sync | Every 1h | `content_sync.py` | Sync videos from Developer API |
+| Video metrics sync | Every 6h | `content_sync.py` | Fetch updated video metrics |
+| Creator metrics sync | Every 12h | `creator_sync.py` | Update creator follower/engagement data |
+| Analytics aggregation | Every 1h | `analytics_sync.py` | Aggregate cross-platform KPIs |
+| Daily KPI snapshot | Every 24h | `analytics_sync.py` | Record daily KPI snapshot |
+| Scheduled reports | Every 6h | `analytics_sync.py` | Run user-defined scheduled reports |
+| Trend sync | Every 4h | `intelligence_sync.py` | Sync trending hashtags/sounds from Research API |
+| Competitor content sync | Every 6h | `intelligence_sync.py` | Track competitor content updates |
+| Live stream monitor | On-demand | `live_sync.py` | Monitor active live streams |
+| Live analytics compute | On completion | `live_sync.py` | Compute analytics after stream ends |
+| Stale session cleanup | Every 1h | `live_sync.py` | Close stale live sessions |
+| Conversation sync | Every 30 min | `messaging_sync.py` | Sync messaging conversations |
+| Mention sync | Every 2h | `messaging_sync.py` | Sync brand mentions from organic |
 
 ---
 
@@ -388,3 +488,15 @@ SELECT * FROM audit_log
 WHERE action = 'login_failed'
 ORDER BY created_at DESC;
 ```
+
+---
+
+## Staleness Review
+
+| File | Last Modified | Status |
+|------|--------------|--------|
+| `docs/CONTRIB.md` | 2026-02-21 | Updated |
+| `docs/RUNBOOK.md` | 2026-02-21 | Updated |
+| `ARCHITECTURE.md` | 2025-02-19 | Needs update (Phase 7-8, UX redesign not reflected) |
+| `frontend/README.md` | 2025-02-19 | Needs update |
+| `knowledge-base/README.md` | 2025-02-19 | Current (reference material) |
