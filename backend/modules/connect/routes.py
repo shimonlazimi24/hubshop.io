@@ -16,6 +16,18 @@ from backend.db.models.platform import (
 from backend.dependencies import CurrentUser, DBSession
 from backend.utils.crypto import encrypt_token
 
+# Full production scopes for each platform connection
+DEVELOPER_SCOPES = (
+    "user.info.basic,"
+    "user.info.profile,"
+    "user.info.stats,"
+    "video.list,"
+    "video.publish,"
+    "video.upload,"
+    "comment.list,"
+    "comment.list.manage"
+)
+
 router = APIRouter(prefix="/connect", tags=["connect"])
 
 
@@ -125,7 +137,7 @@ async def developer_authorize(
     params = {
         "client_key": settings.tiktok_developer_client_key,
         "response_type": "code",
-        "scope": "user.info.basic,video.list",
+        "scope": DEVELOPER_SCOPES,
         "redirect_uri": f"{settings.backend_url}/api/connect/developer/callback",
         "state": state,
     }
