@@ -301,3 +301,143 @@ class BusinessCenterService:
             json_body=body,
         )
         return resp.get("data", {})
+
+    # --- Finance (Payments, Billing, Invoices) ---
+
+    async def get_bc_balance(
+        self,
+        ad_account: AdAccount,
+        *,
+        bc_id: str,
+    ) -> dict:
+        """Get the payment balance for a Business Center."""
+        gateway = await self._get_gateway(ad_account)
+        resp = await gateway.get(
+            "/bc/payment/balance/get/",
+            params={"bc_id": bc_id},
+        )
+        return resp.get("data", {})
+
+    async def process_payment(
+        self,
+        ad_account: AdAccount,
+        *,
+        bc_id: str,
+        advertiser_id: str,
+        transfer_type: str,
+        amount: float,
+    ) -> dict:
+        """Process a fund transfer (GRANT or RECLAIM) within a Business Center."""
+        gateway = await self._get_gateway(ad_account)
+        resp = await gateway.post(
+            "/bc/payment/process/",
+            json_body={
+                "bc_id": bc_id,
+                "advertiser_id": advertiser_id,
+                "transfer_type": transfer_type,
+                "amount": amount,
+            },
+        )
+        return resp.get("data", {})
+
+    async def list_transactions(
+        self,
+        ad_account: AdAccount,
+        *,
+        bc_id: str,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> dict:
+        """List transaction records for a Business Center."""
+        gateway = await self._get_gateway(ad_account)
+        resp = await gateway.get(
+            "/bc/payment/transaction/get/",
+            params={
+                "bc_id": bc_id,
+                "page": str(page),
+                "page_size": str(page_size),
+            },
+        )
+        return resp.get("data", {})
+
+    async def list_billing_groups(
+        self,
+        ad_account: AdAccount,
+        *,
+        bc_id: str,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> dict:
+        """List billing groups for a Business Center."""
+        gateway = await self._get_gateway(ad_account)
+        resp = await gateway.get(
+            "/bc/billing_group/get/",
+            params={
+                "bc_id": bc_id,
+                "page": str(page),
+                "page_size": str(page_size),
+            },
+        )
+        return resp.get("data", {})
+
+    async def create_billing_group(
+        self,
+        ad_account: AdAccount,
+        *,
+        bc_id: str,
+        billing_group_name: str,
+        advertiser_ids: list[str] | None = None,
+    ) -> dict:
+        """Create a billing group in a Business Center."""
+        gateway = await self._get_gateway(ad_account)
+        body: dict = {
+            "bc_id": bc_id,
+            "billing_group_name": billing_group_name,
+        }
+        if advertiser_ids is not None:
+            body["advertiser_ids"] = advertiser_ids
+        resp = await gateway.post(
+            "/bc/billing_group/create/",
+            json_body=body,
+        )
+        return resp.get("data", {})
+
+    async def list_invoices(
+        self,
+        ad_account: AdAccount,
+        *,
+        bc_id: str,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> dict:
+        """List invoices for a Business Center."""
+        gateway = await self._get_gateway(ad_account)
+        resp = await gateway.get(
+            "/bc/invoice/get/",
+            params={
+                "bc_id": bc_id,
+                "page": str(page),
+                "page_size": str(page_size),
+            },
+        )
+        return resp.get("data", {})
+
+    async def get_cost_records(
+        self,
+        ad_account: AdAccount,
+        *,
+        bc_id: str,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> dict:
+        """Get cost records for a Business Center."""
+        gateway = await self._get_gateway(ad_account)
+        resp = await gateway.get(
+            "/bc/payment/cost/get/",
+            params={
+                "bc_id": bc_id,
+                "page": str(page),
+                "page_size": str(page_size),
+            },
+        )
+        return resp.get("data", {})

@@ -7,7 +7,9 @@ from backend.modules.advertising.schemas import (
     AddPartnerRequest,
     AssignAssetRequest,
     CreateBCAdAccountRequest,
+    CreateBillingGroupRequest,
     InviteMemberRequest,
+    ProcessPaymentRequest,
     UpdateMemberRequest,
 )
 from backend.modules.advertising.services.ad_account_service import AdAccountService
@@ -337,4 +339,148 @@ async def create_ad_account_in_bc(
         timezone=body.timezone,
         currency=body.currency,
         industry_id=body.industry_id,
+    )
+
+
+# --- Finance (Payments, Billing, Invoices) ---
+
+
+@router.get("/bc/{bc_id}/balance")
+async def get_bc_balance(
+    workspace_id: uuid.UUID,
+    bc_id: str,
+    ad_account_id: str,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    account_service = AdAccountService(db)
+    ad_account = await account_service.get_ad_account_by_advertiser_id(ad_account_id)
+    if not ad_account:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Ad account not found"
+        )
+
+    service = BusinessCenterService(db)
+    return await service.get_bc_balance(ad_account, bc_id=bc_id)
+
+
+@router.post("/bc/{bc_id}/payments")
+async def process_payment(
+    workspace_id: uuid.UUID,
+    bc_id: str,
+    body: ProcessPaymentRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    account_service = AdAccountService(db)
+    ad_account = await account_service.get_ad_account_by_advertiser_id(
+        body.ad_account_id
+    )
+    if not ad_account:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Ad account not found"
+        )
+
+    service = BusinessCenterService(db)
+    return await service.process_payment(
+        ad_account,
+        bc_id=bc_id,
+        advertiser_id=body.advertiser_id,
+        transfer_type=body.transfer_type,
+        amount=body.amount,
+    )
+
+
+@router.get("/bc/{bc_id}/transactions")
+async def list_transactions(
+    workspace_id: uuid.UUID,
+    bc_id: str,
+    ad_account_id: str,
+    current_user: CurrentUser,
+    db: DBSession,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+) -> dict:
+    account_service = AdAccountService(db)
+    ad_account = await account_service.get_ad_account_by_advertiser_id(ad_account_id)
+    if not ad_account:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Ad account not found"
+        )
+
+    service = BusinessCenterService(db)
+    return await service.list_transactions(
+        ad_account, bc_id=bc_id, page=page, page_size=page_size
+    )
+
+
+@router.get("/bc/{bc_id}/billing-groups")
+async def list_billing_groups(
+    workspace_id: uuid.UUID,
+    bc_id: str,
+    ad_account_id: str,
+    current_user: CurrentUser,
+    db: DBSession,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+) -> dict:
+    account_service = AdAccountService(db)
+    ad_account = await account_service.get_ad_account_by_advertiser_id(ad_account_id)
+    if not ad_account:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Ad account not found"
+        )
+
+    service = BusinessCenterService(db)
+    return await service.list_billing_groups(
+        ad_account, bc_id=bc_id, page=page, page_size=page_size
+    )
+
+
+@router.post("/bc/{bc_id}/billing-groups")
+async def create_billing_group(
+    workspace_id: uuid.UUID,
+    bc_id: str,
+    body: CreateBillingGroupRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    account_service = AdAccountService(db)
+    ad_account = await account_service.get_ad_account_by_advertiser_id(
+        body.ad_account_id
+    )
+    if not ad_account:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Ad account not found"
+        )
+
+    service = BusinessCenterService(db)
+    return await service.create_billing_group(
+        ad_account,
+        bc_id=bc_id,
+        billing_group_name=body.billing_group_name,
+        advertiser_ids=body.advertiser_ids,
+    )
+
+
+@router.get("/bc/{bc_id}/invoices")
+async def list_invoices(
+    workspace_id: uuid.UUID,
+    bc_id: str,
+    ad_account_id: str,
+    current_user: CurrentUser,
+    db: DBSession,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+) -> dict:
+    account_service = AdAccountService(db)
+    ad_account = await account_service.get_ad_account_by_advertiser_id(ad_account_id)
+    if not ad_account:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Ad account not found"
+        )
+
+    service = BusinessCenterService(db)
+    return await service.list_invoices(
+        ad_account, bc_id=bc_id, page=page, page_size=page_size
     )

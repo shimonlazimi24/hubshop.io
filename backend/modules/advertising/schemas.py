@@ -323,3 +323,19 @@ class CreateBCAdAccountRequest(BaseModel):
     timezone: str
     currency: str
     industry_id: str | None = None
+
+
+# --- BC Finance ---
+
+
+class ProcessPaymentRequest(BaseModel):
+    ad_account_id: str
+    advertiser_id: str
+    transfer_type: str
+    amount: float
+
+
+class CreateBillingGroupRequest(BaseModel):
+    ad_account_id: str
+    billing_group_name: str
+    advertiser_ids: list[str] | None = None
