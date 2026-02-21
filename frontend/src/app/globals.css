@@ -11,6 +11,30 @@
   --cyan: #25F4EE;
   --purple: #7B68EE;
   --coral-dark: #E0234A;
+
+  /* Semantic status colors */
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --info: #3B82F6;
+
+  /* Chart palette */
+  --chart-1: #FE2C55;
+  --chart-2: #7B68EE;
+  --chart-3: #25F4EE;
+  --chart-4: #10B981;
+  --chart-5: #F59E0B;
+  --chart-6: #3B82F6;
+
+  /* Elevation */
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-panel: 0 4px 12px rgba(0,0,0,0.1);
+  --shadow-modal: 0 8px 24px rgba(0,0,0,0.15);
+
+  /* Animation durations */
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
 }
 
 @theme inline {
@@ -24,6 +48,16 @@
   --color-cyan: var(--cyan);
   --color-purple: var(--purple);
   --color-coral-dark: var(--coral-dark);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
