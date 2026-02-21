@@ -11,6 +11,7 @@ import {
   Radio,
   MessageSquare,
   Sprout,
+  Palette,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -28,6 +29,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/commerce", label: "Commerce", icon: ShoppingBag, group: "Modules" },
   { href: "/ads", label: "Advertising", icon: Megaphone, group: "Modules" },
   { href: "/content", label: "Content", icon: Play, group: "Modules" },
+  { href: "/creatives", label: "Creative Hub", icon: Palette, group: "Modules" },
   { href: "/creators", label: "Creators", icon: Users, group: "Modules" },
   { href: "/live", label: "LIVE", icon: Radio, group: "Modules" },
   { href: "/messaging", label: "Messaging", icon: MessageSquare, group: "Modules" },

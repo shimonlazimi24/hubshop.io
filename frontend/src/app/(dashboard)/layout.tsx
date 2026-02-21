@@ -11,6 +11,7 @@ import { Sidebar } from "@/components/dashboard/sidebar";
 import { TopBar } from "@/components/dashboard/top-bar";
 import { CommandPalette } from "@/components/dashboard/command-palette";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ToastContainer } from "@/components/ui/toast";
 
 function DashboardSkeleton() {
   return (
@@ -136,6 +137,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         open={commandPaletteOpen}
         onClose={() => setCommandPaletteOpen(false)}
       />
+
+      {/* Toast notifications */}
+      <ToastContainer />
     </div>
   );
 }
