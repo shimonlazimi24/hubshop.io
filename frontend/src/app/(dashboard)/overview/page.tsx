@@ -20,6 +20,9 @@ import {
   Lightbulb,
   Package,
   Radio,
+  Plus,
+  Upload,
+  Zap,
 } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { PageShell } from "@/components/ui/page-shell";
@@ -214,6 +217,52 @@ export default function OverviewPage() {
           </InsightPanel>
         }
       >
+        {/* Quick Actions */}
+        <div className="mb-6">
+          <h2 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            <Zap className="h-4 w-4 text-coral" />
+            Quick Actions
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <Link
+              href="/ads/campaigns/new"
+              className="group flex items-center gap-3 rounded-xl border border-coral/20 bg-coral/5 p-4 hover:bg-coral/10 hover:shadow-[var(--shadow-panel)] transition-all duration-[var(--duration-fast)]"
+            >
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-coral text-white shadow-sm">
+                <Plus className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-900">Launch Campaign</p>
+                <p className="text-xs text-gray-500">Create a new TikTok ad campaign</p>
+              </div>
+            </Link>
+            <Link
+              href="/content/publish"
+              className="group flex items-center gap-3 rounded-xl border border-info/20 bg-info/5 p-4 hover:bg-info/10 hover:shadow-[var(--shadow-panel)] transition-all duration-[var(--duration-fast)]"
+            >
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-info text-white shadow-sm">
+                <Upload className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-900">Publish Content</p>
+                <p className="text-xs text-gray-500">Upload and schedule a new video</p>
+              </div>
+            </Link>
+            <Link
+              href="/creators/campaigns/new"
+              className="group flex items-center gap-3 rounded-xl border border-purple/20 bg-purple/5 p-4 hover:bg-purple/10 hover:shadow-[var(--shadow-panel)] transition-all duration-[var(--duration-fast)]"
+            >
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple text-white shadow-sm">
+                <Users className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-900">Creator Campaign</p>
+                <p className="text-xs text-gray-500">Launch a new influencer collaboration</p>
+              </div>
+            </Link>
+          </div>
+        </div>
+
         {/* Action Items */}
         <div className="mb-6">
           <h2 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">

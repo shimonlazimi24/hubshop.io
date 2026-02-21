@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { DollarSign, TrendingUp, Megaphone, Target, RefreshCw, Edit, Pause, Play, Copy, Trophy, AlertTriangle, BarChart3 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { DollarSign, TrendingUp, Megaphone, Target, RefreshCw, Edit, Pause, Play, Copy, Trophy, AlertTriangle, BarChart3, Plus } from "lucide-react";
 
 import {
   listAdAccounts,
@@ -55,6 +56,7 @@ function mapStatusLabel(status: string): string {
 }
 
 export default function CampaignsPage() {
+  const router = useRouter();
   const [campaigns, setCampaigns] = useState<PaginatedResponse<CampaignSummary> | null>(null);
   const [adAccounts, setAdAccounts] = useState<AdAccount[]>([]);
   const [loading, setLoading] = useState(true);
@@ -172,7 +174,19 @@ export default function CampaignsPage() {
 
   return (
     <>
-      <PageHeader title="Campaigns" description="Manage and optimize your TikTok ad campaigns" />
+      <PageHeader
+        title="Campaigns"
+        description="Manage and optimize your TikTok ad campaigns"
+        actions={
+          <Link
+            href="/ads/campaigns/new"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-coral px-4 py-2.5 text-sm font-medium text-white hover:bg-coral-dark transition-colors shadow-[var(--shadow-card)]"
+          >
+            <Plus className="h-4 w-4" />
+            Create Campaign
+          </Link>
+        }
+      />
       <PageShell
         header={
           <MetricBar>
@@ -282,7 +296,8 @@ export default function CampaignsPage() {
           onRowClick={(row) => { window.location.href = `/ads/campaigns/${row.id}`; }}
           loading={loading}
           emptyTitle="No campaigns found"
-          emptyDescription="Sync your TikTok ad campaigns or adjust your filters."
+          emptyDescription="Create your first campaign or sync existing ones from TikTok."
+          emptyAction={{ label: "Create Campaign", onClick: () => router.push("/ads/campaigns/new") }}
           page={campaigns?.page}
           totalPages={campaigns?.total_pages}
           onPageChange={setPage}
