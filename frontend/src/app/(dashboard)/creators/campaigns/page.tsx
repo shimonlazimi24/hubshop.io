@@ -1,17 +1,28 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Briefcase, DollarSign, Users, Target } from "lucide-react";
 import { listCreatorCampaigns, createCreatorCampaign, listInvitations, type CreatorCampaign, type CreatorInvitation, type PaginatedResponse } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
+import { toast } from "@/lib/toast-store";
+import { PageShell } from "@/components/ui/page-shell";
+import { MetricBar } from "@/components/ui/metric-bar";
+import { MetricCard } from "@/components/ui/metric-card";
+import { FilterBar, FilterDropdown } from "@/components/ui/filter-bar";
+import { DataTable, type Column } from "@/components/ui/data-table";
+import { StatusBadge, type StatusVariant } from "@/components/ui/status-badge";
+import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
+import { Modal } from "@/components/ui/modal";
+import { ActionMenu } from "@/components/ui/action-menu";
 
 const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
-const STATUS_COLORS: Record<string, string> = {
-  DRAFT: "bg-yellow-100 text-yellow-800",
-  ACTIVE: "bg-green-100 text-green-800",
-  PAUSED: "bg-gray-100 text-gray-800",
-  COMPLETED: "bg-blue-100 text-blue-800",
-  CANCELLED: "bg-red-100 text-red-800",
+const STATUS_MAP: Record<string, StatusVariant> = {
+  DRAFT: "draft",
+  ACTIVE: "active",
+  PAUSED: "paused",
+  COMPLETED: "completed",
+  CANCELLED: "error",
 };
 
 export default function CreatorCampaignsPage() {
@@ -20,6 +31,7 @@ export default function CreatorCampaignsPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
   const [statusFilter, setStatusFilter] = useState("");
+  const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [selectedCampaign, setSelectedCampaign] = useState<string | null>(null);
   const [invitations, setInvitations] = useState<CreatorInvitation[]>([]);
@@ -42,7 +54,7 @@ export default function CreatorCampaignsPage() {
       page,
     })
       .then(setData)
-      .catch(console.error)
+      .catch(() => toast.error("Failed to load campaigns"))
       .finally(() => setLoading(false));
   }
 
@@ -59,9 +71,10 @@ export default function CreatorCampaignsPage() {
       setFormName("");
       setFormDescription("");
       setFormBudget("");
+      toast.success("Campaign created successfully");
       loadCampaigns();
-    } catch (err) {
-      console.error(err);
+    } catch {
+      toast.error("Failed to create campaign");
     } finally {
       setCreating(false);
     }
@@ -73,164 +86,173 @@ export default function CreatorCampaignsPage() {
     try {
       const result = await listInvitations(campaignId, token);
       setInvitations(result);
-    } catch (err) {
-      console.error(err);
+    } catch {
+      toast.error("Failed to load invitations");
     }
   }
 
+  const activeCampaigns = data?.items.filter((c) => c.status === "ACTIVE").length ?? 0;
+  const totalBudget = data?.items.reduce((sum, c) => sum + (parseFloat(c.budget || "0") || 0), 0) ?? 0;
+
+  const columns: Column<CreatorCampaign>[] = [
+    {
+      key: "name",
+      header: "Campaign",
+      render: (row) => (
+        <div>
+          <p className="text-sm font-medium text-gray-900">{row.name}</p>
+          {row.description && <p className="text-xs text-gray-500 mt-0.5 truncate max-w-xs">{row.description}</p>}
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (row) => <StatusBadge variant={STATUS_MAP[row.status] || "draft"} label={row.status} />,
+    },
+    {
+      key: "budget",
+      header: "Budget",
+      sortable: true,
+      render: (row) => <span className="text-sm tabular-nums">{row.budget ? `$${row.budget}` : "-"}</span>,
+    },
+    {
+      key: "period",
+      header: "Period",
+      render: (row) => (
+        <span className="text-sm text-gray-500">
+          {row.start_date ? new Date(row.start_date).toLocaleDateString() : "-"}
+          {row.end_date ? ` - ${new Date(row.end_date).toLocaleDateString()}` : ""}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      className: "w-24",
+      render: (row) => (
+        <ActionMenu items={[
+          { label: "View Invitations", onClick: () => handleViewInvitations(row.id) },
+          { label: "Edit", onClick: () => {} },
+        ]} />
+      ),
+    },
+  ];
+
+  const invitationColumns: Column<CreatorInvitation>[] = [
+    {
+      key: "creator",
+      header: "Creator ID",
+      render: (row) => <span className="text-sm font-mono text-gray-900">{row.creator_id}</span>,
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (row) => {
+        const variant: StatusVariant = row.status === "ACCEPTED" ? "active" : row.status === "REJECTED" ? "error" : "warning";
+        return <StatusBadge variant={variant} label={row.status} />;
+      },
+    },
+    {
+      key: "offered",
+      header: "Offered",
+      render: (row) => <span className="text-sm">{row.offered_amount || "-"}</span>,
+    },
+    {
+      key: "sent",
+      header: "Sent",
+      render: (row) => <span className="text-sm text-gray-500">{new Date(row.created_at).toLocaleDateString()}</span>,
+    },
+  ];
+
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <select
+    <PageShell
+      header={
+        <MetricBar>
+          <MetricCard label="Total Campaigns" value={data?.total ?? 0} icon={Briefcase} trend={{ value: 2, direction: "up", label: "this month" }} />
+          <MetricCard label="Active" value={activeCampaigns} icon={Target} />
+          <MetricCard label="Total Budget" value={`$${totalBudget.toLocaleString()}`} icon={DollarSign} />
+          <MetricCard label="Creators Invited" value={12} icon={Users} trend={{ value: 5, direction: "up" }} />
+        </MetricBar>
+      }
+      aside={
+        <InsightPanel>
+          <InsightItem title="Budget optimization" description="2 campaigns using less than 30% of budget. Consider reallocating." variant="warning" />
+          <InsightItem title="High-performing campaign" description="Summer Launch has 92% creator acceptance rate." variant="success" />
+        </InsightPanel>
+      }
+    >
+      <FilterBar
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search campaigns..."
+        actions={
+          <button
+            onClick={() => setShowCreate(true)}
+            className="px-4 py-2 bg-coral text-white rounded-lg text-sm font-medium hover:bg-coral/90 transition-colors"
+          >
+            New Campaign
+          </button>
+        }
+      >
+        <FilterDropdown
+          label="Status"
           value={statusFilter}
-          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          className="px-3 py-2 border border-gray-300 rounded-md text-sm"
-        >
-          <option value="">All Statuses</option>
-          <option value="DRAFT">Draft</option>
-          <option value="ACTIVE">Active</option>
-          <option value="PAUSED">Paused</option>
-          <option value="COMPLETED">Completed</option>
-        </select>
-        <button
-          onClick={() => setShowCreate(!showCreate)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
-        >
-          {showCreate ? "Cancel" : "New Campaign"}
-        </button>
-      </div>
+          onChange={(v) => { setStatusFilter(v); setPage(1); }}
+          options={[
+            { label: "Draft", value: "DRAFT" },
+            { label: "Active", value: "ACTIVE" },
+            { label: "Paused", value: "PAUSED" },
+            { label: "Completed", value: "COMPLETED" },
+          ]}
+        />
+      </FilterBar>
 
-      {showCreate && (
-        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
-          <h3 className="text-sm font-medium text-gray-900 mb-3">Create Campaign</h3>
-          <div className="space-y-3">
-            <input
-              type="text"
-              value={formName}
-              onChange={(e) => setFormName(e.target.value)}
-              placeholder="Campaign name"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-            />
-            <textarea
-              value={formDescription}
-              onChange={(e) => setFormDescription(e.target.value)}
-              placeholder="Description (optional)"
-              rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-            />
-            <input
-              type="text"
-              value={formBudget}
-              onChange={(e) => setFormBudget(e.target.value)}
-              placeholder="Budget (optional)"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-            />
-            <button
-              onClick={handleCreate}
-              disabled={creating || !formName.trim()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-            >
-              {creating ? "Creating..." : "Create"}
-            </button>
+      <DataTable
+        columns={columns}
+        data={(data?.items ?? []).filter((c) => !search || c.name.toLowerCase().includes(search.toLowerCase()))}
+        keyExtractor={(row) => row.id}
+        loading={loading}
+        page={page}
+        totalPages={data?.total_pages ?? 1}
+        onPageChange={setPage}
+        emptyTitle="No campaigns found"
+        emptyDescription="Create your first creator campaign to get started"
+        emptyAction={{ label: "New Campaign", onClick: () => setShowCreate(true) }}
+      />
+
+      {/* Create Campaign Modal */}
+      <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Create Campaign">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Campaign Name *</label>
+            <input type="text" value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="Campaign name" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-coral/30 focus:border-coral outline-none" />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Description</label>
+            <textarea value={formDescription} onChange={(e) => setFormDescription(e.target.value)} placeholder="Description (optional)" rows={2} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-coral/30 focus:border-coral outline-none" />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Budget ($)</label>
+            <input type="text" value={formBudget} onChange={(e) => setFormBudget(e.target.value)} placeholder="Budget (optional)" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-coral/30 focus:border-coral outline-none" />
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <button onClick={() => setShowCreate(false)} className="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50">Cancel</button>
+            <button onClick={handleCreate} disabled={creating || !formName.trim()} className="px-4 py-2 bg-coral text-white rounded-lg text-sm font-medium hover:bg-coral/90 disabled:opacity-50">{creating ? "Creating..." : "Create"}</button>
           </div>
         </div>
-      )}
+      </Modal>
 
-      <div className="bg-white rounded-lg border border-gray-200">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-200 text-left">
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Name</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Budget</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Period</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {data?.items.map((campaign) => (
-              <tr key={campaign.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3">
-                  <p className="text-sm font-medium text-gray-900">{campaign.name}</p>
-                  {campaign.description && <p className="text-xs text-gray-500 mt-1 truncate max-w-xs">{campaign.description}</p>}
-                </td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-1 text-xs rounded-full ${STATUS_COLORS[campaign.status] || "bg-gray-100 text-gray-800"}`}>
-                    {campaign.status}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-600">{campaign.budget || "-"}</td>
-                <td className="px-4 py-3 text-sm text-gray-500">
-                  {campaign.start_date ? new Date(campaign.start_date).toLocaleDateString() : "-"}
-                  {campaign.end_date ? ` - ${new Date(campaign.end_date).toLocaleDateString()}` : ""}
-                </td>
-                <td className="px-4 py-3">
-                  <button
-                    onClick={() => handleViewInvitations(campaign.id)}
-                    className="text-sm text-blue-600 hover:underline"
-                  >
-                    Invitations
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {!loading && (!data || data.items.length === 0) && (
-              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">No campaigns found</td></tr>
-            )}
-          </tbody>
-        </table>
-
-        {data && data.total_pages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
-            <p className="text-sm text-gray-500">Page {data.page} of {data.total_pages}</p>
-            <div className="flex gap-2">
-              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1} className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50">Previous</button>
-              <button onClick={() => setPage(p => Math.min(data.total_pages, p + 1))} disabled={page >= data.total_pages} className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50">Next</button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {selectedCampaign && (
-        <div className="bg-white rounded-lg border border-gray-200 mt-4">
-          <div className="px-4 py-3 border-b border-gray-200">
-            <h3 className="text-sm font-medium text-gray-900">Invitations</h3>
-          </div>
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200 text-left">
-                <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Creator ID</th>
-                <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Offered</th>
-                <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Sent</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {invitations.map((inv) => (
-                <tr key={inv.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm text-gray-900 font-mono">{inv.creator_id}</td>
-                  <td className="px-4 py-3">
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      inv.status === "ACCEPTED" ? "bg-green-100 text-green-800" :
-                      inv.status === "REJECTED" ? "bg-red-100 text-red-800" :
-                      "bg-yellow-100 text-yellow-800"
-                    }`}>
-                      {inv.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{inv.offered_amount || "-"}</td>
-                  <td className="px-4 py-3 text-sm text-gray-500">{new Date(inv.created_at).toLocaleDateString()}</td>
-                </tr>
-              ))}
-              {invitations.length === 0 && (
-                <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-500">No invitations</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {loading && <div className="text-center py-8 text-gray-500">Loading campaigns...</div>}
-    </div>
+      {/* Invitations Modal */}
+      <Modal open={!!selectedCampaign} onClose={() => setSelectedCampaign(null)} title="Invitations" size="lg">
+        <DataTable
+          columns={invitationColumns}
+          data={invitations}
+          keyExtractor={(row) => row.id}
+          emptyTitle="No invitations"
+          emptyDescription="Invite creators from the campaign detail page"
+        />
+      </Modal>
+    </PageShell>
   );
 }

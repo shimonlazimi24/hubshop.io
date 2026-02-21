@@ -1,10 +1,32 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { DollarSign, TrendingUp, ShoppingCart, Megaphone } from "lucide-react";
 import { getAnalyticsOverview, getTopPerformers, getRevenueVsSpend } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
+import { PageShell } from "@/components/ui/page-shell";
+import { MetricBar } from "@/components/ui/metric-bar";
+import { MetricCard } from "@/components/ui/metric-card";
+import { FilterBar, FilterDropdown } from "@/components/ui/filter-bar";
+import { DataTable, type Column } from "@/components/ui/data-table";
+import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
+import { toast } from "@/lib/toast-store";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
+
+interface SpendRow {
+  date: string;
+  revenue: string;
+  spend: string;
+}
+
+interface CampaignRow {
+  name: string;
+  spend: string;
+  impressions: number;
+  conversions: number;
+}
 
 export default function AdvertisingAnalyticsPage() {
   const [overview, setOverview] = useState<{
@@ -12,10 +34,10 @@ export default function AdvertisingAnalyticsPage() {
     roas: string;
     total_orders: number;
   } | null>(null);
-  const [spendData, setSpendData] = useState<{ date: string; revenue: string; spend: string }[]>([]);
-  const [topCampaigns, setTopCampaigns] = useState<Record<string, unknown>[]>([]);
+  const [spendData, setSpendData] = useState<SpendRow[]>([]);
+  const [topCampaigns, setTopCampaigns] = useState<CampaignRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [days, setDays] = useState(30);
+  const [days, setDays] = useState("30");
 
   const token = getAccessToken();
 
@@ -23,53 +45,103 @@ export default function AdvertisingAnalyticsPage() {
     if (!token) return;
     setLoading(true);
     Promise.all([
-      getAnalyticsOverview(WORKSPACE_ID, token, days),
-      getRevenueVsSpend(WORKSPACE_ID, token, days),
+      getAnalyticsOverview(WORKSPACE_ID, token, Number(days)),
+      getRevenueVsSpend(WORKSPACE_ID, token, Number(days)),
       getTopPerformers(WORKSPACE_ID, token, 10),
     ])
       .then(([ov, spend, performers]) => {
         setOverview({ total_ad_spend: ov.total_ad_spend, roas: ov.roas, total_orders: ov.total_orders });
         setSpendData(spend);
-        setTopCampaigns(performers.top_campaigns);
+        setTopCampaigns(
+          (performers.top_campaigns || []).map((c: Record<string, unknown>) => ({
+            name: (c.name as string) || "Unnamed",
+            spend: (c.spend as string) || "0",
+            impressions: (c.impressions as number) || 0,
+            conversions: (c.conversions as number) || 0,
+          }))
+        );
       })
-      .catch(console.error)
+      .catch(() => toast.error("Failed to load advertising analytics"))
       .finally(() => setLoading(false));
   }, [days]);
 
   const totalSpend = spendData.reduce((sum, d) => sum + parseFloat(d.spend || "0"), 0);
 
+  const campaignColumns: Column<CampaignRow>[] = [
+    {
+      key: "name",
+      header: "Campaign",
+      render: (row) => <span className="text-sm font-medium text-gray-900">{row.name}</span>,
+    },
+    {
+      key: "spend",
+      header: "Spend",
+      render: (row) => <span className="text-sm text-gray-600 tabular-nums">${row.spend}</span>,
+    },
+    {
+      key: "impressions",
+      header: "Impressions",
+      render: (row) => <span className="text-sm text-gray-600 tabular-nums">{row.impressions.toLocaleString()}</span>,
+    },
+    {
+      key: "conversions",
+      header: "Conversions",
+      render: (row) => <span className="text-sm text-gray-600 tabular-nums">{row.conversions}</span>,
+    },
+  ];
+
   return (
-    <div>
-      <div className="flex items-center gap-4 mb-4">
-        <select
+    <PageShell
+      header={
+        loading ? (
+          <MetricBar>
+            <Skeleton className="h-16 flex-1 rounded-xl" />
+            <Skeleton className="h-16 flex-1 rounded-xl" />
+            <Skeleton className="h-16 flex-1 rounded-xl" />
+          </MetricBar>
+        ) : (
+          <MetricBar>
+            <MetricCard label="Total Ad Spend" value={`$${overview?.total_ad_spend || "0"}`} icon={DollarSign} />
+            <MetricCard label="ROAS" value={`${overview?.roas || "0"}x`} icon={TrendingUp} />
+            <MetricCard label="Conversions" value={overview?.total_orders.toLocaleString() || "0"} icon={ShoppingCart} />
+          </MetricBar>
+        )
+      }
+      aside={
+        <InsightPanel>
+          <InsightItem
+            title="Ad performance"
+            description={overview ? `ROAS of ${overview.roas}x with ${overview.total_orders} conversions in the selected period.` : "Loading..."}
+            variant={overview && parseFloat(overview.roas) >= 2 ? "success" : "default"}
+          />
+          <InsightItem
+            title="Spend trend"
+            description={`$${totalSpend.toFixed(2)} total spend across ${spendData.length} days.`}
+          />
+        </InsightPanel>
+      }
+    >
+      <FilterBar
+        searchValue=""
+        onSearchChange={() => {}}
+        searchPlaceholder=""
+      >
+        <FilterDropdown
+          label="Period"
           value={days}
-          onChange={(e) => setDays(Number(e.target.value))}
-          className="px-3 py-2 border border-gray-300 rounded-md text-sm"
-        >
-          <option value={7}>Last 7 days</option>
-          <option value={30}>Last 30 days</option>
-          <option value={90}>Last 90 days</option>
-        </select>
-      </div>
+          onChange={setDays}
+          options={[
+            { label: "Last 7 days", value: "7" },
+            { label: "Last 30 days", value: "30" },
+            { label: "Last 90 days", value: "90" },
+          ]}
+        />
+      </FilterBar>
 
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 uppercase">Total Ad Spend</p>
-          <p className="text-2xl font-semibold text-gray-900 mt-1">${overview?.total_ad_spend || "0"}</p>
-        </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 uppercase">ROAS</p>
-          <p className="text-2xl font-semibold text-gray-900 mt-1">{overview?.roas || "0"}x</p>
-        </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="text-xs text-gray-500 uppercase">Conversions</p>
-          <p className="text-2xl font-semibold text-gray-900 mt-1">{overview?.total_orders.toLocaleString() || "0"}</p>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-lg border border-gray-200 mb-6">
-        <div className="px-4 py-3 border-b border-gray-200">
-          <h3 className="text-sm font-medium text-gray-900">Daily Ad Spend</h3>
+      {/* Daily Ad Spend */}
+      <div className="rounded-xl border border-gray-100 bg-white shadow-[var(--shadow-card)] mb-6">
+        <div className="px-4 py-3 border-b border-gray-100">
+          <h3 className="text-sm font-semibold text-gray-900">Daily Ad Spend</h3>
         </div>
         <div className="p-4">
           {spendData.length > 0 ? (
@@ -82,47 +154,31 @@ export default function AdvertisingAnalyticsPage() {
                       className="h-4 bg-blue-400 rounded"
                       style={{ width: `${Math.min(100, (parseFloat(d.spend || "0") / Math.max(totalSpend, 1)) * 100)}%` }}
                     />
-                    <span className="text-gray-700">${parseFloat(d.spend || "0").toFixed(2)}</span>
+                    <span className="text-gray-700 tabular-nums">${parseFloat(d.spend || "0").toFixed(2)}</span>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-center text-gray-500 py-8">No spend data for this period</p>
+            <p className="text-center text-gray-400 py-8">No spend data for this period</p>
           )}
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="px-4 py-3 border-b border-gray-200">
-          <h3 className="text-sm font-medium text-gray-900">Top Campaigns</h3>
+      {/* Top Campaigns */}
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <Megaphone className="h-4 w-4 text-purple-500" />
+          <h3 className="text-sm font-semibold text-gray-900">Top Campaigns</h3>
         </div>
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-200 text-left">
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Campaign</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Spend</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Impressions</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Conversions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {topCampaigns.map((c, i) => (
-              <tr key={i} className="hover:bg-gray-50">
-                <td className="px-4 py-3 text-sm font-medium text-gray-900">{(c.name as string) || `Campaign ${i + 1}`}</td>
-                <td className="px-4 py-3 text-sm text-gray-600">${(c.spend as string) || "0"}</td>
-                <td className="px-4 py-3 text-sm text-gray-600">{((c.impressions as number) || 0).toLocaleString()}</td>
-                <td className="px-4 py-3 text-sm text-gray-600">{(c.conversions as number) || 0}</td>
-              </tr>
-            ))}
-            {topCampaigns.length === 0 && (
-              <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-500">No campaign data</td></tr>
-            )}
-          </tbody>
-        </table>
+        <DataTable
+          columns={campaignColumns}
+          data={topCampaigns}
+          keyExtractor={(row) => row.name}
+          emptyTitle="No campaign data"
+          emptyDescription="Campaign performance data will appear here"
+        />
       </div>
-
-      {loading && <div className="text-center py-8 text-gray-500">Loading advertising analytics...</div>}
-    </div>
+    </PageShell>
   );
 }

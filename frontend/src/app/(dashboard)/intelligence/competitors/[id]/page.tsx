@@ -2,28 +2,12 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import {
-  ArrowLeft,
-  Users,
-  Eye,
-  Film,
-  Heart,
-  MessageCircle,
-  Share2,
-  ThumbsUp,
-} from "lucide-react";
-
-interface CompetitorProfile {
-  id: string;
-  username: string;
-  display_name: string;
-  bio: string;
-  follower_count: number;
-  following_count: number;
-  likes_count: number;
-  video_count: number;
-  avg_engagement_rate: number;
-}
+import { ArrowLeft, Users, Eye, Film, ThumbsUp, Heart, MessageCircle, Share2 } from "lucide-react";
+import { PageShell } from "@/components/ui/page-shell";
+import { MetricBar } from "@/components/ui/metric-bar";
+import { MetricCard } from "@/components/ui/metric-card";
+import { DataTable, type Column } from "@/components/ui/data-table";
+import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
 
 interface CompetitorVideo {
   id: string;
@@ -35,7 +19,7 @@ interface CompetitorVideo {
   created_at: string;
 }
 
-const MOCK_PROFILE: CompetitorProfile = {
+const MOCK_PROFILE = {
   id: "comp-1",
   username: "competitor_brand_1",
   display_name: "Brand Alpha",
@@ -66,105 +50,96 @@ export default function CompetitorDetailPage() {
   const params = useParams();
   const router = useRouter();
   const competitorId = params.id as string;
-  const [profile] = useState<CompetitorProfile>(MOCK_PROFILE);
-  const [videos] = useState<CompetitorVideo[]>(MOCK_VIDEOS);
+  const [profile] = useState(MOCK_PROFILE);
+  const [videos] = useState(MOCK_VIDEOS);
+
+  const columns: Column<CompetitorVideo>[] = [
+    {
+      key: "title",
+      header: "Video",
+      render: (row) => (
+        <div>
+          <p className="text-sm font-medium text-gray-900">{row.title}</p>
+          <p className="text-xs text-gray-500 mt-0.5">{new Date(row.created_at).toLocaleDateString()}</p>
+        </div>
+      ),
+    },
+    {
+      key: "views",
+      header: "Views",
+      render: (row) => (
+        <div className="flex items-center gap-1"><Eye className="h-3.5 w-3.5 text-gray-400" /><span className="text-sm text-gray-600">{formatNumber(row.views)}</span></div>
+      ),
+    },
+    {
+      key: "likes",
+      header: "Likes",
+      render: (row) => (
+        <div className="flex items-center gap-1"><Heart className="h-3.5 w-3.5 text-gray-400" /><span className="text-sm text-gray-600">{formatNumber(row.likes)}</span></div>
+      ),
+    },
+    {
+      key: "comments",
+      header: "Comments",
+      render: (row) => (
+        <div className="flex items-center gap-1"><MessageCircle className="h-3.5 w-3.5 text-gray-400" /><span className="text-sm text-gray-600">{formatNumber(row.comments)}</span></div>
+      ),
+    },
+    {
+      key: "shares",
+      header: "Shares",
+      render: (row) => (
+        <div className="flex items-center gap-1"><Share2 className="h-3.5 w-3.5 text-gray-400" /><span className="text-sm text-gray-600">{formatNumber(row.shares)}</span></div>
+      ),
+    },
+  ];
 
   return (
-    <div className="max-w-4xl">
-      <button
-        onClick={() => router.back()}
-        className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-4"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Back
-      </button>
-
-      {/* Profile Card */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-        <div className="flex items-start gap-4">
-          <div className="h-16 w-16 rounded-full bg-gray-100 overflow-hidden flex-shrink-0 flex items-center justify-center">
-            <Users className="h-8 w-8 text-gray-400" />
-          </div>
-          <div className="flex-1">
-            <h2 className="text-lg font-semibold text-gray-900">
-              {profile.display_name}
-            </h2>
-            <p className="text-sm text-gray-500 mt-0.5">@{profile.username}</p>
-            <p className="text-sm text-gray-600 mt-2">{profile.bio}</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
-          <div className="text-center p-3 bg-gray-50 rounded-lg">
-            <Users className="h-4 w-4 text-gray-400 mx-auto mb-1" />
-            <p className="text-lg font-semibold text-gray-900">{formatNumber(profile.follower_count)}</p>
-            <p className="text-xs text-gray-500">Followers</p>
-          </div>
-          <div className="text-center p-3 bg-gray-50 rounded-lg">
-            <Eye className="h-4 w-4 text-gray-400 mx-auto mb-1" />
-            <p className="text-lg font-semibold text-gray-900">{formatNumber(profile.following_count)}</p>
-            <p className="text-xs text-gray-500">Following</p>
-          </div>
-          <div className="text-center p-3 bg-gray-50 rounded-lg">
-            <ThumbsUp className="h-4 w-4 text-gray-400 mx-auto mb-1" />
-            <p className="text-lg font-semibold text-gray-900">{formatNumber(profile.likes_count)}</p>
-            <p className="text-xs text-gray-500">Likes</p>
-          </div>
-          <div className="text-center p-3 bg-gray-50 rounded-lg">
-            <Film className="h-4 w-4 text-gray-400 mx-auto mb-1" />
-            <p className="text-lg font-semibold text-gray-900">{formatNumber(profile.video_count)}</p>
-            <p className="text-xs text-gray-500">Videos</p>
-          </div>
-        </div>
-
-        <div className="mt-4 p-3 bg-green-50 rounded-lg">
-          <p className="text-sm text-green-800">
-            Avg. Engagement Rate: <span className="font-semibold">{profile.avg_engagement_rate}%</span>
-          </p>
-        </div>
-      </div>
-
-      {/* Latest Content */}
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="px-4 py-3 border-b border-gray-200">
-          <h3 className="text-sm font-medium text-gray-900">Latest Content</h3>
-        </div>
-        <div className="divide-y divide-gray-200">
-          {videos.map((video) => (
-            <div key={video.id} className="px-4 py-3 hover:bg-gray-50">
-              <div className="flex items-start gap-4">
-                <div className="w-20 h-14 rounded bg-gray-100 flex-shrink-0 flex items-center justify-center">
-                  <Film className="h-5 w-5 text-gray-300" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{video.title}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    {new Date(video.created_at).toLocaleDateString()}
-                  </p>
-                  <div className="flex items-center gap-4 mt-2">
-                    <div className="flex items-center gap-1">
-                      <Eye className="h-3.5 w-3.5 text-gray-400" />
-                      <span className="text-xs text-gray-500">{formatNumber(video.views)}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Heart className="h-3.5 w-3.5 text-gray-400" />
-                      <span className="text-xs text-gray-500">{formatNumber(video.likes)}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <MessageCircle className="h-3.5 w-3.5 text-gray-400" />
-                      <span className="text-xs text-gray-500">{formatNumber(video.comments)}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Share2 className="h-3.5 w-3.5 text-gray-400" />
-                      <span className="text-xs text-gray-500">{formatNumber(video.shares)}</span>
-                    </div>
-                  </div>
-                </div>
+    <PageShell
+      header={
+        <>
+          <button onClick={() => router.back()} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-4">
+            <ArrowLeft className="h-4 w-4" /> Back
+          </button>
+          <div className="bg-white rounded-xl border border-gray-100 shadow-[var(--shadow-card)] p-6 mb-6">
+            <div className="flex items-start gap-4">
+              <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                <Users className="h-8 w-8 text-gray-400" />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-lg font-semibold text-gray-900">{profile.display_name}</h2>
+                <p className="text-sm text-gray-500 mt-0.5">@{profile.username}</p>
+                <p className="text-sm text-gray-600 mt-2">{profile.bio}</p>
               </div>
             </div>
-          ))}
-        </div>
-      </div>
-    </div>
+          </div>
+          <MetricBar>
+            <MetricCard label="Followers" value={formatNumber(profile.follower_count)} icon={Users} />
+            <MetricCard label="Following" value={formatNumber(profile.following_count)} icon={Eye} />
+            <MetricCard label="Total Likes" value={formatNumber(profile.likes_count)} icon={ThumbsUp} />
+            <MetricCard label="Videos" value={formatNumber(profile.video_count)} icon={Film} />
+          </MetricBar>
+        </>
+      }
+      aside={
+        <InsightPanel>
+          <InsightItem
+            title="Engagement rate"
+            description={`${profile.avg_engagement_rate}% average engagement rate. ${profile.avg_engagement_rate > 4 ? "Above industry average." : "Below industry average."}`}
+            variant={profile.avg_engagement_rate > 4 ? "success" : "warning"}
+          />
+          <InsightItem title="Top content" description="Valentine's Day Special had the highest views (3.4M). Holiday content performs well for this competitor." />
+        </InsightPanel>
+      }
+    >
+      <h3 className="text-sm font-semibold text-gray-900 mb-4">Latest Content ({videos.length})</h3>
+      <DataTable
+        columns={columns}
+        data={videos}
+        keyExtractor={(row) => row.id}
+        emptyTitle="No content tracked"
+        emptyDescription="Content will appear here once synced"
+      />
+    </PageShell>
   );
 }

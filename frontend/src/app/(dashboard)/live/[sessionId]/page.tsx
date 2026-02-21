@@ -3,17 +3,13 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import {
-  ArrowLeft,
-  Eye,
-  Gift,
-  MessageCircle,
-  Heart,
-  UserPlus,
-  Radio,
-  BarChart3,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ArrowLeft, Eye, Gift, MessageCircle, Heart, UserPlus, Radio, BarChart3 } from "lucide-react";
+import { PageShell } from "@/components/ui/page-shell";
+import { MetricBar } from "@/components/ui/metric-bar";
+import { MetricCard } from "@/components/ui/metric-card";
+import { DataTable, type Column } from "@/components/ui/data-table";
+import { StatusBadge, type StatusVariant } from "@/components/ui/status-badge";
+import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
 
 interface LiveEvent {
   id: string;
@@ -23,13 +19,13 @@ interface LiveEvent {
   timestamp: string;
 }
 
-const EVENT_CONFIG = {
-  comment: { icon: MessageCircle, color: "bg-blue-100 text-blue-800", iconColor: "text-blue-500" },
-  gift: { icon: Gift, color: "bg-yellow-100 text-yellow-800", iconColor: "text-yellow-500" },
-  like: { icon: Heart, color: "bg-pink-100 text-pink-800", iconColor: "text-pink-500" },
-  follow: { icon: UserPlus, color: "bg-green-100 text-green-800", iconColor: "text-green-500" },
-  join: { icon: Eye, color: "bg-purple-100 text-purple-800", iconColor: "text-purple-500" },
-  share: { icon: Radio, color: "bg-orange-100 text-orange-800", iconColor: "text-orange-500" },
+const TYPE_MAP: Record<string, StatusVariant> = {
+  comment: "active",
+  gift: "warning",
+  like: "syncing",
+  follow: "completed",
+  join: "draft",
+  share: "paused",
 };
 
 const MOCK_EVENTS: LiveEvent[] = [
@@ -69,84 +65,70 @@ export default function LiveSessionPage() {
     likes: events.filter((e) => e.type === "like").length,
   };
 
+  const columns: Column<LiveEvent>[] = [
+    {
+      key: "type",
+      header: "Type",
+      className: "w-28",
+      render: (row) => <StatusBadge variant={TYPE_MAP[row.type] || "draft"} label={row.type} />,
+    },
+    {
+      key: "user",
+      header: "User",
+      render: (row) => <span className="text-sm font-medium text-gray-900">@{row.username}</span>,
+    },
+    {
+      key: "content",
+      header: "Content",
+      render: (row) => <span className="text-sm text-gray-600">{row.content}</span>,
+    },
+    {
+      key: "time",
+      header: "Time",
+      className: "w-28",
+      render: (row) => <span className="text-xs text-gray-400">{new Date(row.timestamp).toLocaleTimeString()}</span>,
+    },
+  ];
+
   return (
-    <div className="max-w-4xl">
-      <div className="flex items-center justify-between mb-4">
-        <button
-          onClick={() => router.back()}
-          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </button>
-        <Link
-          href={`/live/${sessionId}/analytics`}
-          className="flex items-center gap-1.5 rounded-lg bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800 transition-colors"
-        >
-          <BarChart3 className="h-4 w-4" />
-          View Analytics
-        </Link>
-      </div>
-
-      {/* Stats Bar */}
-      <div className="grid grid-cols-4 gap-3 mb-6">
-        <div className="rounded-xl border border-gray-100 bg-white p-4 text-center">
-          <Eye className="h-4 w-4 text-purple mx-auto mb-1" />
-          <p className="text-lg font-semibold text-gray-900">{formatNumber(stats.viewers)}</p>
-          <p className="text-xs text-gray-400">Viewers</p>
-        </div>
-        <div className="rounded-xl border border-gray-100 bg-white p-4 text-center">
-          <Gift className="h-4 w-4 text-yellow-500 mx-auto mb-1" />
-          <p className="text-lg font-semibold text-gray-900">{formatNumber(stats.gifts)}</p>
-          <p className="text-xs text-gray-400">Gifts</p>
-        </div>
-        <div className="rounded-xl border border-gray-100 bg-white p-4 text-center">
-          <MessageCircle className="h-4 w-4 text-blue-500 mx-auto mb-1" />
-          <p className="text-lg font-semibold text-gray-900">{stats.comments}</p>
-          <p className="text-xs text-gray-400">Comments</p>
-        </div>
-        <div className="rounded-xl border border-gray-100 bg-white p-4 text-center">
-          <Heart className="h-4 w-4 text-pink-500 mx-auto mb-1" />
-          <p className="text-lg font-semibold text-gray-900">{stats.likes}</p>
-          <p className="text-xs text-gray-400">Likes</p>
-        </div>
-      </div>
-
-      {/* Session Info */}
+    <PageShell
+      header={
+        <>
+          <div className="flex items-center justify-between mb-4">
+            <button onClick={() => router.back()} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700">
+              <ArrowLeft className="h-4 w-4" /> Back
+            </button>
+            <Link href={`/live/${sessionId}/analytics`} className="flex items-center gap-1.5 rounded-lg bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800 transition-colors">
+              <BarChart3 className="h-4 w-4" /> View Analytics
+            </Link>
+          </div>
+          <MetricBar>
+            <MetricCard label="Viewers" value={formatNumber(stats.viewers)} icon={Eye} />
+            <MetricCard label="Gifts" value={formatNumber(stats.gifts)} icon={Gift} />
+            <MetricCard label="Comments" value={stats.comments} icon={MessageCircle} />
+            <MetricCard label="Likes" value={stats.likes} icon={Heart} />
+          </MetricBar>
+        </>
+      }
+      aside={
+        <InsightPanel>
+          <InsightItem title="Live feed" description="Events are captured in real-time from the LIVE stream. Comments dominate the engagement." variant="success" />
+          <InsightItem title="Session" description={`Session: ${sessionId}`} />
+        </InsightPanel>
+      }
+    >
       <div className="flex items-center gap-2 mb-4">
         <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
         <span className="text-sm font-medium text-gray-900">Live Event Feed</span>
-        <span className="text-xs text-gray-400">Session: {sessionId}</span>
       </div>
 
-      {/* Event Feed */}
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="divide-y divide-gray-100">
-          {events.map((event) => {
-            const config = EVENT_CONFIG[event.type];
-            const Icon = config.icon;
-            return (
-              <div key={event.id} className="px-4 py-3 flex items-start gap-3 hover:bg-gray-50">
-                <span className={cn("inline-flex h-7 w-7 items-center justify-center rounded-full flex-shrink-0", config.color)}>
-                  <Icon className={cn("h-3.5 w-3.5", config.iconColor)} />
-                </span>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-sm font-medium text-gray-900">@{event.username}</span>
-                    <span className={cn("px-1.5 py-0.5 text-[10px] font-medium rounded", config.color)}>
-                      {event.type}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-600 mt-0.5">{event.content}</p>
-                </div>
-                <span className="text-xs text-gray-400 flex-shrink-0">
-                  {new Date(event.timestamp).toLocaleTimeString()}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
+      <DataTable
+        columns={columns}
+        data={events}
+        keyExtractor={(row) => row.id}
+        emptyTitle="No events yet"
+        emptyDescription="Events will appear here as they happen"
+      />
+    </PageShell>
   );
 }
