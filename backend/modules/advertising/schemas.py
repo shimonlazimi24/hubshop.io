@@ -291,6 +291,26 @@ class AddProductsToCatalogRequest(BaseModel):
     product_ids: list[str]
 
 
+# --- Catalog Product Sets ---
+
+
+class CreateProductSetConditionRequest(BaseModel):
+    ad_account_id: str
+    product_set_name: str
+    conditions: list[dict]
+
+
+class CreateProductSetFileRequest(BaseModel):
+    ad_account_id: str
+    product_set_name: str
+    file_url: str
+
+
+class DeleteProductSetsRequest(BaseModel):
+    ad_account_id: str
+    product_set_ids: list[str]
+
+
 # --- Business Center ---
 
 
@@ -354,3 +374,20 @@ class UploadImageRequest(BaseModel):
     ad_account_id: str
     image_url: str
     image_name: str | None = None
+
+
+# --- Catalog Feeds ---
+
+
+class CreateFeedRequest(BaseModel):
+    ad_account_id: str
+    feed_name: str
+    feed_url: str
+    auto_update: bool = True
+    schedule: dict | None = None
+
+
+class UpdateFeedRequest(BaseModel):
+    ad_account_id: str
+    feed_name: str | None = None
+    feed_url: str | None = None

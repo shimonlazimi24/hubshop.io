@@ -15,6 +15,10 @@ class CatalogService:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
+    async def _get_gateway(self, ad_account: AdAccount):
+        account_service = AdAccountService(self._session)
+        return await account_service.build_gateway_for_ad_account(ad_account)
+
     async def list_catalogs(
         self,
         workspace_id: uuid.UUID,
@@ -128,6 +132,265 @@ class CatalogService:
             page += 1
 
         return synced
+
+    # ---- Product Set methods ----
+
+    async def list_product_sets(
+        self,
+        ad_account: AdAccount,
+        catalog_id: str,
+        *,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> dict:
+        """List product sets for a catalog."""
+        gateway = await self._get_gateway(ad_account)
+        resp = await gateway.get(
+            "/catalog/product_set/get/",
+            params={
+                "bc_id": ad_account.advertiser_id,
+                "catalog_id": catalog_id,
+                "page": str(page),
+                "page_size": str(page_size),
+            },
+        )
+        return resp.get("data", {})
+
+    async def get_product_set_products(
+        self,
+        ad_account: AdAccount,
+        catalog_id: str,
+        product_set_id: str,
+        *,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> dict:
+        """List products within a product set."""
+        gateway = await self._get_gateway(ad_account)
+        resp = await gateway.get(
+            "/catalog/product_set/product/get/",
+            params={
+                "bc_id": ad_account.advertiser_id,
+                "catalog_id": catalog_id,
+                "product_set_id": product_set_id,
+                "page": str(page),
+                "page_size": str(page_size),
+            },
+        )
+        return resp.get("data", {})
+
+    async def create_product_set_by_conditions(
+        self,
+        ad_account: AdAccount,
+        catalog_id: str,
+        name: str,
+        conditions: list[dict],
+    ) -> dict:
+        """Create a product set using filter conditions."""
+        gateway = await self._get_gateway(ad_account)
+        resp = await gateway.post(
+            "/catalog/product_set/condition/create/",
+            json_body={
+                "bc_id": ad_account.advertiser_id,
+                "catalog_id": catalog_id,
+                "product_set_name": name,
+                "conditions": conditions,
+            },
+        )
+        return resp.get("data", {})
+
+    async def create_product_set_by_file(
+        self,
+        ad_account: AdAccount,
+        catalog_id: str,
+        name: str,
+        file_url: str,
+    ) -> dict:
+        """Create a product set from an uploaded file."""
+        gateway = await self._get_gateway(ad_account)
+        resp = await gateway.post(
+            "/catalog/product_set/file/create/",
+            json_body={
+                "bc_id": ad_account.advertiser_id,
+                "catalog_id": catalog_id,
+                "product_set_name": name,
+                "file_url": file_url,
+            },
+        )
+        return resp.get("data", {})
+
+    async def update_product_set(
+        self,
+        ad_account: AdAccount,
+        catalog_id: str,
+        product_set_id: str,
+        *,
+        name: str | None = None,
+        conditions: list[dict] | None = None,
+    ) -> dict:
+        """Update a product set name and/or conditions."""
+        gateway = await self._get_gateway(ad_account)
+        body: dict = {
+            "bc_id": ad_account.advertiser_id,
+            "catalog_id": catalog_id,
+            "product_set_id": product_set_id,
+        }
+        if name is not None:
+            body["product_set_name"] = name
+        if conditions is not None:
+            body["conditions"] = conditions
+        resp = await gateway.post(
+            "/catalog/product_set/update/",
+            json_body=body,
+        )
+        return resp.get("data", {})
+
+    async def delete_product_sets(
+        self,
+        ad_account: AdAccount,
+        catalog_id: str,
+        product_set_ids: list[str],
+    ) -> dict:
+        """Delete one or more product sets."""
+        gateway = await self._get_gateway(ad_account)
+        resp = await gateway.post(
+            "/catalog/product_set/delete/",
+            json_body={
+                "bc_id": ad_account.advertiser_id,
+                "catalog_id": catalog_id,
+                "product_set_ids": product_set_ids,
+            },
+        )
+        return resp.get("data", {})
+
+    # ---- Feed Management methods ----
+
+    async def list_feeds(
+        self,
+        ad_account: AdAccount,
+        catalog_id: str,
+        *,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> dict:
+        """List feeds for a catalog."""
+        gateway = await self._get_gateway(ad_account)
+        resp = await gateway.get(
+            "/catalog/feed/get/",
+            params={
+                "bc_id": ad_account.advertiser_id,
+                "catalog_id": catalog_id,
+                "page": str(page),
+                "page_size": str(page_size),
+            },
+        )
+        return resp.get("data", {})
+
+    async def create_feed(
+        self,
+        ad_account: AdAccount,
+        catalog_id: str,
+        feed_name: str,
+        feed_url: str,
+        auto_update: bool = True,
+        schedule: dict | None = None,
+    ) -> dict:
+        """Create a new feed for a catalog."""
+        gateway = await self._get_gateway(ad_account)
+        body: dict = {
+            "bc_id": ad_account.advertiser_id,
+            "catalog_id": catalog_id,
+            "feed_name": feed_name,
+            "feed_url": feed_url,
+            "auto_update": auto_update,
+        }
+        if schedule is not None:
+            body["schedule"] = schedule
+        resp = await gateway.post("/catalog/feed/create/", json_body=body)
+        return resp.get("data", {})
+
+    async def update_feed(
+        self,
+        ad_account: AdAccount,
+        catalog_id: str,
+        feed_id: str,
+        feed_name: str | None = None,
+        feed_url: str | None = None,
+    ) -> dict:
+        """Update a feed's name and/or URL."""
+        gateway = await self._get_gateway(ad_account)
+        body: dict = {
+            "bc_id": ad_account.advertiser_id,
+            "catalog_id": catalog_id,
+            "feed_id": feed_id,
+        }
+        if feed_name is not None:
+            body["feed_name"] = feed_name
+        if feed_url is not None:
+            body["feed_url"] = feed_url
+        resp = await gateway.post("/catalog/feed/update/", json_body=body)
+        return resp.get("data", {})
+
+    async def delete_feed(
+        self,
+        ad_account: AdAccount,
+        catalog_id: str,
+        feed_id: str,
+    ) -> dict:
+        """Delete a feed from a catalog."""
+        gateway = await self._get_gateway(ad_account)
+        resp = await gateway.post(
+            "/catalog/feed/delete/",
+            json_body={
+                "bc_id": ad_account.advertiser_id,
+                "catalog_id": catalog_id,
+                "feed_id": feed_id,
+            },
+        )
+        return resp.get("data", {})
+
+    async def get_feed_log(
+        self,
+        ad_account: AdAccount,
+        catalog_id: str,
+        feed_id: str,
+        *,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> dict:
+        """Get the sync log for a feed."""
+        gateway = await self._get_gateway(ad_account)
+        resp = await gateway.get(
+            "/catalog/feed/log/",
+            params={
+                "bc_id": ad_account.advertiser_id,
+                "catalog_id": catalog_id,
+                "feed_id": feed_id,
+                "page": str(page),
+                "page_size": str(page_size),
+            },
+        )
+        return resp.get("data", {})
+
+    async def update_feed_schedule(
+        self,
+        ad_account: AdAccount,
+        catalog_id: str,
+        feed_id: str,
+        schedule: dict,
+    ) -> dict:
+        """Update the sync schedule for a feed."""
+        gateway = await self._get_gateway(ad_account)
+        resp = await gateway.post(
+            "/catalog/feed/schedule/update/",
+            json_body={
+                "bc_id": ad_account.advertiser_id,
+                "catalog_id": catalog_id,
+                "feed_id": feed_id,
+                "schedule": schedule,
+            },
+        )
+        return resp.get("data", {})
 
     async def _upsert_catalog(
         self, ad_account: AdAccount, cat_data: dict
