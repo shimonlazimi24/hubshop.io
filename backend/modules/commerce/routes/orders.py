@@ -5,6 +5,8 @@ from fastapi import APIRouter, HTTPException, status
 
 from backend.dependencies import CurrentUser, DBSession
 from backend.modules.commerce.schemas import (
+    CancelOrderRequest,
+    CancellationActionRequest,
     OrderDetailResponse,
     OrderSummaryResponse,
     OrderTimelineEventResponse,
@@ -48,6 +50,16 @@ async def list_orders(
         page_size=result.page_size,
         total_pages=result.total_pages,
     )
+
+
+@router.get("/orders/cancellations")
+async def search_cancellations(
+    shop_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> list[dict]:
+    service = OrderService(db)
+    return await service.search_cancellations(shop_id)
 
 
 @router.get(
@@ -99,3 +111,51 @@ async def get_order_tracking(
     fulfillment_service = FulfillmentService(db)
     tracking = await fulfillment_service.get_tracking(order)
     return {"tracking": tracking}
+
+
+@router.post("/orders/{order_id}/cancel")
+async def cancel_order(
+    order_id: str,
+    body: CancelOrderRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    service = OrderService(db)
+    return await service.cancel_order(
+        uuid.UUID(body.shop_id), order_id, body.cancel_reason
+    )
+
+
+@router.post("/orders/{order_id}/cancellation/approve")
+async def approve_cancellation(
+    order_id: str,
+    shop_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    service = OrderService(db)
+    return await service.approve_cancellation(shop_id, order_id)
+
+
+@router.post("/orders/{order_id}/cancellation/reject")
+async def reject_cancellation(
+    order_id: str,
+    body: CancellationActionRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    service = OrderService(db)
+    return await service.reject_cancellation(
+        uuid.UUID(body.shop_id), order_id, body.reject_reason or ""
+    )
+
+
+@router.get("/orders/{order_id}/price-detail")
+async def get_price_detail(
+    order_id: str,
+    shop_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    service = OrderService(db)
+    return await service.get_price_detail(shop_id, order_id)

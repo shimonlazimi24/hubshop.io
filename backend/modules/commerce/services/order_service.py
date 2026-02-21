@@ -2,6 +2,7 @@ import json
 import logging
 import uuid
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -254,6 +255,71 @@ class OrderService:
         current.update(detail_patch)
         order.detail_json = current
         return order
+
+    # --- Gateway helper ---
+
+    async def _get_gateway(self, shop_id: uuid.UUID) -> "PlatformGateway":  # noqa: F821
+        """Build gateway for a shop by ID."""
+        shop_service = ShopService(self._session)
+        shop = await shop_service.get_shop(shop_id)
+        if not shop:
+            raise ValueError(f"Shop {shop_id} not found")
+        return await shop_service.build_gateway_for_shop(shop)
+
+    # --- Cancellation management ---
+
+    async def cancel_order(
+        self, shop_id: uuid.UUID, order_id: str, cancel_reason: str
+    ) -> dict:
+        gateway = await self._get_gateway(shop_id)
+        resp = await gateway.post(
+            "/return_refund/202309/cancellations",
+            json_body={"order_id": order_id, "cancel_reason": cancel_reason},
+        )
+        return resp.get("data", {})
+
+    async def approve_cancellation(
+        self, shop_id: uuid.UUID, order_id: str
+    ) -> dict:
+        gateway = await self._get_gateway(shop_id)
+        resp = await gateway.post(
+            f"/return_refund/202309/cancellations/{order_id}/approve"
+        )
+        return resp.get("data", {})
+
+    async def reject_cancellation(
+        self, shop_id: uuid.UUID, order_id: str, reject_reason: str = ""
+    ) -> dict:
+        gateway = await self._get_gateway(shop_id)
+        body: dict[str, Any] = {}
+        if reject_reason:
+            body["reject_reason"] = reject_reason
+        resp = await gateway.post(
+            f"/return_refund/202309/cancellations/{order_id}/reject",
+            json_body=body if body else None,
+        )
+        return resp.get("data", {})
+
+    async def search_cancellations(
+        self, shop_id: uuid.UUID, **filters: Any
+    ) -> list[dict]:
+        gateway = await self._get_gateway(shop_id)
+        resp = await gateway.post(
+            "/return_refund/202309/cancellations/search",
+            json_body=filters or {},
+        )
+        return resp.get("data", {}).get("cancellations", [])
+
+    # --- Price detail ---
+
+    async def get_price_detail(
+        self, shop_id: uuid.UUID, order_id: str
+    ) -> dict:
+        gateway = await self._get_gateway(shop_id)
+        resp = await gateway.get(
+            f"/order/202407/orders/{order_id}/price_detail"
+        )
+        return resp.get("data", {})
 
     async def _sync_line_items(
         self, order: Order, items_data: list[dict]

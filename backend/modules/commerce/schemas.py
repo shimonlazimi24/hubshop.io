@@ -221,11 +221,38 @@ class ShippingServiceResponse(BaseModel):
     name: str
 
 
+# --- Order Cancellation ---
+
+
+class CancelOrderRequest(BaseModel):
+    shop_id: str
+    order_id: str
+    cancel_reason: str
+
+
+class CancellationActionRequest(BaseModel):
+    shop_id: str
+    reject_reason: str | None = None
+
+
 # --- Return Action ---
 
 
 class ReturnActionRequest(BaseModel):
     reason: str | None = None
+
+
+class CreateReturnRequest(BaseModel):
+    shop_id: str
+    order_id: str
+    return_type: str
+    reason: str
+
+
+class CalculateRefundRequest(BaseModel):
+    shop_id: str
+    order_id: str
+    items: list[dict]
 
 
 # --- Affiliate ---
