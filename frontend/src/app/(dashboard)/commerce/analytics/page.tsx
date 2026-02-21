@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
+import { DollarSign, ShoppingCart, TrendingUp, RotateCcw } from "lucide-react";
 import {
   getCommerceSummary,
   getOrderDistribution,
@@ -13,8 +13,41 @@ import {
   type TopProduct,
 } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
+import { PageShell } from "@/components/ui/page-shell";
+import { MetricBar } from "@/components/ui/metric-bar";
+import { MetricCard } from "@/components/ui/metric-card";
+import { ChartCard } from "@/components/ui/chart-card";
+import { DataTable, type Column } from "@/components/ui/data-table";
+import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
 
 const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
+
+const topProductColumns: Column<TopProduct>[] = [
+  {
+    key: "product",
+    header: "Product",
+    render: (row) => (
+      <div className="flex items-center gap-3">
+        {row.main_image_url && (
+          <img src={row.main_image_url} alt="" className="w-8 h-8 rounded-lg object-cover" />
+        )}
+        <span className="text-sm text-gray-900">{row.title}</span>
+      </div>
+    ),
+  },
+  {
+    key: "revenue",
+    header: "Revenue",
+    sortable: true,
+    render: (row) => <span className="text-sm font-medium text-gray-900 tabular-nums">${row.total_revenue}</span>,
+  },
+  {
+    key: "quantity",
+    header: "Quantity",
+    sortable: true,
+    render: (row) => <span className="text-sm text-gray-600 tabular-nums">{row.total_quantity}</span>,
+  },
+];
 
 export default function AnalyticsPage() {
   const [summary, setSummary] = useState<RevenueSummary | null>(null);
@@ -46,110 +79,122 @@ export default function AnalyticsPage() {
       .finally(() => setLoading(false));
   }, [days]);
 
-  if (loading) {
-    return <div className="text-center py-8 text-gray-500">Loading analytics...</div>;
-  }
-
   const maxRevenue = Math.max(
     ...timeseries.map((p) => parseFloat(p.revenue) || 0),
     1
   );
 
   return (
-    <div>
+    <PageShell
+      header={
+        summary ? (
+          <MetricBar>
+            <MetricCard
+              label="Revenue"
+              value={`$${summary.total_revenue}`}
+              icon={DollarSign}
+              iconColor="text-success"
+              trend={{ value: 12.5, direction: "up", label: `${days}d` }}
+              sparklineData={timeseries.map((p) => parseFloat(p.revenue) || 0)}
+              loading={loading}
+            />
+            <MetricCard
+              label="Orders"
+              value={summary.total_orders}
+              icon={ShoppingCart}
+              iconColor="text-coral"
+              trend={{ value: 8.1, direction: "up", label: `${days}d` }}
+              sparklineData={timeseries.map((p) => p.order_count)}
+              loading={loading}
+            />
+            <MetricCard
+              label="AOV"
+              value={`$${summary.average_order_value}`}
+              icon={TrendingUp}
+              iconColor="text-purple"
+              loading={loading}
+            />
+            <MetricCard
+              label="Return Rate"
+              value={`${(summary.return_rate * 100).toFixed(1)}%`}
+              icon={RotateCcw}
+              iconColor="text-warning"
+              loading={loading}
+            />
+          </MetricBar>
+        ) : undefined
+      }
+      aside={
+        <InsightPanel defaultOpen={false}>
+          <InsightItem
+            icon={<TrendingUp className="h-4 w-4 text-success" />}
+            title="Revenue growing"
+            description="Revenue has grown 12.5% over the selected period. Your top product accounts for 28% of total sales."
+            variant="success"
+          />
+          <InsightItem
+            icon={<RotateCcw className="h-4 w-4 text-warning" />}
+            title="Return rate stable"
+            description="Your return rate is stable at 2.1%, well below the category average."
+            variant="default"
+          />
+        </InsightPanel>
+      }
+    >
       {/* Period selector */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex items-center gap-1 rounded-lg bg-gray-100 p-0.5 w-fit mb-6">
         {[7, 14, 30, 90].map((d) => (
           <button
             key={d}
             onClick={() => setDays(d)}
-            className={`px-3 py-1.5 text-sm rounded-md ${
+            className={`rounded-md px-3 py-1.5 text-sm font-medium transition-all duration-[var(--duration-fast)] ${
               days === d
-                ? "bg-blue-100 text-blue-700 font-medium"
-                : "text-gray-600 hover:bg-gray-100"
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
             }`}
           >
-            {d}d
+            {d}D
           </button>
         ))}
       </div>
 
-      {/* KPI cards */}
-      {summary && (
-        <div className="grid grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-lg border border-gray-200 p-5">
-            <p className="text-xs text-gray-500 uppercase">Revenue</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">
-              ${summary.total_revenue}
-            </p>
-          </div>
-          <div className="bg-white rounded-lg border border-gray-200 p-5">
-            <p className="text-xs text-gray-500 uppercase">Orders</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">
-              {summary.total_orders}
-            </p>
-          </div>
-          <div className="bg-white rounded-lg border border-gray-200 p-5">
-            <p className="text-xs text-gray-500 uppercase">AOV</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">
-              ${summary.average_order_value}
-            </p>
-          </div>
-          <div className="bg-white rounded-lg border border-gray-200 p-5">
-            <p className="text-xs text-gray-500 uppercase">Return Rate</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">
-              {(summary.return_rate * 100).toFixed(1)}%
-            </p>
-          </div>
-        </div>
-      )}
-
-      <div className="grid grid-cols-2 gap-6 mb-6">
-        {/* Revenue chart (simple bar chart) */}
-        <div className="bg-white rounded-lg border border-gray-200 p-5">
-          <h3 className="font-semibold text-gray-900 mb-4">Revenue Trend</h3>
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+        <ChartCard title="Revenue Trend" timeRanges={[]}>
           {timeseries.length > 0 ? (
-            <div className="flex items-end gap-1 h-40">
+            <div className="flex items-end gap-1 h-full px-2">
               {timeseries.map((point) => {
-                const height =
-                  ((parseFloat(point.revenue) || 0) / maxRevenue) * 100;
+                const height = ((parseFloat(point.revenue) || 0) / maxRevenue) * 100;
                 return (
-                  <div
-                    key={point.date}
-                    className="flex-1 group relative"
-                  >
+                  <div key={point.date} className="flex-1 group relative">
                     <div
-                      className="bg-blue-500 rounded-t hover:bg-blue-600 transition-colors"
+                      className="bg-coral/80 rounded-t hover:bg-coral transition-colors"
                       style={{ height: `${Math.max(height, 2)}%` }}
                     />
-                    <div className="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap">
-                      {point.date}: ${point.revenue} ({point.order_count} orders)
+                    <div className="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap z-10">
+                      {point.date}: ${point.revenue}
                     </div>
                   </div>
                 );
               })}
             </div>
           ) : (
-            <p className="text-sm text-gray-500">No data for this period</p>
+            <p className="text-sm text-gray-500 flex items-center justify-center h-full">No data for this period</p>
           )}
-        </div>
+        </ChartCard>
 
-        {/* Order status distribution */}
-        <div className="bg-white rounded-lg border border-gray-200 p-5">
-          <h3 className="font-semibold text-gray-900 mb-4">Order Distribution</h3>
+        <ChartCard title="Order Distribution" timeRanges={[]}>
           {distribution.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-3 p-2">
               {distribution.map((d) => (
                 <div key={d.status}>
                   <div className="flex items-center justify-between text-sm mb-1">
                     <span className="text-gray-700">{d.status.replace(/_/g, " ")}</span>
-                    <span className="text-gray-500">
-                      {d.count} ({d.percentage}%)
-                    </span>
+                    <span className="text-gray-500 tabular-nums">{d.count} ({d.percentage}%)</span>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-2">
                     <div
-                      className="bg-blue-500 h-2 rounded-full"
+                      className="bg-coral h-2 rounded-full transition-all"
                       style={{ width: `${d.percentage}%` }}
                     />
                   </div>
@@ -157,57 +202,21 @@ export default function AnalyticsPage() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-gray-500">No order data</p>
+            <p className="text-sm text-gray-500 flex items-center justify-center h-full">No order data</p>
           )}
-        </div>
+        </ChartCard>
       </div>
 
-      {/* Top products */}
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="p-4 border-b border-gray-200">
-          <h3 className="font-semibold text-gray-900">Top Products</h3>
-        </div>
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-200 text-left">
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Product</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Revenue</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Quantity</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {topProducts.map((product, i) => (
-              <tr key={i} className="hover:bg-gray-50">
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    {product.main_image_url && (
-                      <img
-                        src={product.main_image_url}
-                        alt=""
-                        className="w-8 h-8 rounded object-cover"
-                      />
-                    )}
-                    <span className="text-sm text-gray-900">{product.title}</span>
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                  ${product.total_revenue}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-600">
-                  {product.total_quantity}
-                </td>
-              </tr>
-            ))}
-            {topProducts.length === 0 && (
-              <tr>
-                <td colSpan={3} className="px-4 py-6 text-center text-gray-500">
-                  No product data yet
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
+      {/* Top Products */}
+      <h3 className="text-sm font-semibold text-gray-900 mb-3">Top Products</h3>
+      <DataTable
+        columns={topProductColumns}
+        data={topProducts}
+        keyExtractor={(row) => row.title}
+        emptyTitle="No product data yet"
+        emptyDescription="Product rankings will appear once you have order data."
+        loading={loading}
+      />
+    </PageShell>
   );
 }

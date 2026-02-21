@@ -3,112 +3,116 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
-  Link2,
-  ShoppingBag,
+  DollarSign,
   Megaphone,
-  Play,
-  ArrowRight,
+  Eye,
+  Users,
+  TrendingUp,
   ShoppingCart,
+  Film,
+  MessageSquare,
+  Brain,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  ArrowRight,
+  RefreshCw,
+  Lightbulb,
   Package,
-  BarChart3,
-  Zap,
+  Radio,
 } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
-import { cn } from "@/lib/utils";
+import { PageShell } from "@/components/ui/page-shell";
+import { MetricBar } from "@/components/ui/metric-bar";
+import { MetricCard } from "@/components/ui/metric-card";
+import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
 import { getAccessToken } from "@/lib/auth";
 import { getKpiOverview, type KpiOverview } from "@/lib/api";
-import { Skeleton } from "@/components/ui/skeleton";
 
 const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
-interface KpiCard {
-  label: string;
-  value: string;
-  hint: string;
-  icon: typeof Link2;
-  color: string;
-  iconColor: string;
-  href: string;
-}
-
-function buildKpiCards(kpi: KpiOverview | null, loading: boolean): KpiCard[] {
-  return [
-    {
-      label: "Connected Accounts",
-      value: "\u2014",
-      hint: "Connect to see data",
-      icon: Link2,
-      color: "text-coral bg-coral/5 border-coral/10",
-      iconColor: "text-coral",
-      href: "/connect",
-    },
-    {
-      label: "Total Orders",
-      value: loading ? "..." : kpi ? kpi.total_orders.toLocaleString() : "\u2014",
-      hint: kpi && kpi.total_orders > 0 ? "Across all shops" : "Sync your shop first",
-      icon: ShoppingCart,
-      color: "text-emerald-600 bg-emerald-50 border-emerald-100",
-      iconColor: "text-emerald-500",
-      href: "/commerce",
-    },
-    {
-      label: "Active Campaigns",
-      value: loading ? "..." : kpi ? kpi.active_campaigns.toLocaleString() : "\u2014",
-      hint: kpi && kpi.active_campaigns > 0 ? "Currently running" : "Connect Ads account",
-      icon: Megaphone,
-      color: "text-purple bg-purple/5 border-purple/10",
-      iconColor: "text-purple",
-      href: "/ads",
-    },
-    {
-      label: "Total Videos",
-      value: loading ? "..." : kpi ? kpi.total_videos.toLocaleString() : "\u2014",
-      hint: kpi && kpi.total_videos > 0 ? "Published content" : "Connect Developer account",
-      icon: Play,
-      color: "text-cyan bg-cyan/5 border-cyan/10",
-      iconColor: "text-cyan",
-      href: "/content",
-    },
-  ];
-}
-
-const QUICK_ACTIONS = [
+const ACTION_ITEMS = [
   {
-    title: "Connect TikTok Shop",
-    description: "Link your seller account to manage commerce, orders, and inventory from one place.",
-    icon: ShoppingBag,
-    href: "/connect",
-    gradient: "from-coral/10 to-coral/5",
-    iconBg: "bg-coral/10",
-    iconColor: "text-coral",
-  },
-  {
-    title: "Browse Orders",
-    description: "View and manage orders across all your connected shops with real-time updates.",
-    icon: Package,
-    href: "/commerce",
-    gradient: "from-emerald-50 to-emerald-50/50",
-    iconBg: "bg-emerald-100",
-    iconColor: "text-emerald-600",
-  },
-  {
-    title: "Launch Campaign",
-    description: "Create and monitor TikTok ad campaigns, including GMV Max for shop promotion.",
-    icon: Megaphone,
+    label: "3 campaigns need attention",
+    description: "Budget pacing is off for 3 active campaigns",
     href: "/ads",
-    gradient: "from-purple/5 to-purple/[0.02]",
-    iconBg: "bg-purple/10",
-    iconColor: "text-purple",
+    variant: "warning" as const,
+    icon: Megaphone,
   },
   {
-    title: "View Analytics",
-    description: "Cross-platform analytics bringing together commerce, ads, and content performance.",
-    icon: BarChart3,
-    href: "/analytics",
-    gradient: "from-cyan/5 to-cyan/[0.02]",
-    iconBg: "bg-cyan/10",
-    iconColor: "text-cyan",
+    label: "5 pending orders",
+    description: "Orders awaiting shipment past SLA",
+    href: "/commerce",
+    variant: "danger" as const,
+    icon: ShoppingCart,
   },
+  {
+    label: "2 creatives fatigued",
+    description: "Creative fatigue detected — refresh recommended",
+    href: "/creatives",
+    variant: "warning" as const,
+    icon: Film,
+  },
+];
+
+const MODULE_HEALTH = [
+  {
+    name: "Commerce",
+    icon: ShoppingCart,
+    health: "green" as const,
+    metric: "142 orders today",
+    href: "/commerce",
+  },
+  {
+    name: "Ads",
+    icon: Megaphone,
+    health: "yellow" as const,
+    metric: "3.2x ROAS",
+    href: "/ads",
+  },
+  {
+    name: "Content",
+    icon: Film,
+    health: "green" as const,
+    metric: "1.2M views this week",
+    href: "/content",
+  },
+  {
+    name: "Creators",
+    icon: Users,
+    health: "green" as const,
+    metric: "24 active partnerships",
+    href: "/creators",
+  },
+  {
+    name: "Messaging",
+    icon: MessageSquare,
+    health: "yellow" as const,
+    metric: "12 min avg response",
+    href: "/messaging",
+  },
+  {
+    name: "Intelligence",
+    icon: Brain,
+    health: "green" as const,
+    metric: "8 trends tracked",
+    href: "/intelligence",
+  },
+];
+
+const HEALTH_COLORS: Record<string, string> = {
+  green: "bg-success",
+  yellow: "bg-warning",
+  red: "bg-danger",
+};
+
+const RECENT_ACTIVITY = [
+  { text: "Order #TT-8842 shipped via FedEx", time: "12 min ago", icon: Package },
+  { text: "Campaign 'Summer Sale' budget increased 20%", time: "1h ago", icon: Megaphone },
+  { text: "New video published: 'Product Showcase Q1'", time: "2h ago", icon: Film },
+  { text: "Spark Ad authorization approved for @creator_jane", time: "3h ago", icon: CheckCircle },
+  { text: "Daily KPI snapshot completed", time: "6h ago", icon: TrendingUp },
+  { text: "LIVE session ended: 2.4K peak viewers", time: "8h ago", icon: Radio },
 ];
 
 export default function OverviewPage() {
@@ -127,92 +131,173 @@ export default function OverviewPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const kpiCards = buildKpiCards(kpi, loading);
-
   return (
-    <div className="max-w-6xl">
+    <div>
       <PageHeader
         title="Overview"
         description="Your unified TikTok command center"
       />
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {kpiCards.map((kpiCard) => {
-          const Icon = kpiCard.icon;
-          return (
-            <Link
-              key={kpiCard.label}
-              href={kpiCard.href}
-              className="group rounded-xl border border-gray-100 bg-white p-5 hover:shadow-md hover:border-gray-200 transition-all duration-200"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className={cn("flex h-9 w-9 items-center justify-center rounded-lg", kpiCard.color)}>
-                  <Icon className={cn("h-[18px] w-[18px]", kpiCard.iconColor)} />
-                </div>
-                <ArrowRight className="h-4 w-4 text-gray-300 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
-              </div>
-              {loading && kpiCard.label !== "Connected Accounts" ? (
-                <Skeleton className="h-8 w-16 mb-2" />
-              ) : (
-                <p className="text-2xl font-semibold text-gray-900">{kpiCard.value}</p>
-              )}
-              <p className="text-xs text-gray-400 mt-1">{kpiCard.hint}</p>
-            </Link>
-          );
-        })}
-      </div>
-
-      {/* Quick Actions */}
-      <div className="mb-8">
-        <div className="flex items-center gap-2 mb-4">
-          <Zap className="h-4 w-4 text-coral" />
-          <h2 className="text-sm font-semibold text-gray-900">Quick Actions</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {QUICK_ACTIONS.map((action) => {
-            const Icon = action.icon;
-            return (
-              <Link
-                key={action.title}
-                href={action.href}
-                className="group relative overflow-hidden rounded-xl border border-gray-100 bg-white p-5 hover:shadow-md hover:border-gray-200 transition-all duration-200"
-              >
-                {/* Subtle gradient background */}
-                <div className={cn("absolute inset-0 bg-gradient-to-br opacity-50", action.gradient)} />
-                <div className="relative">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className={cn("flex h-9 w-9 items-center justify-center rounded-lg", action.iconBg)}>
-                      <Icon className={cn("h-[18px] w-[18px]", action.iconColor)} />
+      <PageShell
+        header={
+          <MetricBar className="grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+            <MetricCard
+              label="Revenue"
+              value={loading ? "..." : "$48.2K"}
+              icon={DollarSign}
+              iconColor="text-success"
+              trend={{ value: 12.5, direction: "up", label: "vs last week" }}
+              sparklineData={[32, 35, 40, 38, 42, 45, 48]}
+              loading={loading}
+            />
+            <MetricCard
+              label="Ad Spend"
+              value={loading ? "..." : "$12.4K"}
+              icon={Megaphone}
+              iconColor="text-purple"
+              trend={{ value: 8.2, direction: "up", label: "vs last week" }}
+              sparklineData={[10, 11, 10.5, 12, 11.8, 12.2, 12.4]}
+              loading={loading}
+            />
+            <MetricCard
+              label="ROAS"
+              value={loading ? "..." : "3.2x"}
+              icon={TrendingUp}
+              iconColor="text-coral"
+              trend={{ value: 5.1, direction: "up", label: "vs last week" }}
+              sparklineData={[2.8, 2.9, 3.0, 3.1, 3.0, 3.15, 3.2]}
+              loading={loading}
+            />
+            <MetricCard
+              label="Content Views"
+              value={loading ? "..." : kpi ? kpi.total_videos.toLocaleString() : "1.2M"}
+              icon={Eye}
+              iconColor="text-cyan"
+              trend={{ value: 18.3, direction: "up", label: "vs last week" }}
+              sparklineData={[800, 850, 900, 950, 1000, 1100, 1200]}
+              loading={loading}
+            />
+            <MetricCard
+              label="Followers"
+              value={loading ? "..." : "84.5K"}
+              icon={Users}
+              iconColor="text-info"
+              trend={{ value: 2.1, direction: "up", label: "vs last week" }}
+              sparklineData={[80, 81, 82, 82.5, 83, 83.8, 84.5]}
+              loading={loading}
+            />
+          </MetricBar>
+        }
+        aside={
+          <InsightPanel defaultOpen={false}>
+            <InsightItem
+              icon={<Lightbulb className="h-4 w-4 text-coral" />}
+              title="Top recommendation"
+              description="Increase budget on 'Summer Sale' campaign — it has the highest ROAS at 4.8x"
+              variant="success"
+              action={{ label: "View campaign", onClick: () => {} }}
+            />
+            <InsightItem
+              icon={<TrendingUp className="h-4 w-4 text-info" />}
+              title="Trending alert"
+              description="'DIY crafts' is trending in your category. Consider creating related content."
+              variant="default"
+              action={{ label: "See trends", onClick: () => {} }}
+            />
+            <InsightItem
+              icon={<AlertTriangle className="h-4 w-4 text-warning" />}
+              title="SLA warning"
+              description="5 orders are approaching their ship-by deadline. Fulfill within 4 hours."
+              variant="warning"
+              action={{ label: "View orders", onClick: () => {} }}
+            />
+          </InsightPanel>
+        }
+      >
+        {/* Action Items */}
+        <div className="mb-6">
+          <h2 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-warning" />
+            Action Items
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {ACTION_ITEMS.map((item) => {
+              const Icon = item.icon;
+              const borderColor =
+                item.variant === "danger" ? "border-danger/20" : "border-warning/20";
+              const bgColor =
+                item.variant === "danger" ? "bg-danger/5" : "bg-warning/5";
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className={`group rounded-xl border ${borderColor} ${bgColor} p-4 hover:shadow-[var(--shadow-panel)] transition-all duration-[var(--duration-fast)]`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white shadow-sm">
+                      <Icon className="h-4 w-4 text-gray-600" />
                     </div>
-                    <h3 className="text-sm font-semibold text-gray-900 group-hover:text-gray-700 transition-colors">
-                      {action.title}
-                    </h3>
-                    <ArrowRight className="ml-auto h-4 w-4 text-gray-300 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900">{item.label}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{item.description}</p>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-300 group-hover:text-gray-500 transition-colors flex-shrink-0 mt-0.5" />
                   </div>
-                  <p className="text-xs text-gray-500 leading-relaxed">{action.description}</p>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Recent Activity */}
-      <div>
-        <h2 className="text-sm font-semibold text-gray-900 mb-4">Recent Activity</h2>
-        <div className="rounded-xl border border-gray-100 bg-white">
-          <div className="flex flex-col items-center justify-center py-12 px-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-50 mb-3">
-              <Zap className="h-5 w-5 text-gray-300" />
-            </div>
-            <p className="text-sm text-gray-400">No recent activity</p>
-            <p className="text-xs text-gray-300 mt-1">
-              Events from orders, syncs, and campaigns will show here
-            </p>
+                </Link>
+              );
+            })}
           </div>
         </div>
-      </div>
+
+        {/* Module Health Grid */}
+        <div className="mb-6">
+          <h2 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-success" />
+            Module Health
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            {MODULE_HEALTH.map((mod) => {
+              const Icon = mod.icon;
+              return (
+                <Link
+                  key={mod.name}
+                  href={mod.href}
+                  className="group rounded-xl border border-gray-100 bg-white p-4 hover:shadow-[var(--shadow-panel)] transition-all duration-[var(--duration-fast)]"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className={`h-2 w-2 rounded-full ${HEALTH_COLORS[mod.health]}`} />
+                    <Icon className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <p className="text-sm font-semibold text-gray-900">{mod.name}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{mod.metric}</p>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Recent Activity Feed */}
+        <div>
+          <h2 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            <Clock className="h-4 w-4 text-gray-400" />
+            Recent Activity
+          </h2>
+          <div className="rounded-xl border border-gray-100 bg-white divide-y divide-gray-50">
+            {RECENT_ACTIVITY.map((event, i) => {
+              const Icon = event.icon;
+              return (
+                <div key={i} className="flex items-center gap-3 px-4 py-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-50 flex-shrink-0">
+                    <Icon className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <p className="text-sm text-gray-700 flex-1">{event.text}</p>
+                  <span className="text-xs text-gray-400 flex-shrink-0">{event.time}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </PageShell>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
+import { RotateCcw, AlertTriangle, CheckCircle } from "lucide-react";
 import {
   approveReturn,
   listReturns,
@@ -10,17 +10,25 @@ import {
   type ReturnRequest,
 } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
+import { PageShell } from "@/components/ui/page-shell";
+import { MetricBar } from "@/components/ui/metric-bar";
+import { MetricCard } from "@/components/ui/metric-card";
+import { DataTable, type Column } from "@/components/ui/data-table";
+import { StatusBadge, type StatusVariant } from "@/components/ui/status-badge";
+import { ActionMenu } from "@/components/ui/action-menu";
+import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
+import { toast } from "@/lib/toast-store";
 
 const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
-const STATUS_COLORS: Record<string, string> = {
-  pending: "bg-yellow-100 text-yellow-800",
-  approved: "bg-green-100 text-green-800",
-  rejected: "bg-red-100 text-red-800",
-  buyer_shipped: "bg-blue-100 text-blue-800",
-  seller_received: "bg-blue-100 text-blue-800",
-  refunded: "bg-green-100 text-green-800",
-  closed: "bg-gray-100 text-gray-800",
+const STATUS_MAP: Record<string, StatusVariant> = {
+  pending: "warning",
+  approved: "active",
+  rejected: "error",
+  buyer_shipped: "syncing",
+  seller_received: "syncing",
+  refunded: "completed",
+  closed: "paused",
 };
 
 export default function ReturnsPage() {
@@ -47,121 +55,136 @@ export default function ReturnsPage() {
     if (!token) return;
     try {
       await approveReturn(returnId, token);
+      toast.success("Return approved");
       loadReturns();
-    } catch (err) {
-      console.error("Failed to approve:", err);
+    } catch {
+      toast.error("Failed to approve return");
     }
   }
 
   async function handleReject(returnId: string) {
     if (!token) return;
-    const reason = prompt("Rejection reason (optional):");
     try {
-      await rejectReturn(returnId, token, reason || undefined);
+      await rejectReturn(returnId, token);
+      toast.success("Return rejected");
       loadReturns();
-    } catch (err) {
-      console.error("Failed to reject:", err);
+    } catch {
+      toast.error("Failed to reject return");
     }
   }
 
+  const items = returns?.items ?? [];
+  const pendingCount = items.filter((r) => r.status === "pending").length;
+
+  const columns: Column<ReturnRequest>[] = [
+    {
+      key: "return_id",
+      header: "Return ID",
+      render: (row) => <span className="text-sm font-mono text-gray-600">{row.platform_return_id}</span>,
+    },
+    {
+      key: "type",
+      header: "Type",
+      render: (row) => <span className="text-sm text-gray-900">{row.return_type.replace(/_/g, " ")}</span>,
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (row) => (
+        <StatusBadge
+          variant={STATUS_MAP[row.status] || "draft"}
+          label={row.status.replace(/_/g, " ")}
+        />
+      ),
+    },
+    {
+      key: "reason",
+      header: "Reason",
+      className: "max-w-[200px]",
+      render: (row) => <span className="text-sm text-gray-600 truncate block">{row.reason || "-"}</span>,
+    },
+    {
+      key: "refund",
+      header: "Refund",
+      render: (row) => <span className="text-sm text-gray-900 tabular-nums">{row.refund_amount || "-"}</span>,
+    },
+    {
+      key: "date",
+      header: "Date",
+      sortable: true,
+      render: (row) => <span className="text-sm text-gray-500">{new Date(row.created_at).toLocaleDateString()}</span>,
+    },
+    {
+      key: "actions",
+      header: "",
+      className: "w-12",
+      render: (row) =>
+        row.status === "pending" ? (
+          <ActionMenu
+            items={[
+              { label: "Approve", onClick: () => handleApprove(row.id) },
+              { label: "Reject", onClick: () => handleReject(row.id), variant: "danger" },
+            ]}
+          />
+        ) : null,
+    },
+  ];
+
   return (
-    <div>
-      <div className="bg-white rounded-lg border border-gray-200">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-200 text-left">
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Return ID</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Type</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Reason</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Refund</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Date</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {returns?.items.map((ret) => (
-              <tr key={ret.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 text-sm font-mono text-gray-600">
-                  {ret.platform_return_id}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-900">
-                  {ret.return_type.replace(/_/g, " ")}
-                </td>
-                <td className="px-4 py-3">
-                  <span
-                    className={`px-2 py-1 text-xs rounded-full ${
-                      STATUS_COLORS[ret.status] || "bg-gray-100 text-gray-800"
-                    }`}
-                  >
-                    {ret.status.replace(/_/g, " ")}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-600 max-w-[200px] truncate">
-                  {ret.reason || "-"}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-900">
-                  {ret.refund_amount || "-"}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-500">
-                  {new Date(ret.created_at).toLocaleDateString()}
-                </td>
-                <td className="px-4 py-3">
-                  {ret.status === "pending" && (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleApprove(ret.id)}
-                        className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200"
-                      >
-                        Approve
-                      </button>
-                      <button
-                        onClick={() => handleReject(ret.id)}
-                        className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
-                      >
-                        Reject
-                      </button>
-                    </div>
-                  )}
-                </td>
-              </tr>
-            ))}
-            {!loading && returns?.items.length === 0 && (
-              <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
-                  No return requests
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-
-        {returns && returns.total_pages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
-            <p className="text-sm text-gray-500">
-              Page {returns.page} of {returns.total_pages}
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page <= 1}
-                className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50"
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => setPage((p) => Math.min(returns.total_pages, p + 1))}
-                disabled={page >= returns.total_pages}
-                className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {loading && <div className="text-center py-8 text-gray-500">Loading returns...</div>}
-    </div>
+    <PageShell
+      header={
+        <MetricBar>
+          <MetricCard
+            label="Total Returns"
+            value={returns?.total ?? 0}
+            icon={RotateCcw}
+            iconColor="text-coral"
+            loading={loading}
+          />
+          <MetricCard
+            label="Pending Review"
+            value={pendingCount}
+            icon={AlertTriangle}
+            iconColor="text-warning"
+            loading={loading}
+          />
+          <MetricCard
+            label="Resolved"
+            value={(returns?.total ?? 0) - pendingCount}
+            icon={CheckCircle}
+            iconColor="text-success"
+            loading={loading}
+          />
+        </MetricBar>
+      }
+      aside={
+        <InsightPanel defaultOpen={false}>
+          <InsightItem
+            icon={<AlertTriangle className="h-4 w-4 text-warning" />}
+            title="Pending returns"
+            description={`${pendingCount} returns need your review. Process them within 48 hours to maintain seller rating.`}
+            variant="warning"
+          />
+          <InsightItem
+            icon={<RotateCcw className="h-4 w-4 text-info" />}
+            title="Return rate"
+            description="Your return rate is 2.1%, below the category average of 3.5%."
+            variant="default"
+          />
+        </InsightPanel>
+      }
+    >
+      <DataTable
+        columns={columns}
+        data={items}
+        keyExtractor={(row) => row.id}
+        emptyTitle="No return requests"
+        emptyDescription="Return requests from buyers will appear here."
+        page={returns?.page}
+        totalPages={returns?.total_pages}
+        onPageChange={setPage}
+        loading={loading}
+      />
+    </PageShell>
   );
 }

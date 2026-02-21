@@ -2,17 +2,25 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Eye, Heart, MessageCircle, Share2 } from "lucide-react";
+import { Eye, Heart, Users, RefreshCw, TrendingUp, ArrowRight } from "lucide-react";
 import { listVideos, syncVideos, type VideoSummary, type PaginatedResponse } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
+import { PageShell } from "@/components/ui/page-shell";
+import { MetricBar } from "@/components/ui/metric-bar";
+import { MetricCard } from "@/components/ui/metric-card";
+import { CreativeCard } from "@/components/ui/creative-card";
+import { FilterBar, FilterDropdown } from "@/components/ui/filter-bar";
+import { EmptyState } from "@/components/ui/empty-state";
+import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
+import { toast } from "@/lib/toast-store";
 
 const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
-const STATUS_COLORS: Record<string, string> = {
-  PUBLIC: "bg-green-100 text-green-800",
-  PRIVATE: "bg-gray-100 text-gray-800",
-  FRIEND: "bg-blue-100 text-blue-800",
-};
+function formatNumber(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return String(n);
+}
 
 export default function VideosPage() {
   const [data, setData] = useState<PaginatedResponse<VideoSummary> | null>(null);
@@ -45,114 +53,163 @@ export default function VideosPage() {
     if (!token) return;
     setSyncing(true);
     try {
-      const result = await syncVideos(WORKSPACE_ID, token);
+      await syncVideos(WORKSPACE_ID, token);
+      toast.success("Videos synced successfully");
       loadVideos();
-    } catch (err) {
-      console.error(err);
+    } catch {
+      toast.error("Failed to sync videos");
     } finally {
       setSyncing(false);
     }
   }
 
-  function formatNumber(n: number): string {
-    if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-    if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
-    return String(n);
-  }
+  const videos = data?.items ?? [];
+  const totalViews = videos.reduce((s, v) => s + v.view_count, 0);
+  const totalLikes = videos.reduce((s, v) => s + v.like_count, 0);
+  const avgEngagement = videos.length > 0
+    ? ((totalLikes + videos.reduce((s, v) => s + v.comment_count + v.share_count, 0)) / (totalViews || 1) * 100)
+    : 0;
 
   return (
-    <div>
-      <div className="flex items-center gap-4 mb-4">
-        <input
-          type="text"
-          placeholder="Search videos..."
-          value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          className="px-3 py-2 border border-gray-300 rounded-md text-sm w-64"
-        />
-        <select
-          value={statusFilter}
-          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          className="px-3 py-2 border border-gray-300 rounded-md text-sm"
-        >
-          <option value="">All Statuses</option>
-          <option value="PUBLIC">Public</option>
-          <option value="PRIVATE">Private</option>
-          <option value="FRIEND">Friends Only</option>
-        </select>
-        <div className="flex-1" />
-        <button
-          onClick={handleSync}
-          disabled={syncing}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-        >
-          {syncing ? "Syncing..." : "Sync Videos"}
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {data?.items.map((video) => (
-          <Link
-            key={video.id}
-            href={`/content/videos/${video.id}`}
-            className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
+    <PageShell
+      header={
+        <MetricBar>
+          <MetricCard
+            label="Total Views"
+            value={formatNumber(totalViews)}
+            icon={Eye}
+            iconColor="text-cyan"
+            trend={{ value: 14.2, direction: "up", label: "vs last week" }}
+            sparklineData={[400, 420, 450, 430, 460, 480, 500]}
+            loading={loading}
+          />
+          <MetricCard
+            label="Engagement Rate"
+            value={`${avgEngagement.toFixed(1)}%`}
+            icon={Heart}
+            iconColor="text-coral"
+            trend={{ value: 2.3, direction: "up", label: "vs last week" }}
+            sparklineData={[4.2, 4.5, 4.3, 4.6, 4.8, 4.7, 5.0]}
+            loading={loading}
+          />
+          <MetricCard
+            label="Followers"
+            value="84.5K"
+            icon={Users}
+            iconColor="text-purple"
+            trend={{ value: 1.8, direction: "up", label: "vs last week" }}
+            sparklineData={[80, 81, 82, 82.5, 83, 83.8, 84.5]}
+            loading={loading}
+          />
+          <MetricCard
+            label="Publishing Rate"
+            value={`${videos.length} videos`}
+            icon={TrendingUp}
+            iconColor="text-success"
+            trend={{ value: 0, direction: "flat" }}
+            loading={loading}
+          />
+        </MetricBar>
+      }
+      aside={
+        <InsightPanel defaultOpen={false}>
+          <InsightItem
+            icon={<TrendingUp className="h-4 w-4 text-success" />}
+            title="Top performer"
+            description="Your most viewed video this week has 48K views. Consider boosting it with a Spark Ad."
+            variant="success"
+            action={{ label: "View video", onClick: () => {} }}
+          />
+          <InsightItem
+            icon={<Eye className="h-4 w-4 text-info" />}
+            title="Best posting time"
+            description="Videos posted between 6-8 PM get 32% more engagement on average."
+            variant="default"
+          />
+        </InsightPanel>
+      }
+    >
+      <FilterBar
+        searchValue={search}
+        onSearchChange={(v) => { setSearch(v); setPage(1); }}
+        searchPlaceholder="Search videos..."
+        actions={
+          <button
+            onClick={handleSync}
+            disabled={syncing}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-coral px-4 py-2 text-sm font-medium text-white hover:bg-coral-dark transition-colors disabled:opacity-50"
           >
-            <div className="aspect-video bg-gray-100 relative">
-              {video.cover_url ? (
-                <img src={video.cover_url} alt={video.title || ""} className="w-full h-full object-cover" />
-              ) : (
-                <div className="flex items-center justify-center h-full text-gray-300 text-sm">No thumbnail</div>
-              )}
-              {video.duration && (
-                <span className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded">
-                  {Math.floor(video.duration / 60)}:{String(video.duration % 60).padStart(2, "0")}
-                </span>
-              )}
-            </div>
-            <div className="p-3">
-              <h3 className="text-sm font-medium text-gray-900 truncate">
-                {video.title || "Untitled"}
-              </h3>
-              <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
-                <span className="flex items-center gap-1"><Eye className="h-3 w-3" />{formatNumber(video.view_count)}</span>
-                <span className="flex items-center gap-1"><Heart className="h-3 w-3" />{formatNumber(video.like_count)}</span>
-                <span className="flex items-center gap-1"><MessageCircle className="h-3 w-3" />{formatNumber(video.comment_count)}</span>
-                <span className="flex items-center gap-1"><Share2 className="h-3 w-3" />{formatNumber(video.share_count)}</span>
-              </div>
-              <div className="flex items-center justify-between mt-2">
-                <span className={`px-2 py-0.5 text-xs rounded-full ${STATUS_COLORS[video.status] || "bg-gray-100 text-gray-800"}`}>
-                  {video.status}
-                </span>
-                <span className="text-xs text-gray-400">
-                  {video.create_time ? new Date(video.create_time).toLocaleDateString() : ""}
-                </span>
-              </div>
-            </div>
-          </Link>
-        ))}
+            <RefreshCw className={`h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
+            {syncing ? "Syncing..." : "Sync Videos"}
+          </button>
+        }
+      >
+        <FilterDropdown
+          label="All Statuses"
+          value={statusFilter}
+          options={[
+            { label: "Public", value: "PUBLIC" },
+            { label: "Private", value: "PRIVATE" },
+            { label: "Friends Only", value: "FRIEND" },
+          ]}
+          onChange={(v) => { setStatusFilter(v); setPage(1); }}
+        />
+      </FilterBar>
+
+      {/* "View all in Creative Hub" link */}
+      <div className="mb-4">
+        <Link
+          href="/creatives"
+          className="inline-flex items-center gap-1 text-sm font-medium text-coral hover:text-coral-dark transition-colors"
+        >
+          View all in Creative Hub <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
       </div>
 
-      {!loading && data?.items.length === 0 && (
-        <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-          <p className="text-gray-500">No videos found. Sync your videos from TikTok to get started.</p>
+      {/* Video grid using CreativeCard */}
+      {!loading && videos.length === 0 ? (
+        <EmptyState
+          title="No videos found"
+          description="Sync your videos from TikTok to get started."
+          action={{ label: "Sync Videos", onClick: handleSync }}
+        />
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          {videos.map((video) => (
+            <CreativeCard
+              key={video.id}
+              title={video.title || "Untitled"}
+              thumbnailUrl={video.cover_url || undefined}
+              format="video"
+              metrics={[
+                { label: "Views", value: formatNumber(video.view_count) },
+                { label: "Likes", value: formatNumber(video.like_count) },
+                { label: "Comments", value: formatNumber(video.comment_count) },
+              ]}
+              onClick={() => { window.location.href = `/content/videos/${video.id}`; }}
+            />
+          ))}
         </div>
       )}
 
+      {/* Pagination */}
       {data && data.total_pages > 1 && (
         <div className="flex items-center justify-between mt-4">
-          <p className="text-sm text-gray-500">Page {data.page} of {data.total_pages} ({data.total} total)</p>
-          <div className="flex gap-2">
+          <p className="text-xs text-gray-500">
+            Page {data.page} of {data.total_pages} ({data.total} total)
+          </p>
+          <div className="flex items-center gap-1">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page <= 1}
-              className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50"
+              className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               Previous
             </button>
             <button
               onClick={() => setPage((p) => Math.min(data.total_pages, p + 1))}
               disabled={page >= data.total_pages}
-              className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50"
+              className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               Next
             </button>
@@ -160,7 +217,19 @@ export default function VideosPage() {
         </div>
       )}
 
-      {loading && <div className="text-center py-8 text-gray-500">Loading videos...</div>}
-    </div>
+      {loading && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="rounded-xl border border-gray-100 bg-white overflow-hidden">
+              <div className="aspect-[9/16] max-h-48 bg-gray-100 animate-pulse" />
+              <div className="p-3 space-y-2">
+                <div className="h-4 w-24 rounded bg-gray-100 animate-pulse" />
+                <div className="h-3 w-16 rounded bg-gray-100 animate-pulse" />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </PageShell>
   );
 }

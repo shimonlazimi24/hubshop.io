@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-
+import { Package, RefreshCw, LayoutGrid, List, AlertTriangle, TrendingUp } from "lucide-react";
 import {
   listProducts,
   listShops,
@@ -12,17 +12,25 @@ import {
   type Shop,
 } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
+import { PageShell } from "@/components/ui/page-shell";
+import { MetricBar } from "@/components/ui/metric-bar";
+import { MetricCard } from "@/components/ui/metric-card";
+import { FilterBar, FilterDropdown } from "@/components/ui/filter-bar";
+import { DataTable, type Column } from "@/components/ui/data-table";
+import { StatusBadge, type StatusVariant } from "@/components/ui/status-badge";
+import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
+import { toast } from "@/lib/toast-store";
 
 const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
-const STATUS_COLORS: Record<string, string> = {
-  live: "bg-green-100 text-green-800",
-  pending: "bg-yellow-100 text-yellow-800",
-  draft: "bg-gray-100 text-gray-800",
-  seller_deactivated: "bg-red-100 text-red-800",
-  platform_deactivated: "bg-red-100 text-red-800",
-  frozen: "bg-blue-100 text-blue-800",
-  deleted: "bg-red-100 text-red-800",
+const STATUS_MAP: Record<string, StatusVariant> = {
+  live: "active",
+  pending: "warning",
+  draft: "draft",
+  seller_deactivated: "error",
+  platform_deactivated: "error",
+  frozen: "paused",
+  deleted: "error",
 };
 
 export default function ProductsPage() {
@@ -34,6 +42,7 @@ export default function ProductsPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [shopFilter, setShopFilter] = useState("");
   const [page, setPage] = useState(1);
+  const [viewMode, setViewMode] = useState<"grid" | "table">("table");
 
   const token = getAccessToken();
 
@@ -65,164 +74,258 @@ export default function ProductsPage() {
     setSyncing(true);
     try {
       const result = await syncProducts(WORKSPACE_ID, token);
-      alert(`Synced ${result.synced} products`);
+      toast.success(`Synced ${result.synced} products`);
       loadProducts();
-    } catch (err) {
-      console.error(err);
+    } catch {
+      toast.error("Failed to sync products");
     } finally {
       setSyncing(false);
     }
   }
 
-  return (
-    <div>
-      {/* Filters */}
-      <div className="flex items-center gap-4 mb-4">
-        <input
-          type="text"
-          placeholder="Search products..."
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-          className="px-3 py-2 border border-gray-300 rounded-md text-sm w-64"
-        />
-        <select
-          value={statusFilter}
-          onChange={(e) => {
-            setStatusFilter(e.target.value);
-            setPage(1);
-          }}
-          className="px-3 py-2 border border-gray-300 rounded-md text-sm"
-        >
-          <option value="">All Statuses</option>
-          <option value="live">Live</option>
-          <option value="pending">Pending</option>
-          <option value="draft">Draft</option>
-          <option value="seller_deactivated">Seller Deactivated</option>
-        </select>
-        {shops.length > 1 && (
-          <select
-            value={shopFilter}
-            onChange={(e) => {
-              setShopFilter(e.target.value);
-              setPage(1);
-            }}
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+  const items = products?.items ?? [];
+  const liveCount = items.filter((p) => p.status === "live").length;
+  const totalInventory = items.reduce((s, p) => s + (p.inventory_total || 0), 0);
+
+  const columns: Column<ProductSummary>[] = [
+    {
+      key: "product",
+      header: "Product",
+      render: (row) => (
+        <div className="flex items-center gap-3">
+          {row.main_image_url && (
+            <img src={row.main_image_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
+          )}
+          <Link
+            href={`/commerce/products/${row.id}`}
+            className="text-sm font-medium text-coral hover:text-coral-dark transition-colors line-clamp-1"
           >
-            <option value="">All Shops</option>
-            {shops.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.shop_name}
-              </option>
-            ))}
-          </select>
-        )}
-        <div className="flex-1" />
-        <button
-          onClick={handleSync}
-          disabled={syncing}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-        >
-          {syncing ? "Syncing..." : "Sync Products"}
-        </button>
-      </div>
+            {row.title}
+          </Link>
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (row) => (
+        <StatusBadge
+          variant={STATUS_MAP[row.status] || "draft"}
+          label={row.status.replace(/_/g, " ")}
+        />
+      ),
+    },
+    {
+      key: "price",
+      header: "Price",
+      sortable: true,
+      render: (row) => (
+        <span className="text-sm text-gray-900 tabular-nums">
+          {row.price_amount ? `${row.currency || "$"} ${row.price_amount}` : "-"}
+        </span>
+      ),
+    },
+    {
+      key: "inventory",
+      header: "Inventory",
+      sortable: true,
+      render: (row) => <span className="text-sm text-gray-600 tabular-nums">{row.inventory_total}</span>,
+    },
+    {
+      key: "skus",
+      header: "SKUs",
+      render: (row) => <span className="text-sm text-gray-600">{row.sku_count}</span>,
+    },
+    {
+      key: "updated",
+      header: "Updated",
+      sortable: true,
+      render: (row) => (
+        <span className="text-sm text-gray-500">{new Date(row.updated_at).toLocaleDateString()}</span>
+      ),
+    },
+  ];
 
-      {/* Products table */}
-      <div className="bg-white rounded-lg border border-gray-200">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-200 text-left">
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Product</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Price</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Inventory</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">SKUs</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Updated</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {products?.items.map((product) => (
-              <tr key={product.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    {product.main_image_url && (
-                      <img
-                        src={product.main_image_url}
-                        alt=""
-                        className="w-10 h-10 rounded object-cover"
-                      />
-                    )}
-                    <Link
-                      href={`/commerce/products/${product.id}`}
-                      className="text-sm font-medium text-blue-600 hover:underline line-clamp-1"
-                    >
-                      {product.title}
-                    </Link>
-                  </div>
-                </td>
-                <td className="px-4 py-3">
-                  <span
-                    className={`px-2 py-1 text-xs rounded-full ${
-                      STATUS_COLORS[product.status] || "bg-gray-100 text-gray-800"
-                    }`}
-                  >
-                    {product.status.replace(/_/g, " ")}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-900">
-                  {product.price_amount
-                    ? `${product.currency || "$"} ${product.price_amount}`
-                    : "-"}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-600">
-                  {product.inventory_total}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-600">
-                  {product.sku_count}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-500">
-                  {new Date(product.updated_at).toLocaleDateString()}
-                </td>
-              </tr>
-            ))}
-            {!loading && products?.items.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
-                  No products found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-
-        {products && products.total_pages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
-            <p className="text-sm text-gray-500">
-              Page {products.page} of {products.total_pages} ({products.total} total)
-            </p>
-            <div className="flex gap-2">
+  return (
+    <PageShell
+      header={
+        <MetricBar>
+          <MetricCard
+            label="Total Products"
+            value={products?.total ?? 0}
+            icon={Package}
+            iconColor="text-coral"
+            loading={loading}
+          />
+          <MetricCard
+            label="Live Products"
+            value={liveCount}
+            icon={TrendingUp}
+            iconColor="text-success"
+            loading={loading}
+          />
+          <MetricCard
+            label="Total Inventory"
+            value={totalInventory.toLocaleString()}
+            icon={Package}
+            iconColor="text-info"
+            loading={loading}
+          />
+        </MetricBar>
+      }
+      aside={
+        <InsightPanel defaultOpen={false}>
+          <InsightItem
+            icon={<AlertTriangle className="h-4 w-4 text-warning" />}
+            title="Low stock alert"
+            description="3 products have inventory below 10 units. Consider restocking soon."
+            variant="warning"
+          />
+          <InsightItem
+            icon={<TrendingUp className="h-4 w-4 text-success" />}
+            title="Best seller"
+            description="Your top product has sold 142 units this week, a 25% increase."
+            variant="success"
+          />
+        </InsightPanel>
+      }
+    >
+      <FilterBar
+        searchValue={search}
+        onSearchChange={(v) => { setSearch(v); setPage(1); }}
+        searchPlaceholder="Search products..."
+        actions={
+          <div className="flex items-center gap-2">
+            {/* View toggle */}
+            <div className="flex items-center rounded-lg border border-gray-200 p-0.5">
               <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page <= 1}
-                className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50"
+                onClick={() => setViewMode("grid")}
+                className={`flex h-7 w-7 items-center justify-center rounded-md transition-colors ${viewMode === "grid" ? "bg-gray-100 text-gray-900" : "text-gray-400 hover:text-gray-600"}`}
               >
-                Previous
+                <LayoutGrid className="h-3.5 w-3.5" />
               </button>
               <button
-                onClick={() => setPage((p) => Math.min(products.total_pages, p + 1))}
-                disabled={page >= products.total_pages}
-                className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50"
+                onClick={() => setViewMode("table")}
+                className={`flex h-7 w-7 items-center justify-center rounded-md transition-colors ${viewMode === "table" ? "bg-gray-100 text-gray-900" : "text-gray-400 hover:text-gray-600"}`}
               >
-                Next
+                <List className="h-3.5 w-3.5" />
               </button>
             </div>
+            <button
+              onClick={handleSync}
+              disabled={syncing}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-coral px-4 py-2 text-sm font-medium text-white hover:bg-coral-dark transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
+              {syncing ? "Syncing..." : "Sync Products"}
+            </button>
           </div>
+        }
+      >
+        <FilterDropdown
+          label="All Statuses"
+          value={statusFilter}
+          options={[
+            { label: "Live", value: "live" },
+            { label: "Pending", value: "pending" },
+            { label: "Draft", value: "draft" },
+            { label: "Deactivated", value: "seller_deactivated" },
+          ]}
+          onChange={(v) => { setStatusFilter(v); setPage(1); }}
+        />
+        {shops.length > 1 && (
+          <FilterDropdown
+            label="All Shops"
+            value={shopFilter}
+            options={shops.map((s) => ({ label: s.shop_name, value: s.id }))}
+            onChange={(v) => { setShopFilter(v); setPage(1); }}
+          />
         )}
-      </div>
+      </FilterBar>
 
-      {loading && <div className="text-center py-8 text-gray-500">Loading products...</div>}
-    </div>
+      {viewMode === "grid" ? (
+        /* Grid view */
+        <>
+          {!loading && items.length === 0 ? (
+            <div className="rounded-lg border border-gray-200 bg-white">
+              <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                <Package className="h-8 w-8 text-gray-300 mb-3" />
+                <p className="text-sm font-semibold text-gray-900 mb-1">No products found</p>
+                <p className="text-sm text-gray-500">Sync your products from TikTok Shop to get started.</p>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {items.map((product) => (
+                <Link
+                  key={product.id}
+                  href={`/commerce/products/${product.id}`}
+                  className="group rounded-xl border border-gray-100 bg-white overflow-hidden shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-panel)] transition-all duration-[var(--duration-fast)]"
+                >
+                  <div className="aspect-square bg-gray-100">
+                    {product.main_image_url ? (
+                      <img src={product.main_image_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="flex items-center justify-center h-full">
+                        <Package className="h-8 w-8 text-gray-300" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-3">
+                    <h4 className="text-sm font-medium text-gray-900 truncate mb-1">{product.title}</h4>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold text-gray-900">
+                        {product.price_amount ? `${product.currency || "$"}${product.price_amount}` : "-"}
+                      </span>
+                      <StatusBadge
+                        variant={STATUS_MAP[product.status] || "draft"}
+                        label={product.status.replace(/_/g, " ")}
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">{product.inventory_total} in stock</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+          {/* Grid pagination */}
+          {products && products.total_pages > 1 && (
+            <div className="flex items-center justify-between mt-4">
+              <p className="text-xs text-gray-500">Page {products.page} of {products.total_pages}</p>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page <= 1}
+                  className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition-colors"
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={() => setPage((p) => Math.min(products.total_pages, p + 1))}
+                  disabled={page >= products.total_pages}
+                  className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition-colors"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        /* Table view */
+        <DataTable
+          columns={columns}
+          data={items}
+          keyExtractor={(row) => row.id}
+          onRowClick={(row) => { window.location.href = `/commerce/products/${row.id}`; }}
+          emptyTitle="No products found"
+          emptyDescription="Sync your products from TikTok Shop to get started."
+          page={products?.page}
+          totalPages={products?.total_pages}
+          onPageChange={setPage}
+          loading={loading}
+        />
+      )}
+    </PageShell>
   );
 }

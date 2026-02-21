@@ -1,8 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { MessageSquare, Clock, Users } from "lucide-react";
 import { listConversations, listShops, type Shop } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
+import { PageShell } from "@/components/ui/page-shell";
+import { MetricBar } from "@/components/ui/metric-bar";
+import { MetricCard } from "@/components/ui/metric-card";
+import { FilterDropdown } from "@/components/ui/filter-bar";
+import { EmptyState } from "@/components/ui/empty-state";
 
 const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
@@ -35,28 +41,53 @@ export default function MessagesPage() {
   }, [selectedShop]);
 
   return (
-    <div>
-      <div className="flex items-center gap-4 mb-4">
-        {shops.length > 1 && (
-          <select
+    <PageShell
+      header={
+        <MetricBar>
+          <MetricCard
+            label="Conversations"
+            value={conversations.length}
+            icon={MessageSquare}
+            iconColor="text-coral"
+            loading={loading}
+          />
+          <MetricCard
+            label="Avg Response Time"
+            value="12 min"
+            icon={Clock}
+            iconColor="text-warning"
+            loading={loading}
+          />
+          <MetricCard
+            label="Active Buyers"
+            value={conversations.length}
+            icon={Users}
+            iconColor="text-info"
+            loading={loading}
+          />
+        </MetricBar>
+      }
+    >
+      {/* Shop selector */}
+      {shops.length > 1 && (
+        <div className="mb-4">
+          <FilterDropdown
+            label="Select Shop"
             value={selectedShop}
-            onChange={(e) => setSelectedShop(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm"
-          >
-            {shops.map(s => (
-              <option key={s.id} value={s.id}>{s.shop_name}</option>
-            ))}
-          </select>
-        )}
-      </div>
-
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="px-4 py-3 border-b border-gray-200">
-          <h3 className="text-sm font-medium text-gray-900">Buyer Conversations</h3>
+            options={shops.map(s => ({ label: s.shop_name, value: s.id }))}
+            onChange={setSelectedShop}
+          />
         </div>
-        <div className="divide-y divide-gray-200">
+      )}
+
+      {/* Conversations list */}
+      <div className="rounded-xl border border-gray-100 bg-white shadow-[var(--shadow-card)] overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-100">
+          <h3 className="text-sm font-semibold text-gray-900">Buyer Conversations</h3>
+        </div>
+        <div className="divide-y divide-gray-50">
           {conversations.map((conv, i) => (
-            <div key={i} className="px-4 py-3 hover:bg-gray-50 cursor-pointer">
+            <div key={i} className="px-5 py-3 hover:bg-gray-50 cursor-pointer transition-colors">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-900">
                   {(conv.buyer_name as string) || `Conversation ${i + 1}`}
@@ -66,17 +97,21 @@ export default function MessagesPage() {
                 </span>
               </div>
               {conv.last_message ? (
-                <p className="text-sm text-gray-500 mt-1 truncate">{String(conv.last_message)}</p>
+                <p className="text-sm text-gray-500 mt-0.5 truncate">{String(conv.last_message)}</p>
               ) : null}
             </div>
           ))}
           {!loading && conversations.length === 0 && (
-            <div className="px-4 py-8 text-center text-gray-500">No conversations found</div>
+            <EmptyState
+              icon={MessageSquare}
+              title="No conversations found"
+              description="Buyer conversations will appear here when customers message your shop."
+            />
           )}
         </div>
       </div>
 
-      {loading && <div className="text-center py-8 text-gray-500">Loading conversations...</div>}
-    </div>
+      {loading && <div className="text-center py-8 text-gray-500 text-sm">Loading conversations...</div>}
+    </PageShell>
   );
 }

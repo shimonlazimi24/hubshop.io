@@ -1,17 +1,27 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Users, TrendingUp, Heart, Search as SearchIcon, Star } from "lucide-react";
 import { discoverCreators, listCreatorProfiles, saveCreator, type CreatorSummary, type PaginatedResponse } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
+import { toast } from "@/lib/toast-store";
+import { PageShell } from "@/components/ui/page-shell";
+import { MetricBar } from "@/components/ui/metric-bar";
+import { MetricCard } from "@/components/ui/metric-card";
+import { FilterBar, FilterDropdown } from "@/components/ui/filter-bar";
+import { DataTable, type Column } from "@/components/ui/data-table";
+import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
+import { EmptyState } from "@/components/ui/empty-state";
+import { StatusBadge, type StatusVariant } from "@/components/ui/status-badge";
 
 const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
-const TIER_COLORS: Record<string, string> = {
-  NANO: "bg-gray-100 text-gray-800",
-  MICRO: "bg-blue-100 text-blue-800",
-  MID: "bg-purple-100 text-purple-800",
-  MACRO: "bg-orange-100 text-orange-800",
-  MEGA: "bg-red-100 text-red-800",
+const TIER_VARIANT: Record<string, StatusVariant> = {
+  NANO: "draft",
+  MICRO: "syncing",
+  MID: "warning",
+  MACRO: "active",
+  MEGA: "error",
 };
 
 type Tab = "discover" | "saved";
@@ -37,7 +47,7 @@ export default function CreatorsDiscoverPage() {
     setLoading(true);
     listCreatorProfiles(WORKSPACE_ID, token, { is_saved: tab === "saved" ? true : undefined, page })
       .then(setProfiles)
-      .catch(console.error)
+      .catch(() => toast.error("Failed to load creator profiles"))
       .finally(() => setLoading(false));
   }
 
@@ -47,8 +57,9 @@ export default function CreatorsDiscoverPage() {
     try {
       const result = await discoverCreators(WORKSPACE_ID, { query: query.trim() }, token);
       setDiscoveryResults(result.creators);
-    } catch (err) {
-      console.error(err);
+      toast.success(`Found ${result.creators.length} creators`);
+    } catch {
+      toast.error("Search failed. Please try again.");
     } finally {
       setSearching(false);
     }
@@ -58,9 +69,10 @@ export default function CreatorsDiscoverPage() {
     if (!token) return;
     try {
       await saveCreator(creatorId, !isSaved, token);
+      toast.success(isSaved ? "Creator removed from saved" : "Creator saved");
       if (tab === "saved") loadProfiles();
-    } catch (err) {
-      console.error(err);
+    } catch {
+      toast.error("Failed to update saved status");
     }
   }
 
@@ -69,14 +81,127 @@ export default function CreatorsDiscoverPage() {
     { key: "saved", label: "Saved Creators" },
   ];
 
+  const savedColumns: Column<CreatorSummary>[] = [
+    {
+      key: "creator",
+      header: "Creator",
+      render: (row) => (
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs font-medium">
+            {(row.display_name || row.username || "?")[0]}
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-900">{row.display_name || "Unknown"}</p>
+            <p className="text-xs text-gray-500">@{row.username || "-"}</p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "tier",
+      header: "Tier",
+      render: (row) =>
+        row.tier ? (
+          <StatusBadge variant={TIER_VARIANT[row.tier] || "draft"} label={row.tier} />
+        ) : (
+          <span className="text-gray-400">-</span>
+        ),
+    },
+    {
+      key: "followers",
+      header: "Followers",
+      sortable: true,
+      render: (row) => <span className="text-sm tabular-nums">{row.follower_count.toLocaleString()}</span>,
+    },
+    {
+      key: "engagement",
+      header: "Engagement",
+      sortable: true,
+      render: (row) => (
+        <span className="text-sm tabular-nums">
+          {row.engagement_rate ? `${row.engagement_rate}%` : "-"}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      render: (row) => (
+        <button
+          onClick={(e) => { e.stopPropagation(); handleSave(row.id, row.is_saved); }}
+          className="text-sm text-danger hover:underline"
+        >
+          Unsave
+        </button>
+      ),
+    },
+  ];
+
+  const discoverColumns: Column<Record<string, unknown>>[] = [
+    {
+      key: "creator",
+      header: "Creator",
+      render: (row) => (
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs font-medium">
+            {((row.display_name as string) || "?")[0]}
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-900">{(row.display_name as string) || "Unknown"}</p>
+            <p className="text-xs text-gray-500">@{(row.username as string) || "-"}</p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "followers",
+      header: "Followers",
+      sortable: true,
+      render: (row) => (
+        <span className="text-sm tabular-nums">
+          {((row.follower_count as number) || 0).toLocaleString()}
+        </span>
+      ),
+    },
+  ];
+
   return (
-    <div>
+    <PageShell
+      header={
+        <MetricBar>
+          <MetricCard label="Total Saved" value={profiles?.total ?? 0} icon={Users} trend={{ value: 12, direction: "up", label: "vs last month" }} />
+          <MetricCard label="Avg Engagement" value="4.8%" icon={TrendingUp} trend={{ value: 0.3, direction: "up" }} />
+          <MetricCard label="Top Tier" value="Macro" icon={Star} />
+          <MetricCard label="Campaigns Active" value={3} icon={Heart} trend={{ value: 1, direction: "up" }} />
+        </MetricBar>
+      }
+      aside={
+        <InsightPanel>
+          <InsightItem
+            title="High engagement creator"
+            description="@cook_with_emma has 7.1% engagement rate — ideal for product features."
+            variant="success"
+            action={{ label: "View profile", onClick: () => {} }}
+          />
+          <InsightItem
+            title="Trending niche"
+            description="Beauty creators showing +24% engagement growth this month."
+            variant="warning"
+          />
+          <InsightItem
+            title="New opportunity"
+            description="3 nano creators in your niche gained 10K+ followers this week."
+            action={{ label: "Discover", onClick: () => setTab("discover") }}
+          />
+        </InsightPanel>
+      }
+    >
       <div className="flex gap-2 mb-4">
-        {tabs.map(t => (
+        {tabs.map((t) => (
           <button
             key={t.key}
             onClick={() => { setTab(t.key); setPage(1); }}
-            className={`px-3 py-1.5 text-sm rounded-md ${tab === t.key ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+            className={`px-3 py-1.5 text-sm rounded-md transition-colors ${tab === t.key ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
           >
             {t.label}
           </button>
@@ -85,115 +210,54 @@ export default function CreatorsDiscoverPage() {
 
       {tab === "discover" && (
         <div>
-          <div className="flex gap-2 mb-4">
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              placeholder="Search creators by keyword..."
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
-            />
-            <button
-              onClick={handleSearch}
-              disabled={searching}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-            >
-              {searching ? "Searching..." : "Search"}
-            </button>
-          </div>
+          <FilterBar
+            searchValue={query}
+            onSearchChange={setQuery}
+            searchPlaceholder="Search creators by keyword..."
+            actions={
+              <button
+                onClick={handleSearch}
+                disabled={searching}
+                className="px-4 py-2 bg-coral text-white rounded-lg text-sm font-medium hover:bg-coral/90 disabled:opacity-50 transition-colors"
+              >
+                {searching ? "Searching..." : "Search TTCM"}
+              </button>
+            }
+          />
 
-          <div className="bg-white rounded-lg border border-gray-200">
-            <div className="divide-y divide-gray-200">
-              {discoveryResults.map((creator, i) => (
-                <div key={i} className="px-4 py-3 flex items-center gap-4 hover:bg-gray-50">
-                  <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-sm font-medium">
-                    {((creator.display_name as string) || "?")[0]}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900">{(creator.display_name as string) || "Unknown"}</p>
-                    <p className="text-xs text-gray-500">@{(creator.username as string) || "-"}</p>
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {((creator.follower_count as number) || 0).toLocaleString()} followers
-                  </div>
-                </div>
-              ))}
-              {!searching && discoveryResults.length === 0 && (
-                <div className="px-4 py-8 text-center text-gray-500">
-                  Search the TikTok Creator Marketplace to discover creators
-                </div>
-              )}
-            </div>
-          </div>
+          {discoveryResults.length > 0 ? (
+            <DataTable
+              columns={discoverColumns}
+              data={discoveryResults}
+              keyExtractor={(row) => JSON.stringify(row)}
+              emptyTitle="No creators found"
+              emptyDescription="Try a different search keyword"
+            />
+          ) : (
+            <EmptyState
+              icon={SearchIcon}
+              title="Search the TikTok Creator Marketplace"
+              description="Enter a keyword to discover creators matching your brand"
+            />
+          )}
           {searching && <div className="text-center py-8 text-gray-500">Searching creators...</div>}
         </div>
       )}
 
       {tab === "saved" && (
-        <div className="bg-white rounded-lg border border-gray-200">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200 text-left">
-                <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Creator</th>
-                <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Tier</th>
-                <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Followers</th>
-                <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Engagement</th>
-                <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {profiles?.items.map((creator) => (
-                <tr key={creator.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs font-medium">
-                        {(creator.display_name || creator.username || "?")[0]}
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{creator.display_name || "Unknown"}</p>
-                        <p className="text-xs text-gray-500">@{creator.username || "-"}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    {creator.tier && (
-                      <span className={`px-2 py-1 text-xs rounded-full ${TIER_COLORS[creator.tier] || "bg-gray-100 text-gray-800"}`}>
-                        {creator.tier}
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{creator.follower_count.toLocaleString()}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{creator.engagement_rate ? `${creator.engagement_rate}%` : "-"}</td>
-                  <td className="px-4 py-3">
-                    <button
-                      onClick={() => handleSave(creator.id, creator.is_saved)}
-                      className="text-sm text-red-600 hover:underline"
-                    >
-                      Unsave
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {!loading && (!profiles || profiles.items.length === 0) && (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">No saved creators</td></tr>
-              )}
-            </tbody>
-          </table>
-
-          {profiles && profiles.total_pages > 1 && (
-            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
-              <p className="text-sm text-gray-500">Page {profiles.page} of {profiles.total_pages}</p>
-              <div className="flex gap-2">
-                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1} className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50">Previous</button>
-                <button onClick={() => setPage(p => Math.min(profiles.total_pages, p + 1))} disabled={page >= profiles.total_pages} className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50">Next</button>
-              </div>
-            </div>
-          )}
-
-          {loading && <div className="text-center py-8 text-gray-500">Loading creators...</div>}
-        </div>
+        <DataTable
+          columns={savedColumns}
+          data={profiles?.items ?? []}
+          keyExtractor={(row) => row.id}
+          loading={loading}
+          page={page}
+          totalPages={profiles?.total_pages ?? 1}
+          onPageChange={setPage}
+          emptyTitle="No saved creators"
+          emptyDescription="Save creators from the discovery tab to see them here"
+          emptyAction={{ label: "Discover Creators", onClick: () => setTab("discover") }}
+        />
       )}
-    </div>
+    </PageShell>
   );
 }

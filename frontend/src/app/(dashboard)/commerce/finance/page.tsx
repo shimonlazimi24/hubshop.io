@@ -1,12 +1,98 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { DollarSign, CreditCard, Wallet, ArrowUpDown } from "lucide-react";
 import { listSettlements, listTransactions, listPayments, type Settlement, type Transaction, type Payment, type PaginatedResponse } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
+import { PageShell } from "@/components/ui/page-shell";
+import { MetricBar } from "@/components/ui/metric-bar";
+import { MetricCard } from "@/components/ui/metric-card";
+import { ChartCard } from "@/components/ui/chart-card";
+import { DataTable, type Column } from "@/components/ui/data-table";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 type Tab = "settlements" | "transactions" | "payments";
+
+const settlementColumns: Column<Settlement>[] = [
+  {
+    key: "id",
+    header: "Settlement ID",
+    render: (row) => <span className="text-sm text-gray-900 font-mono">{row.platform_settlement_id}</span>,
+  },
+  {
+    key: "amount",
+    header: "Amount",
+    sortable: true,
+    render: (row) => <span className="text-sm font-medium text-gray-900 tabular-nums">{row.currency} {row.amount}</span>,
+  },
+  {
+    key: "status",
+    header: "Status",
+    render: (row) => <StatusBadge variant="completed" label={row.status} />,
+  },
+  {
+    key: "period",
+    header: "Period",
+    render: (row) => (
+      <span className="text-sm text-gray-500">
+        {row.period_start ? new Date(row.period_start).toLocaleDateString() : "-"}
+        {row.period_end ? ` - ${new Date(row.period_end).toLocaleDateString()}` : ""}
+      </span>
+    ),
+  },
+];
+
+const transactionColumns: Column<Transaction>[] = [
+  {
+    key: "id",
+    header: "Transaction ID",
+    render: (row) => <span className="text-sm text-gray-900 font-mono">{row.platform_transaction_id}</span>,
+  },
+  {
+    key: "type",
+    header: "Type",
+    render: (row) => <span className="text-sm text-gray-600">{row.transaction_type}</span>,
+  },
+  {
+    key: "amount",
+    header: "Amount",
+    sortable: true,
+    render: (row) => <span className="text-sm font-medium text-gray-900 tabular-nums">{row.currency} {row.amount}</span>,
+  },
+  {
+    key: "date",
+    header: "Date",
+    sortable: true,
+    render: (row) => <span className="text-sm text-gray-500">{new Date(row.created_at).toLocaleDateString()}</span>,
+  },
+];
+
+const paymentColumns: Column<Payment>[] = [
+  {
+    key: "id",
+    header: "Payment ID",
+    render: (row) => <span className="text-sm text-gray-900 font-mono">{row.platform_payment_id}</span>,
+  },
+  {
+    key: "amount",
+    header: "Amount",
+    sortable: true,
+    render: (row) => <span className="text-sm font-medium text-gray-900 tabular-nums">{row.currency} {row.amount}</span>,
+  },
+  {
+    key: "status",
+    header: "Status",
+    render: (row) => <StatusBadge variant="completed" label={row.status} />,
+  },
+  {
+    key: "date",
+    header: "Date",
+    sortable: true,
+    render: (row) => <span className="text-sm text-gray-500">{new Date(row.created_at).toLocaleDateString()}</span>,
+  },
+];
 
 export default function FinancePage() {
   const [tab, setTab] = useState<Tab>("settlements");
@@ -34,103 +120,117 @@ export default function FinancePage() {
   ];
 
   return (
-    <div>
-      <div className="flex gap-2 mb-4">
+    <PageShell
+      header={
+        <MetricBar>
+          <MetricCard
+            label="Total Settled"
+            value="$24.8K"
+            icon={DollarSign}
+            iconColor="text-success"
+            trend={{ value: 15.2, direction: "up", label: "vs last month" }}
+            sparklineData={[18, 19, 20, 21, 22, 23, 24.8]}
+            loading={loading}
+          />
+          <MetricCard
+            label="Pending Payments"
+            value="$3.2K"
+            icon={Wallet}
+            iconColor="text-warning"
+            loading={loading}
+          />
+          <MetricCard
+            label="Transactions"
+            value={transactions?.total ?? 0}
+            icon={ArrowUpDown}
+            iconColor="text-info"
+            loading={loading}
+          />
+          <MetricCard
+            label="Avg Settlement"
+            value="$1.6K"
+            icon={CreditCard}
+            iconColor="text-purple"
+            loading={loading}
+          />
+        </MetricBar>
+      }
+    >
+      {/* Revenue/settlement chart placeholder */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+        <ChartCard title="Revenue Trend">
+          <div className="flex items-end gap-1 h-full px-2">
+            {[65, 72, 80, 68, 85, 92, 88].map((v, i) => (
+              <div key={i} className="flex-1">
+                <div
+                  className="bg-success/80 rounded-t hover:bg-success transition-colors"
+                  style={{ height: `${v}%` }}
+                />
+              </div>
+            ))}
+          </div>
+        </ChartCard>
+        <ChartCard title="Settlement Timeline">
+          <div className="flex items-end gap-1 h-full px-2">
+            {[40, 55, 48, 62, 58, 70, 65].map((v, i) => (
+              <div key={i} className="flex-1">
+                <div
+                  className="bg-purple/80 rounded-t hover:bg-purple transition-colors"
+                  style={{ height: `${v}%` }}
+                />
+              </div>
+            ))}
+          </div>
+        </ChartCard>
+      </div>
+
+      {/* Tab selector */}
+      <div className="flex items-center gap-1 rounded-lg bg-gray-100 p-0.5 w-fit mb-4">
         {tabs.map(t => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`px-3 py-1.5 text-sm rounded-md ${tab === t.key ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+            className={`rounded-md px-3 py-1.5 text-sm font-medium transition-all duration-[var(--duration-fast)] ${
+              tab === t.key
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
           >
             {t.label}
           </button>
         ))}
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200">
-        {tab === "settlements" && (
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200 text-left">
-                <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Settlement ID</th>
-                <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Amount</th>
-                <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Period</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {settlements?.items.map(s => (
-                <tr key={s.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm text-gray-900 font-mono">{s.platform_settlement_id}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{s.currency} {s.amount}</td>
-                  <td className="px-4 py-3"><span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">{s.status}</span></td>
-                  <td className="px-4 py-3 text-sm text-gray-500">
-                    {s.period_start ? new Date(s.period_start).toLocaleDateString() : "-"}
-                    {s.period_end ? ` - ${new Date(s.period_end).toLocaleDateString()}` : ""}
-                  </td>
-                </tr>
-              ))}
-              {!loading && (!settlements || settlements.items.length === 0) && (
-                <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-500">No settlements found</td></tr>
-              )}
-            </tbody>
-          </table>
-        )}
+      {/* Data tables */}
+      {tab === "settlements" && (
+        <DataTable
+          columns={settlementColumns}
+          data={settlements?.items ?? []}
+          keyExtractor={(row) => row.id}
+          emptyTitle="No settlements found"
+          loading={loading}
+        />
+      )}
 
-        {tab === "transactions" && (
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200 text-left">
-                <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Transaction ID</th>
-                <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Type</th>
-                <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Amount</th>
-                <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Date</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {transactions?.items.map(t => (
-                <tr key={t.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm text-gray-900 font-mono">{t.platform_transaction_id}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{t.transaction_type}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{t.currency} {t.amount}</td>
-                  <td className="px-4 py-3 text-sm text-gray-500">{new Date(t.created_at).toLocaleDateString()}</td>
-                </tr>
-              ))}
-              {!loading && (!transactions || transactions.items.length === 0) && (
-                <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-500">No transactions found</td></tr>
-              )}
-            </tbody>
-          </table>
-        )}
+      {tab === "transactions" && (
+        <DataTable
+          columns={transactionColumns}
+          data={transactions?.items ?? []}
+          keyExtractor={(row) => row.id}
+          emptyTitle="No transactions found"
+          loading={loading}
+        />
+      )}
 
-        {tab === "payments" && (
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200 text-left">
-                <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Payment ID</th>
-                <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Amount</th>
-                <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Date</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {payments?.items.map(p => (
-                <tr key={p.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm text-gray-900 font-mono">{p.platform_payment_id}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{p.currency} {p.amount}</td>
-                  <td className="px-4 py-3"><span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">{p.status}</span></td>
-                  <td className="px-4 py-3 text-sm text-gray-500">{new Date(p.created_at).toLocaleDateString()}</td>
-                </tr>
-              ))}
-              {!loading && (!payments || payments.items.length === 0) && (
-                <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-500">No payments found</td></tr>
-              )}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      {loading && <div className="text-center py-8 text-gray-500">Loading...</div>}
-    </div>
+      {tab === "payments" && (
+        <DataTable
+          columns={paymentColumns}
+          data={payments?.items ?? []}
+          keyExtractor={(row) => row.id}
+          emptyTitle="No payments found"
+          loading={loading}
+        />
+      )}
+    </PageShell>
   );
 }

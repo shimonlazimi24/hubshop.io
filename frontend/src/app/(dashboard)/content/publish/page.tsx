@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Upload, ArrowRight, Clock, CheckCircle } from "lucide-react";
 import {
   publishVideo,
   listPublishJobs,
@@ -10,15 +12,52 @@ import {
   type PaginatedResponse,
 } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
+import { PageShell } from "@/components/ui/page-shell";
+import { MetricBar } from "@/components/ui/metric-bar";
+import { MetricCard } from "@/components/ui/metric-card";
+import { DataTable, type Column } from "@/components/ui/data-table";
+import { StatusBadge, type StatusVariant } from "@/components/ui/status-badge";
+import { toast } from "@/lib/toast-store";
 
 const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
-const STATUS_COLORS: Record<string, string> = {
-  PENDING: "bg-yellow-100 text-yellow-800",
-  PROCESSING: "bg-blue-100 text-blue-800",
-  PUBLISHED: "bg-green-100 text-green-800",
-  FAILED: "bg-red-100 text-red-800",
+const STATUS_MAP: Record<string, StatusVariant> = {
+  PENDING: "warning",
+  PROCESSING: "syncing",
+  PUBLISHED: "completed",
+  FAILED: "error",
 };
+
+const columns: Column<PublishJob>[] = [
+  {
+    key: "title",
+    header: "Title",
+    render: (row) => (
+      <span className="text-sm font-medium text-gray-900">{row.title || "Untitled"}</span>
+    ),
+  },
+  {
+    key: "status",
+    header: "Status",
+    render: (row) => (
+      <StatusBadge variant={STATUS_MAP[row.status] || "draft"} label={row.status} />
+    ),
+  },
+  {
+    key: "privacy",
+    header: "Privacy",
+    render: (row) => (
+      <span className="text-sm text-gray-600">{row.privacy_level.replace(/_/g, " ")}</span>
+    ),
+  },
+  {
+    key: "created",
+    header: "Created",
+    render: (row) => (
+      <span className="text-sm text-gray-500">{new Date(row.created_at).toLocaleDateString()}</span>
+    ),
+  },
+];
 
 export default function PublishPage() {
   const [creatorInfo, setCreatorInfo] = useState<CreatorInfo | null>(null);
@@ -49,21 +88,62 @@ export default function PublishPage() {
     setPublishing(true);
     try {
       await publishVideo(WORKSPACE_ID, { video_url: videoUrl, title: title || undefined, privacy_level: privacyLevel }, token);
+      toast.success("Video published successfully");
       setVideoUrl("");
       setTitle("");
       const jobsData = await listPublishJobs(WORKSPACE_ID, token);
       setJobs(jobsData);
-    } catch (err) {
-      console.error(err);
+    } catch {
+      toast.error("Failed to publish video");
     } finally {
       setPublishing(false);
     }
   }
 
+  const publishedCount = jobs?.items.filter((j) => j.status === "PUBLISHED").length ?? 0;
+  const pendingCount = jobs?.items.filter((j) => j.status === "PENDING" || j.status === "PROCESSING").length ?? 0;
+
   return (
-    <div className="max-w-4xl">
-      <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-        <h3 className="text-sm font-medium text-gray-900 mb-4">Publish New Video</h3>
+    <PageShell
+      header={
+        <MetricBar>
+          <MetricCard
+            label="Published"
+            value={publishedCount}
+            icon={CheckCircle}
+            iconColor="text-success"
+            loading={loading}
+          />
+          <MetricCard
+            label="In Progress"
+            value={pendingCount}
+            icon={Clock}
+            iconColor="text-warning"
+            loading={loading}
+          />
+          <MetricCard
+            label="Total Jobs"
+            value={jobs?.total ?? 0}
+            icon={Upload}
+            iconColor="text-coral"
+            loading={loading}
+          />
+        </MetricBar>
+      }
+    >
+      {/* "Open in Creative Hub" link */}
+      <div className="mb-4">
+        <Link
+          href="/creatives/generate"
+          className="inline-flex items-center gap-1 text-sm font-medium text-coral hover:text-coral-dark transition-colors"
+        >
+          Open in Creative Hub <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
+      </div>
+
+      {/* Publish form */}
+      <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-[var(--shadow-card)] mb-6">
+        <h3 className="text-sm font-semibold text-gray-900 mb-4">Publish New Video</h3>
         <div className="space-y-4">
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Video URL</label>
@@ -72,7 +152,7 @@ export default function PublishPage() {
               value={videoUrl}
               onChange={(e) => setVideoUrl(e.target.value)}
               placeholder="https://example.com/video.mp4"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+              className="w-full h-9 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-coral/30 focus:border-coral"
             />
           </div>
           <div>
@@ -82,7 +162,7 @@ export default function PublishPage() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Video title"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+              className="w-full h-9 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-coral/30 focus:border-coral"
             />
           </div>
           <div>
@@ -90,7 +170,7 @@ export default function PublishPage() {
             <select
               value={privacyLevel}
               onChange={(e) => setPrivacyLevel(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+              className="h-9 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-coral/30 focus:border-coral appearance-none cursor-pointer"
             >
               {(creatorInfo?.privacy_level_options.length
                 ? creatorInfo.privacy_level_options
@@ -103,47 +183,22 @@ export default function PublishPage() {
           <button
             onClick={handlePublish}
             disabled={publishing || !videoUrl}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-coral px-4 py-2 text-sm font-medium text-white hover:bg-coral-dark transition-colors disabled:opacity-50"
           >
             {publishing ? "Publishing..." : "Publish Video"}
           </button>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="px-4 py-3 border-b border-gray-200">
-          <h3 className="text-sm font-medium text-gray-900">Recent Publish Jobs</h3>
-        </div>
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-200 text-left">
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Title</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Privacy</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Created</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {jobs?.items.map((job) => (
-              <tr key={job.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 text-sm text-gray-900">{job.title || "Untitled"}</td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-1 text-xs rounded-full ${STATUS_COLORS[job.status] || "bg-gray-100 text-gray-800"}`}>
-                    {job.status}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-600">{job.privacy_level.replace(/_/g, " ")}</td>
-                <td className="px-4 py-3 text-sm text-gray-500">{new Date(job.created_at).toLocaleDateString()}</td>
-              </tr>
-            ))}
-            {!loading && (!jobs || jobs.items.length === 0) && (
-              <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-gray-500">No publish jobs yet</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
+      {/* Recent Publish Jobs */}
+      <DataTable
+        columns={columns}
+        data={jobs?.items ?? []}
+        keyExtractor={(row) => row.id}
+        emptyTitle="No publish jobs yet"
+        emptyDescription="Publish a video above to get started."
+        loading={loading}
+      />
+    </PageShell>
   );
 }

@@ -1,22 +1,69 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Tag, Percent, TrendingUp } from "lucide-react";
 import { listPromotions, type Promotion, type PaginatedResponse } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
+import { PageShell } from "@/components/ui/page-shell";
+import { MetricBar } from "@/components/ui/metric-bar";
+import { MetricCard } from "@/components/ui/metric-card";
+import { FilterBar, FilterDropdown } from "@/components/ui/filter-bar";
+import { DataTable, type Column } from "@/components/ui/data-table";
+import { StatusBadge, type StatusVariant } from "@/components/ui/status-badge";
 
 const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
-const STATUS_COLORS: Record<string, string> = {
-  ACTIVE: "bg-green-100 text-green-800",
-  DRAFT: "bg-yellow-100 text-yellow-800",
-  ENDED: "bg-gray-100 text-gray-800",
-  CANCELLED: "bg-red-100 text-red-800",
+const STATUS_MAP: Record<string, StatusVariant> = {
+  ACTIVE: "active",
+  DRAFT: "warning",
+  ENDED: "paused",
+  CANCELLED: "error",
 };
+
+const columns: Column<Promotion>[] = [
+  {
+    key: "title",
+    header: "Title",
+    render: (row) => <span className="text-sm font-medium text-gray-900">{row.title}</span>,
+  },
+  {
+    key: "type",
+    header: "Type",
+    render: (row) => <span className="text-sm text-gray-600">{row.promotion_type}</span>,
+  },
+  {
+    key: "discount",
+    header: "Discount",
+    render: (row) => (
+      <span className="text-sm text-gray-600">
+        {row.discount_value ? `${row.discount_value}${row.discount_type === "PERCENTAGE" ? "%" : ""}` : "-"}
+      </span>
+    ),
+  },
+  {
+    key: "status",
+    header: "Status",
+    render: (row) => (
+      <StatusBadge variant={STATUS_MAP[row.status] || "draft"} label={row.status} />
+    ),
+  },
+  {
+    key: "period",
+    header: "Period",
+    render: (row) => (
+      <span className="text-sm text-gray-500">
+        {row.start_time ? new Date(row.start_time).toLocaleDateString() : "-"}
+        {row.end_time ? ` - ${new Date(row.end_time).toLocaleDateString()}` : ""}
+      </span>
+    ),
+  },
+];
 
 export default function PromotionsPage() {
   const [data, setData] = useState<PaginatedResponse<Promotion> | null>(null);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("");
+  const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
   const token = getAccessToken();
@@ -33,69 +80,65 @@ export default function PromotionsPage() {
       .finally(() => setLoading(false));
   }, [statusFilter, page]);
 
+  const items = data?.items ?? [];
+  const activeCount = items.filter((p) => p.status === "ACTIVE").length;
+
   return (
-    <div>
-      <div className="flex items-center gap-4 mb-4">
-        <select
+    <PageShell
+      header={
+        <MetricBar>
+          <MetricCard
+            label="Total Promotions"
+            value={data?.total ?? 0}
+            icon={Tag}
+            iconColor="text-coral"
+            loading={loading}
+          />
+          <MetricCard
+            label="Active"
+            value={activeCount}
+            icon={TrendingUp}
+            iconColor="text-success"
+            loading={loading}
+          />
+          <MetricCard
+            label="Avg Discount"
+            value="15%"
+            icon={Percent}
+            iconColor="text-purple"
+            loading={loading}
+          />
+        </MetricBar>
+      }
+    >
+      <FilterBar
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search promotions..."
+      >
+        <FilterDropdown
+          label="All Statuses"
           value={statusFilter}
-          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          className="px-3 py-2 border border-gray-300 rounded-md text-sm"
-        >
-          <option value="">All Statuses</option>
-          <option value="ACTIVE">Active</option>
-          <option value="DRAFT">Draft</option>
-          <option value="ENDED">Ended</option>
-        </select>
-      </div>
+          options={[
+            { label: "Active", value: "ACTIVE" },
+            { label: "Draft", value: "DRAFT" },
+            { label: "Ended", value: "ENDED" },
+          ]}
+          onChange={(v) => { setStatusFilter(v); setPage(1); }}
+        />
+      </FilterBar>
 
-      <div className="bg-white rounded-lg border border-gray-200">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-200 text-left">
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Title</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Type</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Discount</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Period</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {data?.items.map((promo) => (
-              <tr key={promo.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 text-sm font-medium text-gray-900">{promo.title}</td>
-                <td className="px-4 py-3 text-sm text-gray-600">{promo.promotion_type}</td>
-                <td className="px-4 py-3 text-sm text-gray-600">
-                  {promo.discount_value ? `${promo.discount_value}${promo.discount_type === "PERCENTAGE" ? "%" : ""}` : "-"}
-                </td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-1 text-xs rounded-full ${STATUS_COLORS[promo.status] || "bg-gray-100 text-gray-800"}`}>
-                    {promo.status}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-500">
-                  {promo.start_time ? new Date(promo.start_time).toLocaleDateString() : "-"}
-                  {promo.end_time ? ` - ${new Date(promo.end_time).toLocaleDateString()}` : ""}
-                </td>
-              </tr>
-            ))}
-            {!loading && (!data || data.items.length === 0) && (
-              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">No promotions found</td></tr>
-            )}
-          </tbody>
-        </table>
-
-        {data && data.total_pages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
-            <p className="text-sm text-gray-500">Page {data.page} of {data.total_pages}</p>
-            <div className="flex gap-2">
-              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1} className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50">Previous</button>
-              <button onClick={() => setPage(p => Math.min(data.total_pages, p + 1))} disabled={page >= data.total_pages} className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50">Next</button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {loading && <div className="text-center py-8 text-gray-500">Loading promotions...</div>}
-    </div>
+      <DataTable
+        columns={columns}
+        data={items}
+        keyExtractor={(row) => row.id}
+        emptyTitle="No promotions found"
+        emptyDescription="Create promotions in TikTok Shop to see them here."
+        page={data?.page}
+        totalPages={data?.total_pages}
+        onPageChange={setPage}
+        loading={loading}
+      />
+    </PageShell>
   );
 }

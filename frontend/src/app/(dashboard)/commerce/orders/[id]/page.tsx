@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-
+import { ArrowLeft, DollarSign, Package, Clock, Truck } from "lucide-react";
 import {
   getOrder,
   getOrderTimeline,
@@ -11,6 +11,52 @@ import {
   type TimelineEvent,
 } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
+import { PageShell } from "@/components/ui/page-shell";
+import { MetricBar } from "@/components/ui/metric-bar";
+import { MetricCard } from "@/components/ui/metric-card";
+import { StatusBadge, type StatusVariant } from "@/components/ui/status-badge";
+import { DataTable, type Column } from "@/components/ui/data-table";
+import { toast } from "@/lib/toast-store";
+
+const STATUS_MAP: Record<string, StatusVariant> = {
+  completed: "completed",
+  delivered: "completed",
+  in_transit: "syncing",
+  awaiting_shipment: "warning",
+  cancelled: "error",
+  unpaid: "draft",
+};
+
+interface LineItem {
+  id: string;
+  product_name: string;
+  quantity: number;
+  unit_price: string;
+  total_price: string;
+}
+
+const lineItemColumns: Column<LineItem>[] = [
+  {
+    key: "product",
+    header: "Product",
+    render: (row) => <span className="text-sm font-medium text-gray-900">{row.product_name}</span>,
+  },
+  {
+    key: "qty",
+    header: "Qty",
+    render: (row) => <span className="text-sm text-gray-600">{row.quantity}</span>,
+  },
+  {
+    key: "price",
+    header: "Price",
+    render: (row) => <span className="text-sm text-gray-600">{row.unit_price}</span>,
+  },
+  {
+    key: "total",
+    header: "Total",
+    render: (row) => <span className="text-sm font-medium text-gray-900">{row.total_price}</span>,
+  },
+];
 
 export default function OrderDetailPage() {
   const params = useParams();
@@ -51,14 +97,14 @@ export default function OrderDetailPage() {
         },
         token
       );
-      // Refresh order
+      toast.success("Package shipped successfully");
       const updated = await getOrder(order.id, token);
       setOrder(updated);
       setShowShipForm(false);
       setShipProvider("");
       setTrackingNumber("");
-    } catch (err) {
-      console.error("Failed to ship:", err);
+    } catch {
+      toast.error("Failed to ship package");
     }
   }
 
@@ -74,203 +120,172 @@ export default function OrderDetailPage() {
     <div>
       <button
         onClick={() => router.back()}
-        className="text-sm text-gray-500 hover:text-gray-700 mb-4"
+        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4 transition-colors"
       >
-        &larr; Back to orders
+        <ArrowLeft className="h-4 w-4" /> Back to orders
       </button>
 
-      {/* Order header */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-xl font-semibold text-gray-900">
-              Order {order.platform_order_id}
-            </h3>
-            <p className="text-sm text-gray-500 mt-1">
-              Placed {new Date(order.created_at).toLocaleString()}
-            </p>
-          </div>
-          <span
-            className={`px-3 py-1 text-sm rounded-full font-medium ${
-              order.status === "completed" || order.status === "delivered"
-                ? "bg-green-100 text-green-800"
-                : order.status === "cancelled"
-                  ? "bg-red-100 text-red-800"
-                  : "bg-yellow-100 text-yellow-800"
-            }`}
-          >
-            {order.status.replace(/_/g, " ")}
-          </span>
-        </div>
-        <div className="grid grid-cols-4 gap-4">
-          <div>
-            <p className="text-xs text-gray-500">Total</p>
-            <p className="text-lg font-semibold text-gray-900">
-              {order.currency} {order.total_amount}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-500">Items</p>
-            <p className="text-lg font-semibold text-gray-900">{order.item_count}</p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-500">Fulfillment</p>
-            <p className="text-lg font-semibold text-gray-900">
-              {order.fulfillment_type || "Standard"}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-500">RTS SLA</p>
-            <p className="text-lg font-semibold text-gray-900">
-              {order.rts_sla ? new Date(order.rts_sla).toLocaleDateString() : "-"}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-6">
-        {/* Line items */}
-        <div className="col-span-2">
-          <div className="bg-white rounded-lg border border-gray-200 mb-6">
-            <div className="p-4 border-b border-gray-200">
-              <h3 className="font-semibold text-gray-900">Line Items</h3>
-            </div>
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200 text-left">
-                  <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Product</th>
-                  <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Qty</th>
-                  <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Price</th>
-                  <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Total</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {order.line_items.map((item) => (
-                  <tr key={item.id}>
-                    <td className="px-4 py-3 text-sm text-gray-900">{item.product_name}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{item.quantity}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{item.unit_price}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900 font-medium">{item.total_price}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Packages */}
-          <div className="bg-white rounded-lg border border-gray-200 mb-6">
-            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900">
-                Packages ({order.packages.length})
-              </h3>
-              {order.status === "awaiting_shipment" && (
-                <button
-                  onClick={() => setShowShipForm(!showShipForm)}
-                  className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                >
-                  Ship Package
-                </button>
-              )}
-            </div>
-
-            {showShipForm && (
-              <div className="p-4 border-b border-gray-200 bg-gray-50">
-                <div className="flex gap-3">
-                  <input
-                    type="text"
-                    placeholder="Shipping provider"
-                    value={shipProvider}
-                    onChange={(e) => setShipProvider(e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Tracking number"
-                    value={trackingNumber}
-                    onChange={(e) => setTrackingNumber(e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
-                  />
-                  <button
-                    onClick={handleShip}
-                    disabled={!shipProvider || !trackingNumber}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm disabled:opacity-50"
-                  >
-                    Confirm
-                  </button>
-                </div>
-              </div>
-            )}
-
-            <div className="divide-y divide-gray-200">
-              {order.packages.map((pkg) => (
-                <div key={pkg.id} className="p-4 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      {pkg.platform_package_id}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {pkg.shipping_provider || "N/A"} &middot;{" "}
-                      {pkg.tracking_number || "No tracking"}
-                    </p>
-                  </div>
-                  <span
-                    className={`px-2 py-1 text-xs rounded-full ${
-                      pkg.status === "delivered"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-blue-100 text-blue-800"
-                    }`}
-                  >
-                    {pkg.status}
-                  </span>
-                </div>
-              ))}
-              {order.packages.length === 0 && (
-                <p className="p-4 text-sm text-gray-500">No packages yet</p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Timeline */}
+      <div className="flex items-center justify-between mb-4">
         <div>
-          <div className="bg-white rounded-lg border border-gray-200">
-            <div className="p-4 border-b border-gray-200">
-              <h3 className="font-semibold text-gray-900">Timeline</h3>
+          <h2 className="text-lg font-semibold text-gray-900">Order {order.platform_order_id}</h2>
+          <p className="text-sm text-gray-500">Placed {new Date(order.created_at).toLocaleString()}</p>
+        </div>
+        <StatusBadge
+          variant={STATUS_MAP[order.status] || "draft"}
+          label={order.status.replace(/_/g, " ")}
+        />
+      </div>
+
+      <PageShell
+        header={
+          <MetricBar>
+            <MetricCard
+              label="Total"
+              value={`${order.currency} ${order.total_amount}`}
+              icon={DollarSign}
+              iconColor="text-success"
+            />
+            <MetricCard
+              label="Items"
+              value={order.item_count}
+              icon={Package}
+              iconColor="text-coral"
+            />
+            <MetricCard
+              label="Fulfillment"
+              value={order.fulfillment_type || "Standard"}
+              icon={Truck}
+              iconColor="text-info"
+            />
+            <MetricCard
+              label="RTS SLA"
+              value={order.rts_sla ? new Date(order.rts_sla).toLocaleDateString() : "-"}
+              icon={Clock}
+              iconColor="text-warning"
+            />
+          </MetricBar>
+        }
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            {/* Line Items */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-3">Line Items</h3>
+              <DataTable
+                columns={lineItemColumns}
+                data={order.line_items}
+                keyExtractor={(row) => row.id}
+                emptyTitle="No line items"
+              />
             </div>
-            <div className="p-4">
-              {timeline.length > 0 ? (
-                <div className="space-y-4">
-                  {timeline.map((event, i) => (
-                    <div key={event.id} className="flex gap-3">
-                      <div className="flex flex-col items-center">
-                        <div className="w-3 h-3 bg-blue-500 rounded-full" />
-                        {i < timeline.length - 1 && (
-                          <div className="w-0.5 h-full bg-gray-200 mt-1" />
-                        )}
-                      </div>
-                      <div className="pb-4">
-                        <p className="text-sm font-medium text-gray-900">
-                          {event.to_status.replace(/_/g, " ")}
-                        </p>
-                        {event.from_status && (
-                          <p className="text-xs text-gray-500">
-                            from {event.from_status.replace(/_/g, " ")}
-                          </p>
-                        )}
-                        <p className="text-xs text-gray-400 mt-1">
-                          {new Date(event.occurred_at).toLocaleString()} &middot; {event.source}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+
+            {/* Packages */}
+            <div className="rounded-xl border border-gray-100 bg-white shadow-[var(--shadow-card)]">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                <h3 className="text-sm font-semibold text-gray-900">
+                  Packages ({order.packages.length})
+                </h3>
+                {order.status === "awaiting_shipment" && (
+                  <button
+                    onClick={() => setShowShipForm(!showShipForm)}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-coral px-3 py-1.5 text-xs font-medium text-white hover:bg-coral-dark transition-colors"
+                  >
+                    Ship Package
+                  </button>
+                )}
+              </div>
+
+              {showShipForm && (
+                <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/50">
+                  <div className="flex gap-3">
+                    <input
+                      type="text"
+                      placeholder="Shipping provider"
+                      value={shipProvider}
+                      onChange={(e) => setShipProvider(e.target.value)}
+                      className="flex-1 h-9 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-coral/30 focus:border-coral"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Tracking number"
+                      value={trackingNumber}
+                      onChange={(e) => setTrackingNumber(e.target.value)}
+                      className="flex-1 h-9 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-coral/30 focus:border-coral"
+                    />
+                    <button
+                      onClick={handleShip}
+                      disabled={!shipProvider || !trackingNumber}
+                      className="inline-flex items-center rounded-lg bg-coral px-4 py-2 text-sm font-medium text-white hover:bg-coral-dark transition-colors disabled:opacity-50"
+                    >
+                      Confirm
+                    </button>
+                  </div>
                 </div>
-              ) : (
-                <p className="text-sm text-gray-500">No timeline events</p>
               )}
+
+              <div className="divide-y divide-gray-50">
+                {order.packages.map((pkg) => (
+                  <div key={pkg.id} className="flex items-center justify-between px-5 py-3">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{pkg.platform_package_id}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {pkg.shipping_provider || "N/A"} &middot; {pkg.tracking_number || "No tracking"}
+                      </p>
+                    </div>
+                    <StatusBadge
+                      variant={pkg.status === "delivered" ? "completed" : "syncing"}
+                      label={pkg.status}
+                    />
+                  </div>
+                ))}
+                {order.packages.length === 0 && (
+                  <p className="px-5 py-4 text-sm text-gray-500">No packages yet</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Timeline */}
+          <div>
+            <div className="rounded-xl border border-gray-100 bg-white shadow-[var(--shadow-card)]">
+              <div className="px-5 py-4 border-b border-gray-100">
+                <h3 className="text-sm font-semibold text-gray-900">Timeline</h3>
+              </div>
+              <div className="p-5">
+                {timeline.length > 0 ? (
+                  <div className="space-y-4">
+                    {timeline.map((event, i) => (
+                      <div key={event.id} className="flex gap-3">
+                        <div className="flex flex-col items-center">
+                          <div className="w-2.5 h-2.5 bg-coral rounded-full mt-1" />
+                          {i < timeline.length - 1 && (
+                            <div className="w-0.5 flex-1 bg-gray-100 mt-1" />
+                          )}
+                        </div>
+                        <div className="pb-4">
+                          <p className="text-sm font-medium text-gray-900">
+                            {event.to_status.replace(/_/g, " ")}
+                          </p>
+                          {event.from_status && (
+                            <p className="text-xs text-gray-500">
+                              from {event.from_status.replace(/_/g, " ")}
+                            </p>
+                          )}
+                          <p className="text-xs text-gray-400 mt-1">
+                            {new Date(event.occurred_at).toLocaleString()} &middot; {event.source}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">No timeline events</p>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </PageShell>
     </div>
   );
 }

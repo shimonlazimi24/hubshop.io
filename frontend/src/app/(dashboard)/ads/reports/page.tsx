@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { BarChart3, TrendingUp, FileText, AlertTriangle } from "lucide-react";
 
 import {
   getSyncReport,
@@ -9,6 +10,14 @@ import {
   type ReportResponse,
 } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
+import { toast } from "@/lib/toast-store";
+import { PageShell } from "@/components/ui/page-shell";
+import { MetricBar } from "@/components/ui/metric-bar";
+import { MetricCard } from "@/components/ui/metric-card";
+import { ChartCard } from "@/components/ui/chart-card";
+import { DataTable, type Column } from "@/components/ui/data-table";
+import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
+import { PageHeader } from "@/components/dashboard/page-header";
 
 const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
@@ -43,6 +52,11 @@ function getDefaultDateRange(): { start: string; end: string } {
     start: start.toISOString().split("T")[0],
     end: end.toISOString().split("T")[0],
   };
+}
+
+interface ReportRow {
+  dimensions: Record<string, string>;
+  metrics: Record<string, string | number>;
 }
 
 export default function ReportsPage() {
@@ -96,8 +110,9 @@ export default function ReportsPage() {
         token
       );
       setReport(data);
-    } catch (err) {
-      console.error(err);
+      toast.success(`Report loaded: ${data.total_rows} rows`);
+    } catch {
+      toast.error("Failed to run report");
     } finally {
       setLoading(false);
     }
@@ -107,131 +122,160 @@ export default function ReportsPage() {
     ? Object.keys(report.rows[0].metrics)
     : [];
 
+  const reportColumns: Column<ReportRow>[] = [
+    {
+      key: "date",
+      header: "Date",
+      sortable: true,
+      render: (row) => (
+        <span className="text-sm font-medium text-gray-900">
+          {row.dimensions.stat_time_day || Object.values(row.dimensions)[0] || "-"}
+        </span>
+      ),
+    },
+    ...metricKeys.map((key) => ({
+      key,
+      header: key.toUpperCase().replace(/_/g, " "),
+      sortable: true,
+      render: (row: ReportRow) => (
+        <span className="text-sm text-gray-600 tabular-nums">{row.metrics[key] ?? "-"}</span>
+      ),
+    })),
+  ];
+
   return (
-    <div>
-      <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-        <h3 className="text-sm font-semibold text-gray-700 mb-4">Report Builder</h3>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-          <div>
-            <label className="block text-xs text-gray-500 mb-1">Ad Account</label>
-            <select
-              value={selectedAccount}
-              onChange={(e) => setSelectedAccount(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-            >
-              {adAccounts.map((a) => (
-                <option key={a.id} value={a.advertiser_id}>
-                  {a.advertiser_name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs text-gray-500 mb-1">Data Level</label>
-            <select
-              value={dataLevel}
-              onChange={(e) => setDataLevel(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-            >
-              {DATA_LEVELS.map((dl) => (
-                <option key={dl.value} value={dl.value}>{dl.label}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs text-gray-500 mb-1">Start Date</label>
-            <input
-              type="date"
-              value={dateStart}
-              onChange={(e) => setDateStart(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+    <>
+      <PageHeader title="Ad Reports" description="Build and analyze custom performance reports" />
+      <PageShell
+        header={
+          <MetricBar>
+            <MetricCard
+              label="Reports Run"
+              value={report ? 1 : 0}
+              icon={BarChart3}
+              iconColor="text-coral"
             />
-          </div>
-          <div>
-            <label className="block text-xs text-gray-500 mb-1">End Date</label>
-            <input
-              type="date"
-              value={dateEnd}
-              onChange={(e) => setDateEnd(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+            <MetricCard
+              label="Data Points"
+              value={report?.total_rows ?? 0}
+              icon={FileText}
+              iconColor="text-info"
             />
-          </div>
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-xs text-gray-500 mb-2">Metrics</label>
-          <div className="flex flex-wrap gap-2">
-            {AVAILABLE_METRICS.map((metric) => (
-              <button
-                key={metric}
-                onClick={() => toggleMetric(metric)}
-                className={`px-3 py-1 text-xs rounded-full border transition-colors ${
-                  selectedMetrics.includes(metric)
-                    ? "bg-blue-50 border-blue-300 text-blue-700"
-                    : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"
-                }`}
-              >
-                {metric}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <button
-          onClick={runReport}
-          disabled={loading || !selectedAccount}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-        >
-          {loading ? "Running..." : "Run Report"}
-        </button>
-      </div>
-
-      {report && (
-        <div className="bg-white rounded-lg border border-gray-200">
-          <div className="px-4 py-3 border-b border-gray-200">
-            <p className="text-sm text-gray-500">{report.total_rows} rows</p>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200 text-left">
-                  <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Date</th>
-                  {metricKeys.map((key) => (
-                    <th key={key} className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">
-                      {key}
-                    </th>
+            <MetricCard
+              label="Metrics Selected"
+              value={selectedMetrics.length}
+              icon={TrendingUp}
+              iconColor="text-purple"
+            />
+          </MetricBar>
+        }
+        aside={
+          <InsightPanel>
+            <InsightItem
+              icon={<TrendingUp className="h-4 w-4 text-success" />}
+              title="Report Tip"
+              description="Add 'conversions' and 'cost_per_conversion' metrics for a complete performance picture."
+              variant="success"
+            />
+            <InsightItem
+              icon={<AlertTriangle className="h-4 w-4 text-warning" />}
+              title="Date Range"
+              description="Longer date ranges (30+ days) provide more reliable trend data for optimization."
+              variant="warning"
+            />
+          </InsightPanel>
+        }
+      >
+        {/* Report Builder */}
+        <ChartCard title="Report Builder" timeRanges={[]} className="mb-6">
+          <div className="h-auto -mt-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Ad Account</label>
+                <select
+                  value={selectedAccount}
+                  onChange={(e) => setSelectedAccount(e.target.value)}
+                  className="w-full h-9 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-coral/30 focus:border-coral"
+                >
+                  {adAccounts.map((a) => (
+                    <option key={a.id} value={a.advertiser_id}>
+                      {a.advertiser_name}
+                    </option>
                   ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {report.rows.map((row, i) => (
-                  <tr key={i} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {row.dimensions.stat_time_day || Object.values(row.dimensions)[0] || "-"}
-                    </td>
-                    {metricKeys.map((key) => (
-                      <td key={key} className="px-4 py-3 text-sm text-gray-600">
-                        {row.metrics[key] ?? "-"}
-                      </td>
-                    ))}
-                  </tr>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Data Level</label>
+                <select
+                  value={dataLevel}
+                  onChange={(e) => setDataLevel(e.target.value)}
+                  className="w-full h-9 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-coral/30 focus:border-coral"
+                >
+                  {DATA_LEVELS.map((dl) => (
+                    <option key={dl.value} value={dl.value}>{dl.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Start Date</label>
+                <input
+                  type="date"
+                  value={dateStart}
+                  onChange={(e) => setDateStart(e.target.value)}
+                  className="w-full h-9 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-coral/30 focus:border-coral"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">End Date</label>
+                <input
+                  type="date"
+                  value={dateEnd}
+                  onChange={(e) => setDateEnd(e.target.value)}
+                  className="w-full h-9 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-coral/30 focus:border-coral"
+                />
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-xs text-gray-500 mb-2">Metrics</label>
+              <div className="flex flex-wrap gap-2">
+                {AVAILABLE_METRICS.map((metric) => (
+                  <button
+                    key={metric}
+                    onClick={() => toggleMetric(metric)}
+                    className={`px-3 py-1 text-xs rounded-full border transition-colors ${
+                      selectedMetrics.includes(metric)
+                        ? "bg-coral/10 border-coral/30 text-coral font-medium"
+                        : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"
+                    }`}
+                  >
+                    {metric}
+                  </button>
                 ))}
-                {report.rows.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={metricKeys.length + 1}
-                      className="px-4 py-8 text-center text-gray-500"
-                    >
-                      No data for selected period
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+              </div>
+            </div>
+
+            <button
+              onClick={runReport}
+              disabled={loading || !selectedAccount}
+              className="px-4 py-2 bg-coral text-white rounded-lg text-sm font-medium hover:bg-coral/90 disabled:opacity-50 transition-colors"
+            >
+              {loading ? "Running..." : "Run Report"}
+            </button>
           </div>
-        </div>
-      )}
-    </div>
+        </ChartCard>
+
+        {/* Results Table */}
+        {report && (
+          <DataTable
+            columns={reportColumns}
+            data={report.rows}
+            keyExtractor={(row) => JSON.stringify(row)}
+            emptyTitle="No data for selected period"
+            emptyDescription="Try adjusting the date range or metrics."
+          />
+        )}
+      </PageShell>
+    </>
   );
 }

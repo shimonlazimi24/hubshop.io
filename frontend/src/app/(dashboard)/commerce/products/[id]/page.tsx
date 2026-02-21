@@ -2,9 +2,52 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-
+import { ArrowLeft, Package, DollarSign, Layers } from "lucide-react";
 import { getProduct, type ProductDetail } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
+import { PageShell } from "@/components/ui/page-shell";
+import { MetricBar } from "@/components/ui/metric-bar";
+import { MetricCard } from "@/components/ui/metric-card";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { DataTable, type Column } from "@/components/ui/data-table";
+
+interface Sku {
+  id: string;
+  platform_sku_id: string;
+  sku_name: string | null;
+  seller_sku: string | null;
+  price_amount: string | null;
+  inventory_quantity: number;
+}
+
+const skuColumns: Column<Sku>[] = [
+  {
+    key: "sku_id",
+    header: "SKU ID",
+    render: (row) => <span className="text-sm text-gray-600 font-mono">{row.platform_sku_id}</span>,
+  },
+  {
+    key: "name",
+    header: "Name",
+    render: (row) => <span className="text-sm text-gray-900">{row.sku_name || "-"}</span>,
+  },
+  {
+    key: "seller_sku",
+    header: "Seller SKU",
+    render: (row) => <span className="text-sm text-gray-600">{row.seller_sku || "-"}</span>,
+  },
+  {
+    key: "price",
+    header: "Price",
+    render: (row) => <span className="text-sm text-gray-900 tabular-nums">{row.price_amount || "-"}</span>,
+  },
+  {
+    key: "inventory",
+    header: "Inventory",
+    sortable: true,
+    render: (row) => <span className="text-sm text-gray-600 tabular-nums">{row.inventory_quantity}</span>,
+  },
+];
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -35,113 +78,88 @@ export default function ProductDetailPage() {
     <div>
       <button
         onClick={() => router.back()}
-        className="text-sm text-gray-500 hover:text-gray-700 mb-4"
+        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4 transition-colors"
       >
-        &larr; Back to products
+        <ArrowLeft className="h-4 w-4" /> Back to products
       </button>
 
-      {/* Header */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-        <div className="flex items-start gap-6">
-          {product.main_image_url && (
-            <img
-              src={product.main_image_url}
-              alt=""
-              className="w-24 h-24 rounded-lg object-cover"
+      <PageShell
+        header={
+          <MetricBar>
+            <MetricCard
+              label="Price"
+              value={product.price_amount ? `${product.currency || "$"}${product.price_amount}` : "-"}
+              icon={DollarSign}
+              iconColor="text-success"
             />
-          )}
-          <div className="flex-1">
-            <h3 className="text-xl font-semibold text-gray-900">{product.title}</h3>
-            <p className="text-sm text-gray-500 mt-1">
-              ID: {product.platform_product_id}
-            </p>
-            <div className="flex items-center gap-4 mt-3">
-              <span
-                className={`px-2 py-1 text-xs rounded-full ${
-                  product.status === "live"
-                    ? "bg-green-100 text-green-800"
-                    : "bg-gray-100 text-gray-800"
-                }`}
-              >
-                {product.status.replace(/_/g, " ")}
-              </span>
-              {product.price_amount && (
-                <span className="text-sm font-medium text-gray-900">
-                  {product.currency || "$"} {product.price_amount}
+            <MetricCard
+              label="Inventory"
+              value={product.inventory_total}
+              icon={Package}
+              iconColor="text-coral"
+            />
+            <MetricCard
+              label="SKUs"
+              value={product.skus.length}
+              icon={Layers}
+              iconColor="text-purple"
+            />
+          </MetricBar>
+        }
+      >
+        {/* Product header */}
+        <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-[var(--shadow-card)] mb-6">
+          <div className="flex items-start gap-6">
+            {product.main_image_url && (
+              <img
+                src={product.main_image_url}
+                alt=""
+                className="w-24 h-24 rounded-xl object-cover shadow-sm"
+              />
+            )}
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-gray-900">{product.title}</h3>
+              <p className="text-sm text-gray-500 mt-1">ID: {product.platform_product_id}</p>
+              <div className="flex items-center gap-3 mt-3">
+                <StatusBadge
+                  variant={product.status === "live" ? "active" : product.status === "pending" ? "warning" : "draft"}
+                  label={product.status.replace(/_/g, " ")}
+                />
+                <span className="text-sm text-gray-500">
+                  {product.inventory_total} in stock
                 </span>
-              )}
-              <span className="text-sm text-gray-500">
-                {product.inventory_total} in stock
-              </span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* SKUs */}
-      <div className="bg-white rounded-lg border border-gray-200 mb-6">
-        <div className="p-4 border-b border-gray-200">
-          <h3 className="font-semibold text-gray-900">
-            SKUs ({product.skus.length})
-          </h3>
-        </div>
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-200 text-left">
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">SKU ID</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Name</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Seller SKU</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Price</th>
-              <th className="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Inventory</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {product.skus.map((sku) => (
-              <tr key={sku.id}>
-                <td className="px-4 py-3 text-sm text-gray-600 font-mono">
-                  {sku.platform_sku_id}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-900">
-                  {sku.sku_name || "-"}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-600">
-                  {sku.seller_sku || "-"}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-900">
-                  {sku.price_amount || "-"}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-600">
-                  {sku.inventory_quantity}
-                </td>
-              </tr>
-            ))}
-            {product.skus.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-gray-500">
-                  No SKUs
-                </td>
-              </tr>
+        {/* SKUs Table */}
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">SKUs ({product.skus.length})</h3>
+        <DataTable
+          columns={skuColumns}
+          data={product.skus}
+          keyExtractor={(row) => row.id}
+          emptyTitle="No SKUs"
+          className="mb-6"
+        />
+
+        {/* Raw JSON */}
+        {product.detail_json && (
+          <div className="rounded-xl border border-gray-100 bg-white shadow-[var(--shadow-card)] overflow-hidden">
+            <button
+              onClick={() => setShowRawJson(!showRawJson)}
+              className="w-full px-5 py-4 text-left text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              {showRawJson ? "Hide" : "Show"} Raw API Response
+            </button>
+            {showRawJson && (
+              <pre className="px-5 py-4 border-t border-gray-100 overflow-auto text-xs text-gray-600 max-h-96 bg-gray-50/50">
+                {JSON.stringify(product.detail_json, null, 2)}
+              </pre>
             )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Raw JSON */}
-      {product.detail_json && (
-        <div className="bg-white rounded-lg border border-gray-200">
-          <button
-            onClick={() => setShowRawJson(!showRawJson)}
-            className="w-full p-4 text-left text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            {showRawJson ? "Hide" : "Show"} Raw API Response
-          </button>
-          {showRawJson && (
-            <pre className="p-4 border-t border-gray-200 overflow-auto text-xs text-gray-600 max-h-96">
-              {JSON.stringify(product.detail_json, null, 2)}
-            </pre>
-          )}
-        </div>
-      )}
+          </div>
+        )}
+      </PageShell>
     </div>
   );
 }
