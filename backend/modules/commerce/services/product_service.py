@@ -202,6 +202,51 @@ class ProductService:
                 )
                 self._session.add(sku)
 
+    async def _get_gateway(self, shop_id: uuid.UUID) -> "PlatformGateway":
+        """Build gateway for a shop by ID."""
+        shop_service = ShopService(self._session)
+        shop = await shop_service.get_shop(shop_id)
+        if not shop:
+            raise ValueError(f"Shop {shop_id} not found")
+        return await shop_service.build_gateway_for_shop(shop)
+
+    async def get_categories(self, shop_id: uuid.UUID) -> list[dict]:
+        """Get all product categories for a shop."""
+        gateway = await self._get_gateway(shop_id)
+        resp = await gateway.get("/product/202309/categories")
+        return resp.get("data", {}).get("categories", [])
+
+    async def recommend_categories(
+        self, shop_id: uuid.UUID, product_title: str
+    ) -> list[dict]:
+        """Recommend categories for a product title."""
+        gateway = await self._get_gateway(shop_id)
+        resp = await gateway.post(
+            "/product/202309/categories/recommend",
+            json_body={"product_title": product_title},
+        )
+        return resp.get("data", {}).get("categories", [])
+
+    async def get_category_rules(
+        self, shop_id: uuid.UUID, category_id: str
+    ) -> list[dict]:
+        """Get rules for a specific category."""
+        gateway = await self._get_gateway(shop_id)
+        resp = await gateway.get(
+            f"/product/202309/categories/{category_id}/rules"
+        )
+        return resp.get("data", {}).get("category_rules", [])
+
+    async def get_attributes(
+        self, shop_id: uuid.UUID, category_id: str
+    ) -> list[dict]:
+        """Get attributes for a specific category."""
+        gateway = await self._get_gateway(shop_id)
+        resp = await gateway.get(
+            f"/product/202309/categories/{category_id}/attributes"
+        )
+        return resp.get("data", {}).get("attributes", [])
+
     async def update_product_status(
         self, platform_product_id: str, new_status: str
     ) -> Product | None:

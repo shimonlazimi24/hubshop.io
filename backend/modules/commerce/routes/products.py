@@ -14,6 +14,49 @@ from backend.modules.commerce.services.shop_service import ShopService
 router = APIRouter()
 
 
+@router.get("/products/categories")
+async def get_categories(
+    shop_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> list[dict]:
+    service = ProductService(db)
+    return await service.get_categories(shop_id)
+
+
+@router.post("/products/categories/recommend")
+async def recommend_categories(
+    shop_id: uuid.UUID,
+    product_title: str,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> list[dict]:
+    service = ProductService(db)
+    return await service.recommend_categories(shop_id, product_title)
+
+
+@router.get("/products/categories/{category_id}/rules")
+async def get_category_rules(
+    category_id: str,
+    shop_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> list[dict]:
+    service = ProductService(db)
+    return await service.get_category_rules(shop_id, category_id)
+
+
+@router.get("/products/categories/{category_id}/attributes")
+async def get_attributes(
+    category_id: str,
+    shop_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> list[dict]:
+    service = ProductService(db)
+    return await service.get_attributes(shop_id, category_id)
+
+
 @router.get(
     "/products",
     response_model=PaginatedResponse[ProductSummaryResponse],
