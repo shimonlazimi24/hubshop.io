@@ -106,6 +106,7 @@ from backend.db.models.platform import (
     PlatformAppCredential,
     TokenVault,
 )
+from backend.db.models.social_identity import SocialIdentity, SocialProvider
 from backend.db.models.user import User
 from backend.db.models.webhook import WebhookEvent
 
@@ -189,6 +190,8 @@ __all__ = [
     "SessionStatus",
     "Settlement",
     "Shop",
+    "SocialIdentity",
+    "SocialProvider",
     "SyncCursor",
     "TargetCollaboration",
     "TokenVault",
