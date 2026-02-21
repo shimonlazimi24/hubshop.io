@@ -180,6 +180,74 @@ class ReturnService:
         await self._publish_return_update(ret)
         return ret
 
+    async def _get_gateway(self, shop_id: uuid.UUID):
+        """Build a PlatformGateway scoped to the given shop."""
+        shop_service = ShopService(self._session)
+        shop = await shop_service.get_shop(shop_id)
+        if not shop:
+            raise ValueError(f"Shop {shop_id} not found")
+        return await shop_service.build_gateway_for_shop(shop)
+
+    async def create_return(
+        self,
+        shop_id: uuid.UUID,
+        order_id: str,
+        return_type: str,
+        reason: str,
+    ) -> dict:
+        """Create a new return request via the TikTok API."""
+        gateway = await self._get_gateway(shop_id)
+        resp = await gateway.post(
+            "/return_refund/202309/returns",
+            json_body={
+                "order_id": order_id,
+                "return_type": return_type,
+                "reason": reason,
+            },
+        )
+        return resp.get("data", {})
+
+    async def search_returns(
+        self, shop_id: uuid.UUID, **filters: object
+    ) -> list[dict]:
+        """Search returns via the TikTok API with optional filters."""
+        gateway = await self._get_gateway(shop_id)
+        resp = await gateway.post(
+            "/return_refund/202309/returns/search",
+            json_body=filters or {},
+        )
+        return resp.get("data", {}).get("returns", [])
+
+    async def get_return_records(
+        self, shop_id: uuid.UUID, return_id: str
+    ) -> list[dict]:
+        """Get return records for a specific return."""
+        gateway = await self._get_gateway(shop_id)
+        resp = await gateway.get(
+            f"/return_refund/202309/returns/{return_id}/records"
+        )
+        return resp.get("data", {}).get("records", [])
+
+    async def get_reject_reasons(self, shop_id: uuid.UUID) -> list[dict]:
+        """Get available reject reasons for a shop."""
+        gateway = await self._get_gateway(shop_id)
+        resp = await gateway.get("/return_refund/202309/reject_reasons")
+        return resp.get("data", {}).get("reasons", [])
+
+    async def calculate_refund(
+        self,
+        shop_id: uuid.UUID,
+        order_id: str,
+        items: list[dict],
+    ) -> dict:
+        """Calculate refund amount for given order items."""
+        gateway = await self._get_gateway(shop_id)
+        resp = await gateway.post(
+            "/return_refund/202309/refund/calculate",
+            json_body={"order_id": order_id, "items": items},
+        )
+        return resp.get("data", {})
+
     async def _get_order(self, order_id: uuid.UUID) -> Order | None:
         result = await self._session.execute(
             select(Order).where(Order.id == order_id)

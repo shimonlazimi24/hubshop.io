@@ -4,6 +4,8 @@ from fastapi import APIRouter, HTTPException, status
 
 from backend.dependencies import CurrentUser, DBSession
 from backend.modules.commerce.schemas import (
+    CalculateRefundRequest,
+    CreateReturnRequest,
     PaginatedResponse,
     ReturnActionRequest,
     ReturnResponse,
@@ -79,3 +81,61 @@ async def reject_return(
             detail="Return request not found",
         )
     return ReturnResponse.model_validate(ret)
+
+
+@router.post("/returns", status_code=201)
+async def create_return(
+    body: CreateReturnRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    service = ReturnService(db)
+    return await service.create_return(
+        uuid.UUID(body.shop_id),
+        body.order_id,
+        body.return_type,
+        body.reason,
+    )
+
+
+@router.get("/returns/search")
+async def search_returns(
+    shop_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> list[dict]:
+    service = ReturnService(db)
+    return await service.search_returns(shop_id)
+
+
+@router.get("/returns/{return_id}/records")
+async def get_return_records(
+    return_id: str,
+    shop_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> list[dict]:
+    service = ReturnService(db)
+    return await service.get_return_records(shop_id, return_id)
+
+
+@router.get("/returns/reject-reasons")
+async def get_reject_reasons(
+    shop_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> list[dict]:
+    service = ReturnService(db)
+    return await service.get_reject_reasons(shop_id)
+
+
+@router.post("/returns/refund/calculate")
+async def calculate_refund(
+    body: CalculateRefundRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    service = ReturnService(db)
+    return await service.calculate_refund(
+        uuid.UUID(body.shop_id), body.order_id, body.items
+    )
