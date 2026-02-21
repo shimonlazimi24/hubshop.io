@@ -371,3 +371,33 @@ class PaymentResponse(BaseModel):
 
 class SendMessageRequest(BaseModel):
     content: str
+
+
+# --- Product Create / Edit ---
+
+
+class CreateProductRequest(BaseModel):
+    shop_id: str
+    title: str
+    description: str
+    category_id: str
+    images: list[dict] = []
+    skus: list[dict] = []
+    package_dimensions: dict | None = None
+
+
+class EditProductRequest(BaseModel):
+    shop_id: str
+    title: str
+    description: str
+    category_id: str
+    images: list[dict] = []
+    skus: list[dict] = []
+
+
+class PartialEditProductRequest(BaseModel):
+    shop_id: str
+    title: str | None = None
+    description: str | None = None
+    images: list[dict] | None = None
+    skus: list[dict] | None = None

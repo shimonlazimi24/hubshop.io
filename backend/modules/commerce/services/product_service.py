@@ -1,5 +1,6 @@
 import logging
 import uuid
+from typing import Any
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -246,6 +247,94 @@ class ProductService:
             f"/product/202309/categories/{category_id}/attributes"
         )
         return resp.get("data", {}).get("attributes", [])
+
+    async def create_product(
+        self,
+        workspace_id: uuid.UUID,
+        shop_id: uuid.UUID,
+        *,
+        title: str,
+        description: str,
+        category_id: str,
+        images: list[dict],
+        skus: list[dict],
+        package_dimensions: dict | None = None,
+    ) -> dict:
+        """Create a product on TikTok Shop and persist locally."""
+        gateway = await self._get_gateway(shop_id)
+        body: dict = {
+            "title": title,
+            "description": description,
+            "category_id": category_id,
+            "main_images": [
+                {"uri": img.get("url", img.get("uri", ""))} for img in images
+            ],
+            "skus": skus,
+        }
+        if package_dimensions:
+            body["package_dimensions"] = package_dimensions
+
+        resp = await gateway.post("/product/202309/products", json_body=body)
+        data = resp.get("data", {})
+
+        # Fetch full product to persist locally
+        product_id = data.get("product_id", "")
+        if product_id:
+            detail_resp = await gateway.get(
+                f"/product/202309/products/{product_id}"
+            )
+            product_data = detail_resp.get("data", {})
+            if product_data:
+                shop = await ShopService(self._session).get_shop(shop_id)
+                if shop:
+                    await self.upsert_product_from_api(
+                        shop=shop, product_data=product_data
+                    )
+
+        return data
+
+    async def edit_product(
+        self,
+        shop_id: uuid.UUID,
+        platform_product_id: str,
+        *,
+        title: str,
+        description: str,
+        category_id: str,
+        images: list[dict],
+        skus: list[dict],
+    ) -> dict:
+        """Full product edit via TikTok API."""
+        gateway = await self._get_gateway(shop_id)
+        body = {
+            "title": title,
+            "description": description,
+            "category_id": category_id,
+            "main_images": [
+                {"uri": img.get("url", img.get("uri", ""))} for img in images
+            ],
+            "skus": skus,
+        }
+        resp = await gateway.put(
+            f"/product/202309/products/{platform_product_id}",
+            json_body=body,
+        )
+        return resp.get("data", {})
+
+    async def partial_edit_product(
+        self,
+        shop_id: uuid.UUID,
+        platform_product_id: str,
+        **fields: Any,
+    ) -> dict:
+        """Partial product edit -- only update provided fields."""
+        gateway = await self._get_gateway(shop_id)
+        body = {k: v for k, v in fields.items() if v is not None}
+        resp = await gateway.put(
+            f"/product/202312/products/{platform_product_id}/partial_edit",
+            json_body=body,
+        )
+        return resp.get("data", {})
 
     async def update_product_status(
         self, platform_product_id: str, new_status: str

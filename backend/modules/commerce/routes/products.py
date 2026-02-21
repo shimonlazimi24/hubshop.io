@@ -4,7 +4,10 @@ from fastapi import APIRouter, HTTPException, status
 
 from backend.dependencies import CurrentUser, DBSession
 from backend.modules.commerce.schemas import (
+    CreateProductRequest,
+    EditProductRequest,
     PaginatedResponse,
+    PartialEditProductRequest,
     ProductDetailResponse,
     ProductSummaryResponse,
 )
@@ -55,6 +58,26 @@ async def get_attributes(
 ) -> list[dict]:
     service = ProductService(db)
     return await service.get_attributes(shop_id, category_id)
+
+
+@router.post("/products", status_code=201)
+async def create_product(
+    body: CreateProductRequest,
+    workspace_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    service = ProductService(db)
+    return await service.create_product(
+        workspace_id,
+        uuid.UUID(body.shop_id),
+        title=body.title,
+        description=body.description,
+        category_id=body.category_id,
+        images=body.images,
+        skus=body.skus,
+        package_dimensions=body.package_dimensions,
+    )
 
 
 @router.get(
@@ -134,3 +157,40 @@ async def sync_products(
         total_synced += count
 
     return {"synced": total_synced}
+
+
+@router.put("/products/{platform_product_id}")
+async def edit_product(
+    platform_product_id: str,
+    body: EditProductRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    service = ProductService(db)
+    return await service.edit_product(
+        uuid.UUID(body.shop_id),
+        platform_product_id,
+        title=body.title,
+        description=body.description,
+        category_id=body.category_id,
+        images=body.images,
+        skus=body.skus,
+    )
+
+
+@router.put("/products/{platform_product_id}/partial")
+async def partial_edit_product(
+    platform_product_id: str,
+    body: PartialEditProductRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    service = ProductService(db)
+    return await service.partial_edit_product(
+        uuid.UUID(body.shop_id),
+        platform_product_id,
+        title=body.title,
+        description=body.description,
+        images=body.images,
+        skus=body.skus,
+    )
