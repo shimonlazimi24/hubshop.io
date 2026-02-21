@@ -64,15 +64,18 @@ async def verify() -> None:
                     "Content-Type": "application/json",
                 },
             )
+            if resp.status_code == 429:
+                print_success("TikTok Research", "Token works but rate limited (5 QPS). Try again shortly.")
+                return
+            if resp.status_code != 200:
+                print_fail("TikTok Research", f"Video query failed: HTTP {resp.status_code}")
+                return
             data = resp.json()
             videos = data.get("data", {}).get("videos", [])
             print_success("TikTok Research", f"Video query returned {len(videos)} result(s)")
 
-        except httpx.HTTPStatusError as e:
-            if e.response.status_code == 429:
-                print_success("TikTok Research", "Token works but rate limited (5 QPS). Try again shortly.")
-            else:
-                print_fail("TikTok Research", f"Video query failed: {e.response.status_code}")
+        except httpx.ConnectError:
+            print_fail("TikTok Research", "Cannot reach Research API. Check network connectivity.")
 
 
 if __name__ == "__main__":

@@ -29,20 +29,27 @@ async def verify() -> None:
 
     async with httpx.AsyncClient(timeout=15.0) as client:
         try:
+            # Send a token request to validate credentials are recognized.
+            # Developer API uses authorization_code grant (not client_credentials),
+            # so we expect an error — but the error type tells us if creds are valid.
             resp = await client.post(
                 TOKEN_URL,
                 data={
                     "client_key": client_key,
                     "client_secret": client_secret,
-                    "grant_type": "client_credentials",
+                    "grant_type": "authorization_code",
+                    "code": "test_verification",
                 },
             )
             data = resp.json()
-
             error_code = data.get("data", {}).get("error_code", data.get("error", ""))
-            description = data.get("data", {}).get("description", data.get("error_description", ""))
 
-            if "invalid" in str(description).lower() and "client" in str(description).lower():
+            # error_code "invalid_client" = bad credentials
+            # Other errors (e.g., "invalid_request", "invalid_grant") = creds recognized
+            if str(error_code) == "invalid_client":
+                description = data.get("data", {}).get(
+                    "description", data.get("error_description", "")
+                )
                 print_fail(
                     "TikTok Developer",
                     f"Invalid credentials: {description}. Check CLIENT_KEY and CLIENT_SECRET.",
@@ -50,7 +57,7 @@ async def verify() -> None:
             else:
                 print_success(
                     "TikTok Developer",
-                    "Credentials accepted by TikTok. "
+                    "Credentials recognized by TikTok. "
                     "Connect a user via /connect/developer/authorize to get access tokens.",
                 )
         except httpx.ConnectError:

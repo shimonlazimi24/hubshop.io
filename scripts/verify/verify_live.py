@@ -12,12 +12,10 @@ Frodo wrapper can be instantiated. No credentials or network calls needed.
 
 from __future__ import annotations
 
-from scripts.verify.utils import load_env, print_fail, print_success
+from scripts.verify.utils import print_fail, print_success
 
 
 def verify() -> None:
-    load_env()
-
     # Check TikTokLive package
     try:
         import TikTokLive  # noqa: F401
@@ -28,7 +26,6 @@ def verify() -> None:
             "TikTok LIVE",
             "TikTokLive package not installed. Run: pip install TikTokLive",
         )
-        return
 
     # Check Frodo wrapper
     try:

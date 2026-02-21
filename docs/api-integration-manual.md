@@ -54,8 +54,8 @@ Browser / Frontend (Next.js 15)
     +----+---------------------------+
     |    |                           |
     v    v                           v
-RateLimiter  CircuitBreaker       Retry
-(Redis)      (per-platform)       (exp. backoff)
+CircuitBreaker  RateLimiter       Retry
+(per-platform)  (Redis)           (exp. backoff)
     |    |                           |
     +----+---------------------------+
          |
