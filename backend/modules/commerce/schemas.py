@@ -401,3 +401,40 @@ class PartialEditProductRequest(BaseModel):
     description: str | None = None
     images: list[dict] | None = None
     skus: list[dict] | None = None
+
+
+# --- Product Lifecycle ---
+
+
+class ProductBatchActionRequest(BaseModel):
+    shop_id: str
+    product_ids: list[str]
+
+
+# --- Price & Inventory Update ---
+
+
+class UpdatePriceRequest(BaseModel):
+    shop_id: str
+    product_id: str
+    skus: list[dict]
+
+
+class UpdateInventoryRequest(BaseModel):
+    shop_id: str
+    product_id: str
+    skus: list[dict]
+
+
+# --- Image & File Upload ---
+
+
+class UploadImageRequest(BaseModel):
+    shop_id: str
+    image_url: str
+
+
+class UploadFileRequest(BaseModel):
+    shop_id: str
+    file_url: str
+    file_name: str

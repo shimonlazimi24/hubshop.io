@@ -8,8 +8,13 @@ from backend.modules.commerce.schemas import (
     EditProductRequest,
     PaginatedResponse,
     PartialEditProductRequest,
+    ProductBatchActionRequest,
     ProductDetailResponse,
     ProductSummaryResponse,
+    UpdateInventoryRequest,
+    UpdatePriceRequest,
+    UploadFileRequest,
+    UploadImageRequest,
 )
 from backend.modules.commerce.services.product_service import ProductService
 from backend.modules.commerce.services.shop_service import ShopService
@@ -157,6 +162,111 @@ async def sync_products(
         total_synced += count
 
     return {"synced": total_synced}
+
+
+# --- Task 4: Product Lifecycle Batch Operations ---
+
+
+@router.post("/products/delete")
+async def delete_products(
+    body: ProductBatchActionRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    service = ProductService(db)
+    return await service.delete_products(
+        uuid.UUID(body.shop_id), body.product_ids
+    )
+
+
+@router.post("/products/activate")
+async def activate_products(
+    body: ProductBatchActionRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    service = ProductService(db)
+    return await service.activate_products(
+        uuid.UUID(body.shop_id), body.product_ids
+    )
+
+
+@router.post("/products/deactivate")
+async def deactivate_products(
+    body: ProductBatchActionRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    service = ProductService(db)
+    return await service.deactivate_products(
+        uuid.UUID(body.shop_id), body.product_ids
+    )
+
+
+@router.post("/products/recover")
+async def recover_products(
+    body: ProductBatchActionRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    service = ProductService(db)
+    return await service.recover_products(
+        uuid.UUID(body.shop_id), body.product_ids
+    )
+
+
+# --- Task 5: Price & Inventory Update ---
+
+
+@router.post("/products/prices")
+async def update_price(
+    body: UpdatePriceRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    service = ProductService(db)
+    return await service.update_price_api(
+        uuid.UUID(body.shop_id), body.product_id, body.skus
+    )
+
+
+@router.post("/products/inventory")
+async def update_inventory_api(
+    body: UpdateInventoryRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    service = ProductService(db)
+    return await service.update_inventory_api(
+        uuid.UUID(body.shop_id), body.product_id, body.skus
+    )
+
+
+# --- Task 6: Image & File Upload ---
+
+
+@router.post("/products/images/upload")
+async def upload_image(
+    body: UploadImageRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    service = ProductService(db)
+    return await service.upload_product_image(
+        uuid.UUID(body.shop_id), body.image_url
+    )
+
+
+@router.post("/products/files/upload")
+async def upload_file(
+    body: UploadFileRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    service = ProductService(db)
+    return await service.upload_product_file(
+        uuid.UUID(body.shop_id), body.file_url, body.file_name
+    )
 
 
 @router.put("/products/{platform_product_id}")

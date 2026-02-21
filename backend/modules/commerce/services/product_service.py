@@ -361,3 +361,97 @@ class ProductService:
         if product:
             product.inventory_total = total_inventory
         return product
+
+    # --- Task 4: Product Lifecycle Batch Operations ---
+
+    async def delete_products(
+        self, shop_id: uuid.UUID, product_ids: list[str]
+    ) -> dict:
+        """Batch delete products via TikTok API."""
+        gateway = await self._get_gateway(shop_id)
+        resp = await gateway.delete(
+            "/product/202309/products",
+            json_body={"product_ids": product_ids},
+        )
+        return resp.get("data", {})
+
+    async def activate_products(
+        self, shop_id: uuid.UUID, product_ids: list[str]
+    ) -> dict:
+        """Batch activate products via TikTok API."""
+        gateway = await self._get_gateway(shop_id)
+        resp = await gateway.post(
+            "/product/202309/products/activate",
+            json_body={"product_ids": product_ids},
+        )
+        return resp.get("data", {})
+
+    async def deactivate_products(
+        self, shop_id: uuid.UUID, product_ids: list[str]
+    ) -> dict:
+        """Batch deactivate products via TikTok API."""
+        gateway = await self._get_gateway(shop_id)
+        resp = await gateway.post(
+            "/product/202309/products/deactivate",
+            json_body={"product_ids": product_ids},
+        )
+        return resp.get("data", {})
+
+    async def recover_products(
+        self, shop_id: uuid.UUID, product_ids: list[str]
+    ) -> dict:
+        """Batch recover deleted products via TikTok API."""
+        gateway = await self._get_gateway(shop_id)
+        resp = await gateway.post(
+            "/product/202309/products/recover",
+            json_body={"product_ids": product_ids},
+        )
+        return resp.get("data", {})
+
+    # --- Task 5: Price & Inventory Update via API ---
+
+    async def update_price_api(
+        self, shop_id: uuid.UUID, product_id: str, skus: list[dict]
+    ) -> dict:
+        """Update product prices via TikTok API."""
+        gateway = await self._get_gateway(shop_id)
+        resp = await gateway.post(
+            "/product/202309/products/prices",
+            json_body={"product_id": product_id, "skus": skus},
+        )
+        return resp.get("data", {})
+
+    async def update_inventory_api(
+        self, shop_id: uuid.UUID, product_id: str, skus: list[dict]
+    ) -> dict:
+        """Update product inventory via TikTok API."""
+        gateway = await self._get_gateway(shop_id)
+        resp = await gateway.post(
+            "/product/202309/products/inventory",
+            json_body={"product_id": product_id, "skus": skus},
+        )
+        return resp.get("data", {})
+
+    # --- Task 6: Image & File Upload ---
+
+    async def upload_product_image(
+        self, shop_id: uuid.UUID, image_url: str
+    ) -> dict:
+        """Upload product image via URL to TikTok CDN."""
+        gateway = await self._get_gateway(shop_id)
+        resp = await gateway.post(
+            "/product/202309/images/upload",
+            json_body={"img_url": image_url},
+        )
+        return resp.get("data", {})
+
+    async def upload_product_file(
+        self, shop_id: uuid.UUID, file_url: str, file_name: str
+    ) -> dict:
+        """Upload product file (certification, etc.) to TikTok."""
+        gateway = await self._get_gateway(shop_id)
+        resp = await gateway.post(
+            "/product/202309/files/upload",
+            json_body={"file_url": file_url, "name": file_name},
+        )
+        return resp.get("data", {})
