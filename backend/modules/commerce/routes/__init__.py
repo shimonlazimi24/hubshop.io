@@ -7,6 +7,7 @@ from backend.modules.commerce.routes.customer_service import (
 )
 from backend.modules.commerce.routes.finance import router as finance_router
 from backend.modules.commerce.routes.fulfillment import router as fulfillment_router
+from backend.modules.commerce.routes.logistics import router as logistics_router
 from backend.modules.commerce.routes.orders import router as orders_router
 from backend.modules.commerce.routes.products import router as products_router
 from backend.modules.commerce.routes.promotions import router as promotions_router
@@ -26,4 +27,5 @@ router.include_router(affiliate_router)
 router.include_router(promotions_router)
 router.include_router(finance_router)
 router.include_router(customer_service_router)
+router.include_router(logistics_router)
 router.include_router(ws_router)
