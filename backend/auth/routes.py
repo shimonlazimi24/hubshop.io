@@ -1,12 +1,16 @@
 import uuid
 
-from fastapi import APIRouter, HTTPException, status
+import httpx
+from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel, EmailStr
 from sqlalchemy import select
 
 from backend.auth.jwt import create_access_token, create_refresh_token, decode_token
 from backend.auth.passwords import hash_password, verify_password
+from backend.auth.social import SocialAuthService
+from backend.config import settings
 from backend.db.models.organization import Membership, Organization, Role, Workspace
+from backend.db.models.social_identity import SocialProvider
 from backend.db.models.user import User
 from backend.dependencies import CurrentUser, DBSession
 
@@ -167,4 +171,172 @@ async def get_me(current_user: CurrentUser) -> UserResponse:
         email=current_user.email,
         full_name=current_user.full_name,
         is_active=current_user.is_active,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Social Login
+# ---------------------------------------------------------------------------
+
+
+class SocialLoginResponse(BaseModel):
+    authorize_url: str
+
+
+@router.get("/tiktok/login", response_model=SocialLoginResponse)
+async def tiktok_login() -> SocialLoginResponse:
+    """Return the TikTok OAuth authorize URL."""
+    state = uuid.uuid4().hex
+    url = SocialAuthService.build_tiktok_login_url(state)
+    return SocialLoginResponse(authorize_url=url)
+
+
+@router.get("/tiktok/callback", response_model=TokenResponse)
+async def tiktok_callback(
+    db: DBSession,
+    code: str = Query(...),
+    state: str = Query(""),
+) -> TokenResponse:
+    """Exchange TikTok auth code for JWT tokens."""
+    async with httpx.AsyncClient() as client:
+        # Exchange code for access token
+        token_resp = await client.post(
+            "https://open.tiktokapis.com/v2/oauth/token/",
+            data={
+                "client_key": settings.tiktok_developer_client_key,
+                "client_secret": settings.tiktok_developer_client_secret,
+                "code": code,
+                "grant_type": "authorization_code",
+                "redirect_uri": settings.tiktok_login_redirect_uri,
+            },
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+        if token_resp.status_code != 200:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="Failed to exchange TikTok auth code",
+            )
+
+        token_data = token_resp.json()
+        access_token = token_data.get("access_token") or token_data.get("data", {}).get("access_token")
+        open_id = token_data.get("open_id") or token_data.get("data", {}).get("open_id")
+        if not access_token:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="TikTok did not return an access token",
+            )
+
+        # Fetch user info
+        user_resp = await client.get(
+            "https://open.tiktokapis.com/v2/user/info/",
+            params={"fields": "open_id,display_name,avatar_url"},
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        user_data = user_resp.json().get("data", {}).get("user", {})
+
+    provider_user_id = open_id or user_data.get("open_id", "")
+    display_name = user_data.get("display_name")
+    avatar_url = user_data.get("avatar_url")
+
+    svc = SocialAuthService(db)
+    user, _ = await svc.get_or_create_user(
+        provider=SocialProvider.TIKTOK,
+        provider_user_id=provider_user_id,
+        display_name=display_name,
+        avatar_url=avatar_url,
+    )
+
+    membership_result = await db.execute(
+        select(Membership).where(Membership.user_id == user.id).limit(1)
+    )
+    membership = membership_result.scalar_one_or_none()
+
+    org_id = membership.organization_id if membership else None
+    role = membership.role.value if membership else None
+
+    return TokenResponse(
+        access_token=create_access_token(user.id, org_id, role),
+        refresh_token=create_refresh_token(user.id),
+    )
+
+
+@router.get("/google/login", response_model=SocialLoginResponse)
+async def google_login() -> SocialLoginResponse:
+    """Return the Google OAuth authorize URL."""
+    state = uuid.uuid4().hex
+    url = SocialAuthService.build_google_login_url(state)
+    return SocialLoginResponse(authorize_url=url)
+
+
+@router.get("/google/callback", response_model=TokenResponse)
+async def google_callback(
+    db: DBSession,
+    code: str = Query(...),
+    state: str = Query(""),
+) -> TokenResponse:
+    """Exchange Google auth code for JWT tokens."""
+    async with httpx.AsyncClient() as client:
+        # Exchange code for access token
+        token_resp = await client.post(
+            "https://oauth2.googleapis.com/token",
+            data={
+                "client_id": settings.google_client_id,
+                "client_secret": settings.google_client_secret,
+                "code": code,
+                "grant_type": "authorization_code",
+                "redirect_uri": settings.google_redirect_uri,
+            },
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+        if token_resp.status_code != 200:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="Failed to exchange Google auth code",
+            )
+
+        token_data = token_resp.json()
+        access_token = token_data.get("access_token")
+        if not access_token:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="Google did not return an access token",
+            )
+
+        # Fetch user info
+        user_resp = await client.get(
+            "https://www.googleapis.com/oauth2/v2/userinfo",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        if user_resp.status_code != 200:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="Failed to fetch Google user info",
+            )
+        user_data = user_resp.json()
+
+    provider_user_id = user_data.get("id", "")
+    email = user_data.get("email")
+    display_name = user_data.get("name")
+    avatar_url = user_data.get("picture")
+
+    svc = SocialAuthService(db)
+    user, _ = await svc.get_or_create_user(
+        provider=SocialProvider.GOOGLE,
+        provider_user_id=provider_user_id,
+        email=email,
+        display_name=display_name,
+        avatar_url=avatar_url,
+    )
+
+    membership_result = await db.execute(
+        select(Membership).where(Membership.user_id == user.id).limit(1)
+    )
+    membership = membership_result.scalar_one_or_none()
+
+    org_id = membership.organization_id if membership else None
+    role = membership.role.value if membership else None
+
+    return TokenResponse(
+        access_token=create_access_token(user.id, org_id, role),
+        refresh_token=create_refresh_token(user.id),
     )
