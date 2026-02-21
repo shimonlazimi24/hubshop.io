@@ -303,3 +303,23 @@ class InviteMemberRequest(BaseModel):
 class UpdateMemberRequest(BaseModel):
     ad_account_id: str
     role: str
+
+
+class AddPartnerRequest(BaseModel):
+    ad_account_id: str
+    partner_bc_id: str
+    relationship_type: str = "PARTNER"
+
+
+class AssignAssetRequest(BaseModel):
+    ad_account_id: str
+    asset_ids: list[str]
+    member_ids: list[str]
+
+
+class CreateBCAdAccountRequest(BaseModel):
+    ad_account_id: str
+    advertiser_name: str
+    timezone: str
+    currency: str
+    industry_id: str | None = None
