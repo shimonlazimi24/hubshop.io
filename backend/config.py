@@ -51,6 +51,14 @@ class Settings(BaseSettings):
     tiktok_research_client_key: str = ""
     tiktok_research_client_secret: str = ""
 
+    # Google OAuth (for social login)
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    google_redirect_uri: str = "http://localhost:8000/api/auth/google/callback"
+
+    # TikTok Login (social login — distinct from Developer platform connect)
+    tiktok_login_redirect_uri: str = "http://localhost:8000/api/auth/tiktok/callback"
+
     # Celery
     celery_broker_url: str = "redis://localhost:6379/1"
     celery_result_backend: str = "redis://localhost:6379/2"
