@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.db.models.commerce import Shop
 from backend.db.models.finance import Payment, Settlement, Transaction
 from backend.modules.commerce.services.shop_service import ShopService
+from backend.tiktok.gateway import PlatformGateway
 from backend.utils.pagination import PaginatedResult
 
 logger = logging.getLogger(__name__)
@@ -15,6 +16,14 @@ logger = logging.getLogger(__name__)
 class FinanceService:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
+
+    async def _get_gateway(self, shop_id: uuid.UUID) -> PlatformGateway:
+        """Build a PlatformGateway scoped to the given shop."""
+        shop_service = ShopService(self._session)
+        shop = await shop_service.get_shop(shop_id)
+        if not shop:
+            raise ValueError(f"Shop {shop_id} not found")
+        return await shop_service.build_gateway_for_shop(shop)
 
     # --- Settlements ---
 
@@ -270,3 +279,41 @@ class FinanceService:
             await self._session.flush()
 
         return pmt
+
+    # --- Withdrawals ---
+
+    async def get_withdrawals(self, shop_id: uuid.UUID) -> list[dict]:
+        """Fetch withdrawals for a shop from the TikTok API."""
+        gateway = await self._get_gateway(shop_id)
+        resp = await gateway.get("/finance/202309/withdrawals")
+        return resp.get("data", {}).get("withdrawals", [])
+
+    # --- Transactions by Order / Statement / Unsettled ---
+
+    async def get_transactions_by_order(
+        self, shop_id: uuid.UUID, order_id: str
+    ) -> list[dict]:
+        """Fetch transactions for a specific order from the TikTok API."""
+        gateway = await self._get_gateway(shop_id)
+        resp = await gateway.get(
+            f"/finance/202501/orders/{order_id}/transactions"
+        )
+        return resp.get("data", {}).get("transactions", [])
+
+    async def get_transactions_by_statement(
+        self, shop_id: uuid.UUID, statement_id: str
+    ) -> list[dict]:
+        """Fetch transactions for a specific statement from the TikTok API."""
+        gateway = await self._get_gateway(shop_id)
+        resp = await gateway.get(
+            f"/finance/202501/statements/{statement_id}/transactions"
+        )
+        return resp.get("data", {}).get("transactions", [])
+
+    async def get_unsettled_transactions(
+        self, shop_id: uuid.UUID
+    ) -> list[dict]:
+        """Fetch unsettled transactions for a shop from the TikTok API."""
+        gateway = await self._get_gateway(shop_id)
+        resp = await gateway.get("/finance/202507/transactions/unsettled")
+        return resp.get("data", {}).get("transactions", [])

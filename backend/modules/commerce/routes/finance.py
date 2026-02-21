@@ -141,3 +141,45 @@ async def sync_finance(
         total["payments"] += await service.sync_payments(shop)
 
     return {"synced": total}
+
+
+@router.get("/finance/withdrawals")
+async def get_withdrawals(
+    shop_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> list[dict]:
+    service = FinanceService(db)
+    return await service.get_withdrawals(shop_id)
+
+
+@router.get("/finance/orders/{order_id}/transactions")
+async def get_transactions_by_order(
+    order_id: str,
+    shop_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> list[dict]:
+    service = FinanceService(db)
+    return await service.get_transactions_by_order(shop_id, order_id)
+
+
+@router.get("/finance/statements/{statement_id}/transactions")
+async def get_transactions_by_statement(
+    statement_id: str,
+    shop_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> list[dict]:
+    service = FinanceService(db)
+    return await service.get_transactions_by_statement(shop_id, statement_id)
+
+
+@router.get("/finance/transactions/unsettled")
+async def get_unsettled_transactions(
+    shop_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> list[dict]:
+    service = FinanceService(db)
+    return await service.get_unsettled_transactions(shop_id)
