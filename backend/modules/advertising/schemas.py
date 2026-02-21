@@ -289,3 +289,17 @@ class CreateCatalogRequest(BaseModel):
 
 class AddProductsToCatalogRequest(BaseModel):
     product_ids: list[str]
+
+
+# --- Business Center ---
+
+
+class InviteMemberRequest(BaseModel):
+    ad_account_id: str
+    emails: list[str]
+    role: str
+
+
+class UpdateMemberRequest(BaseModel):
+    ad_account_id: str
+    role: str

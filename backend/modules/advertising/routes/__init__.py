@@ -19,6 +19,9 @@ from backend.modules.advertising.routes.identities import router as identities_r
 from backend.modules.advertising.routes.leads import router as leads_router
 from backend.modules.advertising.routes.search import router as search_router
 from backend.modules.advertising.routes.split_tests import router as split_tests_router
+from backend.modules.advertising.routes.business_center import (
+    router as business_center_router,
+)
 from backend.modules.advertising.routes.symphony import router as symphony_router
 
 router = APIRouter(prefix="/ads", tags=["advertising"])
@@ -41,3 +44,4 @@ router.include_router(leads_router)
 router.include_router(identities_router)
 router.include_router(change_log_router)
 router.include_router(custom_conversions_router)
+router.include_router(business_center_router)
