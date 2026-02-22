@@ -177,3 +177,44 @@ class ContentSyncCursor(Base, UUIDMixin, TimestampMixin):
             unique=True,
         ),
     )
+
+
+class Comment(Base, UUIDMixin, TimestampMixin):
+    __tablename__ = "comments"
+
+    workspace_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("workspaces.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    video_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("videos.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    platform_comment_id: Mapped[str] = mapped_column(
+        String(255), nullable=False, unique=True
+    )
+    parent_comment_id: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+        comment="Platform ID of parent comment for replies",
+    )
+    text: Mapped[str] = mapped_column(Text, nullable=False)
+    like_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    reply_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    author_username: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    author_avatar_url: Mapped[str | None] = mapped_column(
+        String(2048), nullable=True
+    )
+    comment_create_time: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    detail_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+
+    __table_args__ = (
+        Index("ix_comments_video_parent", "video_id", "parent_comment_id"),
+    )
