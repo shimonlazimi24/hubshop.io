@@ -143,3 +143,23 @@ class CommentResponse(BaseModel):
 
 class ReplyToCommentRequest(BaseModel):
     text: str
+
+
+# --- Photo Publishing ---
+
+
+class PublishPhotoRequest(BaseModel):
+    photo_urls: list[str]
+    title: str | None = None
+    description: str | None = None
+    privacy_level: str = "PUBLIC_TO_EVERYONE"
+    disable_comment: bool = False
+    auto_add_music: bool = True
+    photo_cover_index: int = 0
+
+
+# --- Video Query ---
+
+
+class QueryVideosRequest(BaseModel):
+    video_ids: list[str]

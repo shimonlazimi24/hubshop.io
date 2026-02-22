@@ -6,6 +6,7 @@ from backend.dependencies import CurrentUser, DBSession
 from backend.modules.commerce.schemas import PaginatedResponse
 from backend.modules.content.schemas import (
     ContentPublishJobResponse,
+    PublishPhotoRequest,
     PublishVideoRequest,
 )
 from backend.modules.content.services.publish_service import PublishService
@@ -34,6 +35,30 @@ async def publish_video(
         disable_stitch=body.disable_stitch,
         brand_content_toggle=body.brand_content_toggle,
         brand_organic_toggle=body.brand_organic_toggle,
+    )
+    return ContentPublishJobResponse.model_validate(job)
+
+
+@router.post(
+    "/publish/photo",
+    response_model=ContentPublishJobResponse,
+)
+async def publish_photo(
+    workspace_id: uuid.UUID,
+    body: PublishPhotoRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> ContentPublishJobResponse:
+    service = PublishService(db)
+    job = await service.create_photo_publish_job(
+        workspace_id,
+        photo_urls=body.photo_urls,
+        title=body.title,
+        description=body.description,
+        privacy_level=body.privacy_level,
+        disable_comment=body.disable_comment,
+        auto_add_music=body.auto_add_music,
+        photo_cover_index=body.photo_cover_index,
     )
     return ContentPublishJobResponse.model_validate(job)
 

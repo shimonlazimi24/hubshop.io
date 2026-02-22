@@ -190,6 +190,55 @@ class PublishService:
         await self._session.flush()
         return job
 
+    async def create_photo_publish_job(
+        self,
+        workspace_id: uuid.UUID,
+        *,
+        photo_urls: list[str],
+        title: str | None = None,
+        description: str | None = None,
+        privacy_level: str = "PUBLIC_TO_EVERYONE",
+        disable_comment: bool = False,
+        auto_add_music: bool = True,
+        photo_cover_index: int = 0,
+    ) -> ContentPublishJob:
+        """Create a photo post via Developer API."""
+        account, gateway = await self._get_developer_gateway(workspace_id)
+        post_info: dict = {
+            "title": title or "",
+            "description": description or "",
+            "disable_comment": disable_comment,
+            "privacy_level": privacy_level,
+            "auto_add_music": auto_add_music,
+        }
+        body = {
+            "post_info": post_info,
+            "source_info": {
+                "source": "PULL_FROM_URL",
+                "photo_cover_index": photo_cover_index,
+                "photo_images": photo_urls,
+            },
+            "post_mode": "DIRECT_POST",
+            "media_type": "PHOTO",
+        }
+        resp = await gateway.post("/post/publish/content/init/", json_body=body)
+        data = resp.get("data", {})
+        publish_id = data.get("publish_id", "")
+
+        job = ContentPublishJob(
+            workspace_id=workspace_id,
+            connected_account_id=account.id,
+            publish_id=publish_id,
+            title=title,
+            video_url=None,
+            privacy_level=privacy_level,
+            status="PENDING",
+            disable_comment=disable_comment,
+        )
+        self._session.add(job)
+        await self._session.flush()
+        return job
+
     async def get_calendar_entries(
         self,
         workspace_id: uuid.UUID,

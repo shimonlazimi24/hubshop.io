@@ -6,6 +6,7 @@ from backend.dependencies import CurrentUser, DBSession
 from backend.modules.commerce.schemas import PaginatedResponse
 from backend.modules.content.schemas import (
     CreatorInfoResponse,
+    QueryVideosRequest,
     VideoDetailResponse,
     VideoMetricsResponse,
     VideoSummaryResponse,
@@ -103,3 +104,15 @@ async def get_creator_info(
 ) -> dict:
     service = VideoService(db)
     return await service.get_creator_info(workspace_id)
+
+
+@router.post("/videos/query")
+async def query_videos(
+    workspace_id: uuid.UUID,
+    body: QueryVideosRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    service = VideoService(db)
+    videos = await service.query_videos_by_id(workspace_id, body.video_ids)
+    return {"videos": videos}

@@ -254,6 +254,20 @@ class VideoService:
         resp = await gateway.get("/post/publish/creator_info/query/")
         return resp.get("data", {})
 
+    async def query_videos_by_id(
+        self, workspace_id: uuid.UUID, video_ids: list[str]
+    ) -> list[dict]:
+        """Query specific videos by their platform IDs via Developer API."""
+        _, gateway = await self._get_developer_gateway(workspace_id)
+        resp = await gateway.post(
+            "/video/query/",
+            json_body={"filters": {"video_ids": video_ids}},
+            params={
+                "fields": "id,title,video_description,cover_image_url,embed_link,duration,create_time,like_count,comment_count,share_count,view_count"
+            },
+        )
+        return resp.get("data", {}).get("videos", [])
+
     async def _get_developer_gateway(
         self, workspace_id: uuid.UUID
     ) -> tuple[ConnectedAccount, PlatformGateway]:
