@@ -22,6 +22,7 @@ from backend.modules.advertising.routes.split_tests import router as split_tests
 from backend.modules.advertising.routes.business_center import (
     router as business_center_router,
 )
+from backend.modules.advertising.routes.pangle import router as pangle_router
 from backend.modules.advertising.routes.symphony import router as symphony_router
 
 router = APIRouter(prefix="/ads", tags=["advertising"])
@@ -45,3 +46,4 @@ router.include_router(identities_router)
 router.include_router(change_log_router)
 router.include_router(custom_conversions_router)
 router.include_router(business_center_router)
+router.include_router(pangle_router)
