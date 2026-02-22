@@ -97,6 +97,48 @@ class SparkAdsService:
 
         return auth
 
+    async def cancel_authorization(
+        self, authorization_id: uuid.UUID
+    ) -> ContentAuthorization | None:
+        """Cancel/revoke a pending authorization."""
+        result = await self._session.execute(
+            select(ContentAuthorization).where(
+                ContentAuthorization.id == authorization_id
+            )
+        )
+        auth = result.scalar_one_or_none()
+        if auth and auth.status == "PENDING":
+            auth.status = "REVOKED"
+        return auth
+
+    async def get_authorization_code(
+        self, authorization_id: uuid.UUID
+    ) -> str | None:
+        """Get the Spark Ads authorization code for an approved auth."""
+        result = await self._session.execute(
+            select(ContentAuthorization).where(
+                ContentAuthorization.id == authorization_id
+            )
+        )
+        auth = result.scalar_one_or_none()
+        if auth and auth.status == "APPROVED":
+            return auth.authorization_code
+        return None
+
+    async def list_authorized_videos(
+        self, workspace_id: uuid.UUID
+    ) -> list[ContentAuthorization]:
+        """List all approved authorizations with valid codes."""
+        result = await self._session.execute(
+            select(ContentAuthorization)
+            .where(
+                ContentAuthorization.workspace_id == workspace_id,
+                ContentAuthorization.status == "APPROVED",
+            )
+            .order_by(ContentAuthorization.created_at.desc())
+        )
+        return list(result.scalars().all())
+
     async def _get_marketing_gateway(
         self, workspace_id: uuid.UUID
     ) -> PlatformGateway:

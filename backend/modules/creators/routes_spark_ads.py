@@ -71,3 +71,47 @@ async def check_authorization_status(
             detail="Authorization not found",
         )
     return ContentAuthorizationResponse.model_validate(auth)
+
+
+@router.post(
+    "/spark-ads/authorizations/{auth_id}/cancel",
+    response_model=ContentAuthorizationResponse,
+)
+async def cancel_authorization(
+    auth_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> ContentAuthorizationResponse:
+    service = SparkAdsService(db)
+    auth = await service.cancel_authorization(auth_id)
+    if not auth:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Authorization not found",
+        )
+    return ContentAuthorizationResponse.model_validate(auth)
+
+
+@router.get("/spark-ads/authorizations/{auth_id}/code")
+async def get_authorization_code(
+    auth_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    service = SparkAdsService(db)
+    code = await service.get_authorization_code(auth_id)
+    return {"authorization_code": code}
+
+
+@router.get(
+    "/spark-ads/authorized-videos",
+    response_model=list[ContentAuthorizationResponse],
+)
+async def list_authorized_videos(
+    workspace_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> list[ContentAuthorizationResponse]:
+    service = SparkAdsService(db)
+    auths = await service.list_authorized_videos(workspace_id)
+    return [ContentAuthorizationResponse.model_validate(a) for a in auths]

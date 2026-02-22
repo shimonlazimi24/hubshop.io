@@ -110,6 +110,18 @@ async def sync_creator_metrics(
     return CreatorDetailResponse.model_validate(updated)
 
 
+@router.get("/profiles/{creator_id}/performance")
+async def get_creator_performance(
+    creator_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    from backend.modules.creators.services.creator_service import CreatorService
+
+    service = CreatorService(db)
+    return await service.get_creator_performance(creator_id)
+
+
 @router.get("/profiles/{creator_id}/videos")
 async def get_creator_videos(
     creator_id: uuid.UUID,

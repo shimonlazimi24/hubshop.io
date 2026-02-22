@@ -144,6 +144,34 @@ class CreatorService:
         profile_service = CreatorProfileService(self._session)
         return await profile_service.upsert_creator_from_api(workspace_id, creator_data)
 
+    async def get_creator_performance(
+        self, creator_id: uuid.UUID
+    ) -> dict:
+        """Get performance metrics for a saved creator."""
+        creator = await self.get_creator(creator_id)
+        if not creator:
+            return {}
+
+        engagement_rate = float(creator.engagement_rate) if creator.engagement_rate else 0.0
+        avg_likes = (
+            creator.likes_count / creator.video_count
+            if creator.video_count > 0
+            else 0.0
+        )
+
+        return {
+            "creator_id": str(creator.id),
+            "username": creator.username,
+            "display_name": creator.display_name,
+            "follower_count": creator.follower_count,
+            "following_count": creator.following_count,
+            "likes_count": creator.likes_count,
+            "video_count": creator.video_count,
+            "tier": creator.tier,
+            "engagement_rate": engagement_rate,
+            "avg_likes_per_video": round(avg_likes, 2),
+        }
+
     async def _get_developer_gateway(
         self, workspace_id: uuid.UUID
     ) -> tuple[ConnectedAccount, PlatformGateway]:
