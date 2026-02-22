@@ -134,6 +134,16 @@ class CreatorService:
 
         return creator
 
+    async def sync_creator_to_workspace(
+        self, workspace_id: uuid.UUID, creator_data: dict
+    ) -> CreatorProfile:
+        """Save a creator from TTCM discovery results into the workspace."""
+        from backend.modules.creators.services.creator_profile_service import (
+            CreatorProfileService,
+        )
+        profile_service = CreatorProfileService(self._session)
+        return await profile_service.upsert_creator_from_api(workspace_id, creator_data)
+
     async def _get_developer_gateway(
         self, workspace_id: uuid.UUID
     ) -> tuple[ConnectedAccount, PlatformGateway]:

@@ -148,3 +148,50 @@ class CreatorCampaignService:
             query.order_by(CreatorInvitation.created_at.desc())
         )
         return list(result.scalars().all())
+
+    async def update_invitation_status(
+        self,
+        invitation_id: uuid.UUID,
+        *,
+        status: str,
+        responded_at: datetime | None = None,
+    ) -> CreatorInvitation | None:
+        """Update invitation status (ACCEPTED, DECLINED, EXPIRED)."""
+        result = await self._session.execute(
+            select(CreatorInvitation).where(CreatorInvitation.id == invitation_id)
+        )
+        invitation = result.scalar_one_or_none()
+        if invitation:
+            invitation.status = status
+            if responded_at:
+                invitation.responded_at = responded_at
+        return invitation
+
+    async def get_campaign_stats(self, campaign_id: uuid.UUID) -> dict:
+        """Get invitation stats for a campaign."""
+        result = await self._session.execute(
+            select(CreatorInvitation).where(
+                CreatorInvitation.campaign_id == campaign_id
+            )
+        )
+        invitations = list(result.scalars().all())
+
+        total = len(invitations)
+        pending = sum(1 for i in invitations if i.status == "PENDING")
+        accepted = sum(1 for i in invitations if i.status == "ACCEPTED")
+        declined = sum(1 for i in invitations if i.status == "DECLINED")
+
+        total_offered = sum(
+            float(i.offered_amount) for i in invitations
+            if i.offered_amount
+        )
+        acceptance_rate = (accepted / total * 100) if total > 0 else 0.0
+
+        return {
+            "total_invitations": total,
+            "pending": pending,
+            "accepted": accepted,
+            "declined": declined,
+            "total_offered_amount": str(total_offered) if total_offered else None,
+            "acceptance_rate": round(acceptance_rate, 2),
+        }
