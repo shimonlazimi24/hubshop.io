@@ -181,3 +181,34 @@ class VideoPerformanceSummary(BaseModel):
 
 class CompareVideosRequest(BaseModel):
     video_ids: list[str]
+
+
+# --- Commercial Content ---
+
+
+class SearchAdsRequest(BaseModel):
+    search_term: str | None = None
+    date_range: dict  # {"min": "YYYYMMDD", "max": "YYYYMMDD"}
+    country_code: str = "ALL"
+    advertiser_business_ids: list[str] | None = None
+    max_count: int = 20
+    search_id: str | None = None
+
+
+class SearchAdvertisersRequest(BaseModel):
+    search_term: str
+    max_count: int = 20
+
+
+class AdReportRequest(BaseModel):
+    date_range: dict
+    country_code: str = "ALL"
+    advertiser_business_ids: list[str] | None = None
+
+
+class SearchCommercialContentRequest(BaseModel):
+    date_range: dict
+    creator_usernames: list[str] | None = None
+    creator_country_code: str | None = None
+    max_count: int = 20
+    search_id: str | None = None
