@@ -392,6 +392,134 @@ class CatalogService:
         )
         return resp.get("data", {})
 
+    # ---- Insights, Diagnostics & Event Source methods ----
+
+    async def get_catalog_overview(
+        self,
+        ad_account: AdAccount,
+        catalog_id: str,
+    ) -> dict:
+        """Get catalog overview statistics."""
+        gateway = await self._get_gateway(ad_account)
+        resp = await gateway.get(
+            "/catalog/overview/get/",
+            params={
+                "bc_id": ad_account.advertiser_id,
+                "catalog_id": catalog_id,
+            },
+        )
+        return resp.get("data", {})
+
+    async def get_trending_products(
+        self,
+        ad_account: AdAccount,
+        catalog_id: str,
+        *,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> dict:
+        """Get trending products for a catalog."""
+        gateway = await self._get_gateway(ad_account)
+        resp = await gateway.get(
+            "/catalog/insights/product/trending/",
+            params={
+                "bc_id": ad_account.advertiser_id,
+                "catalog_id": catalog_id,
+                "page": str(page),
+                "page_size": str(page_size),
+            },
+        )
+        return resp.get("data", {})
+
+    async def get_trending_categories(
+        self,
+        ad_account: AdAccount,
+        catalog_id: str,
+    ) -> dict:
+        """Get trending categories for a catalog."""
+        gateway = await self._get_gateway(ad_account)
+        resp = await gateway.get(
+            "/catalog/insights/category/trending/",
+            params={
+                "bc_id": ad_account.advertiser_id,
+                "catalog_id": catalog_id,
+            },
+        )
+        return resp.get("data", {})
+
+    async def get_product_diagnostics(
+        self,
+        ad_account: AdAccount,
+        catalog_id: str,
+        *,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> dict:
+        """Get product diagnostics for a catalog."""
+        gateway = await self._get_gateway(ad_account)
+        resp = await gateway.get(
+            "/catalog/diagnostics/product/get/",
+            params={
+                "bc_id": ad_account.advertiser_id,
+                "catalog_id": catalog_id,
+                "page": str(page),
+                "page_size": str(page_size),
+            },
+        )
+        return resp.get("data", {})
+
+    async def get_event_source_diagnostics(
+        self,
+        ad_account: AdAccount,
+        catalog_id: str,
+    ) -> dict:
+        """Get event source diagnostics for a catalog."""
+        gateway = await self._get_gateway(ad_account)
+        resp = await gateway.get(
+            "/catalog/diagnostics/event_source/get/",
+            params={
+                "bc_id": ad_account.advertiser_id,
+                "catalog_id": catalog_id,
+            },
+        )
+        return resp.get("data", {})
+
+    async def bind_event_source(
+        self,
+        ad_account: AdAccount,
+        catalog_id: str,
+        event_source_id: str,
+    ) -> dict:
+        """Bind an event source to a catalog."""
+        gateway = await self._get_gateway(ad_account)
+        resp = await gateway.post(
+            "/catalog/event_source/bind/",
+            json_body={
+                "bc_id": ad_account.advertiser_id,
+                "catalog_id": catalog_id,
+                "event_source_id": event_source_id,
+            },
+        )
+        return resp.get("data", {})
+
+    async def unbind_event_source(
+        self,
+        ad_account: AdAccount,
+        catalog_id: str,
+        event_source_id: str,
+    ) -> dict:
+        """Unbind an event source from a catalog."""
+        gateway = await self._get_gateway(ad_account)
+        resp = await gateway.post(
+            "/catalog/event_source/unbind/",
+            json_body={
+                "bc_id": ad_account.advertiser_id,
+                "catalog_id": catalog_id,
+                "event_source_id": event_source_id,
+            },
+        )
+        return resp.get("data", {})
+
     async def _upsert_catalog(
         self, ad_account: AdAccount, cat_data: dict
     ) -> Catalog:

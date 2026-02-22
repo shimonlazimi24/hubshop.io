@@ -1,6 +1,7 @@
 import uuid
 
 from fastapi import APIRouter, HTTPException, status
+from pydantic import BaseModel
 
 from backend.dependencies import CurrentUser, DBSession
 from backend.modules.advertising.schemas import (
@@ -417,4 +418,142 @@ async def get_feed_log(
         feed_id,
         page=page,
         page_size=page_size,
+    )
+
+
+# ---- Insights, Diagnostics & Event Source routes ----
+
+
+class EventSourceBindRequest(BaseModel):
+    event_source_id: str
+
+
+@router.get("/catalogs/{catalog_id}/overview")
+async def get_catalog_overview(
+    catalog_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    service = CatalogService(db)
+    catalog = await service.get_catalog(catalog_id)
+    if not catalog:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Catalog not found"
+        )
+
+    account_service = AdAccountService(db)
+    ad_account = await account_service.get_ad_account(catalog.ad_account_id)
+    if not ad_account:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Ad account not found"
+        )
+
+    return await service.get_catalog_overview(
+        ad_account, catalog.platform_catalog_id
+    )
+
+
+@router.get("/catalogs/{catalog_id}/insights/trending-products")
+async def get_trending_products(
+    catalog_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+    page: int = 1,
+    page_size: int = 20,
+) -> dict:
+    service = CatalogService(db)
+    catalog = await service.get_catalog(catalog_id)
+    if not catalog:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Catalog not found"
+        )
+
+    account_service = AdAccountService(db)
+    ad_account = await account_service.get_ad_account(catalog.ad_account_id)
+    if not ad_account:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Ad account not found"
+        )
+
+    return await service.get_trending_products(
+        ad_account, catalog.platform_catalog_id, page=page, page_size=page_size
+    )
+
+
+@router.get("/catalogs/{catalog_id}/diagnostics")
+async def get_product_diagnostics(
+    catalog_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+    page: int = 1,
+    page_size: int = 20,
+) -> dict:
+    service = CatalogService(db)
+    catalog = await service.get_catalog(catalog_id)
+    if not catalog:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Catalog not found"
+        )
+
+    account_service = AdAccountService(db)
+    ad_account = await account_service.get_ad_account(catalog.ad_account_id)
+    if not ad_account:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Ad account not found"
+        )
+
+    return await service.get_product_diagnostics(
+        ad_account, catalog.platform_catalog_id, page=page, page_size=page_size
+    )
+
+
+@router.post("/catalogs/{catalog_id}/event-sources/bind")
+async def bind_event_source(
+    catalog_id: uuid.UUID,
+    body: EventSourceBindRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    service = CatalogService(db)
+    catalog = await service.get_catalog(catalog_id)
+    if not catalog:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Catalog not found"
+        )
+
+    account_service = AdAccountService(db)
+    ad_account = await account_service.get_ad_account(catalog.ad_account_id)
+    if not ad_account:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Ad account not found"
+        )
+
+    return await service.bind_event_source(
+        ad_account, catalog.platform_catalog_id, body.event_source_id
+    )
+
+
+@router.post("/catalogs/{catalog_id}/event-sources/unbind")
+async def unbind_event_source(
+    catalog_id: uuid.UUID,
+    body: EventSourceBindRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    service = CatalogService(db)
+    catalog = await service.get_catalog(catalog_id)
+    if not catalog:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Catalog not found"
+        )
+
+    account_service = AdAccountService(db)
+    ad_account = await account_service.get_ad_account(catalog.ad_account_id)
+    if not ad_account:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Ad account not found"
+        )
+
+    return await service.unbind_event_source(
+        ad_account, catalog.platform_catalog_id, body.event_source_id
     )
