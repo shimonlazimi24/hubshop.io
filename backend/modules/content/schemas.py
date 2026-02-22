@@ -121,3 +121,25 @@ class CalendarEntry(BaseModel):
     date: str
     video_count: int
     videos: list[VideoSummaryResponse]
+
+
+# --- Comments ---
+
+
+class CommentResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    platform_comment_id: str
+    parent_comment_id: str | None = None
+    text: str
+    like_count: int
+    reply_count: int
+    author_username: str | None = None
+    author_avatar_url: str | None = None
+    comment_create_time: datetime | None = None
+    created_at: datetime
+
+
+class ReplyToCommentRequest(BaseModel):
+    text: str
