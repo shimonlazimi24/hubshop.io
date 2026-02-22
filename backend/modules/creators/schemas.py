@@ -117,3 +117,29 @@ class SearchCreatorsRequest(BaseModel):
     min_followers: int | None = None
     max_followers: int | None = None
     categories: list[str] | None = None
+
+
+# --- Invitation Status Update ---
+
+
+class UpdateInvitationStatusRequest(BaseModel):
+    status: str  # ACCEPTED, DECLINED
+
+
+# --- Campaign Stats ---
+
+
+class CampaignStatsResponse(BaseModel):
+    total_invitations: int
+    pending: int
+    accepted: int
+    declined: int
+    total_offered_amount: str | None = None
+    acceptance_rate: float
+
+
+# --- Save Creator from Discovery ---
+
+
+class SaveCreatorRequest(BaseModel):
+    creator_data: dict

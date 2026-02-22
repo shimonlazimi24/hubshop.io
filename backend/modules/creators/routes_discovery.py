@@ -3,7 +3,11 @@ import uuid
 from fastapi import APIRouter
 
 from backend.dependencies import CurrentUser, DBSession
-from backend.modules.creators.schemas import SearchCreatorsRequest
+from backend.modules.creators.schemas import (
+    CreatorProfileResponse,
+    SaveCreatorRequest,
+    SearchCreatorsRequest,
+)
 from backend.modules.creators.services.creator_discovery_service import (
     CreatorDiscoveryService,
 )
@@ -51,3 +55,21 @@ async def get_creator_audience(
     service = CreatorDiscoveryService(db)
     audience = await service.get_creator_audience(workspace_id, creator_username)
     return {"audience": audience}
+
+
+@router.post(
+    "/discover/save",
+    response_model=CreatorProfileResponse,
+    status_code=201,
+)
+async def save_creator_from_discovery(
+    workspace_id: uuid.UUID,
+    body: SaveCreatorRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> CreatorProfileResponse:
+    from backend.modules.creators.services.creator_service import CreatorService
+
+    service = CreatorService(db)
+    creator = await service.sync_creator_to_workspace(workspace_id, body.creator_data)
+    return CreatorProfileResponse.model_validate(creator)

@@ -10,6 +10,7 @@ from backend.modules.creators.schemas import (
     CreatorInvitationResponse,
     InviteCreatorRequest,
     UpdateCreatorCampaignRequest,
+    UpdateInvitationStatusRequest,
 )
 from backend.modules.creators.services.campaign_service import (
     CreatorCampaignService,
@@ -166,3 +167,42 @@ async def list_invitations(
         status_filter=status_filter,
     )
     return [CreatorInvitationResponse.model_validate(i) for i in invitations]
+
+
+@router.put(
+    "/campaigns/{campaign_id}/invitations/{invitation_id}/status",
+    response_model=CreatorInvitationResponse,
+)
+async def update_invitation_status(
+    campaign_id: uuid.UUID,
+    invitation_id: uuid.UUID,
+    body: UpdateInvitationStatusRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> CreatorInvitationResponse:
+    service = CreatorCampaignService(db)
+    invitation = await service.update_invitation_status(
+        invitation_id, status=body.status
+    )
+    if not invitation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Invitation not found",
+        )
+    return CreatorInvitationResponse.model_validate(invitation)
+
+
+@router.get("/campaigns/{campaign_id}/stats")
+async def get_campaign_stats(
+    campaign_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    service = CreatorCampaignService(db)
+    campaign = await service.get_campaign(campaign_id)
+    if not campaign:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Creator campaign not found",
+        )
+    return await service.get_campaign_stats(campaign_id)

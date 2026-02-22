@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, status
 
 from backend.dependencies import CurrentUser, DBSession
 from backend.modules.creators.schemas import (
@@ -52,3 +52,22 @@ async def list_authorizations(
     return [
         ContentAuthorizationResponse.model_validate(a) for a in authorizations
     ]
+
+
+@router.post(
+    "/spark-ads/authorizations/{auth_id}/check",
+    response_model=ContentAuthorizationResponse,
+)
+async def check_authorization_status(
+    auth_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> ContentAuthorizationResponse:
+    service = SparkAdsService(db)
+    auth = await service.check_authorization_status(auth_id)
+    if not auth:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Authorization not found",
+        )
+    return ContentAuthorizationResponse.model_validate(auth)
