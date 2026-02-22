@@ -268,6 +268,84 @@ class VideoService:
         )
         return resp.get("data", {}).get("videos", [])
 
+    async def get_top_videos(
+        self,
+        workspace_id: uuid.UUID,
+        *,
+        metric: str = "view_count",
+        limit: int = 10,
+    ) -> list[Video]:
+        """Get top performing videos by a specific metric."""
+        allowed_metrics = {"view_count", "like_count", "comment_count", "share_count"}
+        if metric not in allowed_metrics:
+            metric = "view_count"
+
+        order_col = getattr(Video, metric)
+        result = await self._session.execute(
+            select(Video)
+            .where(Video.workspace_id == workspace_id)
+            .order_by(order_col.desc())
+            .limit(limit)
+        )
+        return list(result.scalars().all())
+
+    async def get_video_performance_summary(
+        self, workspace_id: uuid.UUID
+    ) -> dict:
+        """Aggregate performance summary across all workspace videos."""
+        result = await self._session.execute(
+            select(
+                func.count(Video.id).label("total_videos"),
+                func.coalesce(func.sum(Video.view_count), 0).label("total_views"),
+                func.coalesce(func.sum(Video.like_count), 0).label("total_likes"),
+                func.coalesce(func.sum(Video.comment_count), 0).label("total_comments"),
+                func.coalesce(func.sum(Video.share_count), 0).label("total_shares"),
+                func.coalesce(func.avg(Video.view_count), 0).label("avg_views"),
+                func.coalesce(func.avg(Video.like_count), 0).label("avg_likes"),
+            ).where(Video.workspace_id == workspace_id)
+        )
+        row = result.one()
+        total_views = int(row.total_views)
+        total_likes = int(row.total_likes)
+        total_comments = int(row.total_comments)
+        total_shares = int(row.total_shares)
+        engagement = total_likes + total_comments + total_shares
+        engagement_rate = (engagement / total_views * 100) if total_views > 0 else 0.0
+
+        return {
+            "total_videos": int(row.total_videos),
+            "total_views": total_views,
+            "total_likes": total_likes,
+            "total_comments": total_comments,
+            "total_shares": total_shares,
+            "avg_views": float(row.avg_views),
+            "avg_likes": float(row.avg_likes),
+            "avg_engagement_rate": round(engagement_rate, 2),
+        }
+
+    async def compare_video_performance(
+        self, video_ids: list[uuid.UUID]
+    ) -> list[dict]:
+        """Compare metrics across multiple videos for benchmarking."""
+        result = await self._session.execute(
+            select(Video).where(Video.id.in_(video_ids))
+        )
+        videos = list(result.scalars().all())
+        comparisons = []
+        for video in videos:
+            total_engagement = video.like_count + video.comment_count + video.share_count
+            engagement_rate = (total_engagement / video.view_count * 100) if video.view_count > 0 else 0.0
+            comparisons.append({
+                "video_id": str(video.id),
+                "title": video.title,
+                "view_count": video.view_count,
+                "like_count": video.like_count,
+                "comment_count": video.comment_count,
+                "share_count": video.share_count,
+                "engagement_rate": round(engagement_rate, 2),
+            })
+        return comparisons
+
     async def _get_developer_gateway(
         self, workspace_id: uuid.UUID
     ) -> tuple[ConnectedAccount, PlatformGateway]:

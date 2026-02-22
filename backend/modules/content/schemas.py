@@ -163,3 +163,21 @@ class PublishPhotoRequest(BaseModel):
 
 class QueryVideosRequest(BaseModel):
     video_ids: list[str]
+
+
+# --- Video Performance ---
+
+
+class VideoPerformanceSummary(BaseModel):
+    total_videos: int
+    total_views: int
+    total_likes: int
+    total_comments: int
+    total_shares: int
+    avg_views: float
+    avg_likes: float
+    avg_engagement_rate: float
+
+
+class CompareVideosRequest(BaseModel):
+    video_ids: list[str]
