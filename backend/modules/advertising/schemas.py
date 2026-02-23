@@ -31,6 +31,7 @@ class CampaignSummaryResponse(BaseModel):
     budget: str | None = None
     operation_status: str
     secondary_status: str | None = None
+    source_platform: str = "marketing"
     created_at: datetime
     updated_at: datetime
 
@@ -46,6 +47,7 @@ class CampaignDetailResponse(BaseModel):
     budget: str | None = None
     operation_status: str
     secondary_status: str | None = None
+    source_platform: str = "marketing"
     detail_json: dict | None = None
     created_at: datetime
     updated_at: datetime
