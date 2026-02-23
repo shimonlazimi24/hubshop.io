@@ -24,6 +24,7 @@ import { StatusBadge, type StatusVariant } from "@/components/ui/status-badge";
 import { ActionMenu } from "@/components/ui/action-menu";
 import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { PlatformTabs } from "@/components/ui/platform-tabs";
 
 const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
@@ -35,6 +36,12 @@ const OBJECTIVES = [
   "VIDEO_VIEWS",
   "LEAD_GENERATION",
   "PRODUCT_SALES",
+];
+
+const ADS_PLATFORM_TABS = [
+  { key: "all", label: "All Platforms" },
+  { key: "marketing", label: "TikTok Ads" },
+  { key: "shop", label: "Shop Promotions" },
 ];
 
 function mapStatus(status: string): StatusVariant {
@@ -66,6 +73,7 @@ export default function CampaignsPage() {
   const [objectiveFilter, setObjectiveFilter] = useState("");
   const [accountFilter, setAccountFilter] = useState("");
   const [page, setPage] = useState(1);
+  const [platformFilter, setPlatformFilter] = useState("all");
 
   const token = getAccessToken();
 
@@ -76,16 +84,18 @@ export default function CampaignsPage() {
 
   useEffect(() => {
     loadCampaigns();
-  }, [search, statusFilter, objectiveFilter, accountFilter, page]);
+  }, [search, statusFilter, objectiveFilter, accountFilter, platformFilter, page]);
 
   function loadCampaigns() {
     if (!token) return;
     setLoading(true);
+    const platformParam = platformFilter === "all" ? undefined : platformFilter;
     listCampaigns(WORKSPACE_ID, token, {
       search: search || undefined,
       status_filter: statusFilter || undefined,
       objective: objectiveFilter || undefined,
       ad_account_id: accountFilter || undefined,
+      platform: platformParam,
       page,
     })
       .then(setCampaigns)
@@ -126,6 +136,16 @@ export default function CampaignsPage() {
       ),
     },
     {
+      key: "platform",
+      header: "Platform",
+      render: (row) => (
+        <StatusBadge
+          variant={row.source_platform === "shop" ? "warning" : "active"}
+          label={row.source_platform === "shop" ? "Shop" : "TikTok Ads"}
+        />
+      ),
+    },
+    {
       key: "objective",
       header: "Objective",
       sortable: true,
@@ -156,11 +176,11 @@ export default function CampaignsPage() {
         <span className="text-sm text-gray-500">{new Date(row.updated_at).toLocaleDateString()}</span>
       ),
     },
-    {
-      key: "actions",
+    ...(platformFilter !== "all" ? [{
+      key: "actions" as const,
       header: "",
       className: "w-12",
-      render: (row) => (
+      render: (row: CampaignSummary) => (
         <ActionMenu
           items={[
             { label: "Edit", icon: <Edit className="h-4 w-4" />, onClick: () => { window.location.href = `/ads/campaigns/${row.id}`; } },
@@ -169,7 +189,7 @@ export default function CampaignsPage() {
           ]}
         />
       ),
-    },
+    }] : []),
   ];
 
   return (
@@ -186,6 +206,11 @@ export default function CampaignsPage() {
             Create Campaign
           </Link>
         }
+      />
+      <PlatformTabs
+        tabs={ADS_PLATFORM_TABS}
+        value={platformFilter}
+        onChange={(v) => { setPlatformFilter(v); setPage(1); }}
       />
       <PageShell
         header={
