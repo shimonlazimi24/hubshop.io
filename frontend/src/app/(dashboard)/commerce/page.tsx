@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { usePlatformFilter } from "@/hooks/usePlatformFilter";
 import {
   DollarSign,
   ShoppingCart,
@@ -29,7 +30,6 @@ import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusBadge, type StatusVariant } from "@/components/ui/status-badge";
 import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
 import { EmptyState } from "@/components/ui/empty-state";
-import { PlatformTabs } from "@/components/ui/platform-tabs";
 import { toast } from "@/lib/toast-store";
 
 const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
@@ -43,12 +43,6 @@ const STATUS_MAP: Record<string, StatusVariant> = {
   unpaid: "draft",
 };
 
-const COMMERCE_PLATFORM_TABS = [
-  { key: "all", label: "All Platforms" },
-  { key: "shop", label: "TikTok Shop" },
-  { key: "affiliate", label: "Affiliates" },
-];
-
 export default function CommerceOrdersPage() {
   const [shops, setShops] = useState<Shop[]>([]);
   const [orders, setOrders] = useState<PaginatedResponse<OrderSummary> | null>(null);
@@ -57,7 +51,7 @@ export default function CommerceOrdersPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [liveUpdates, setLiveUpdates] = useState<string[]>([]);
-  const [platformFilter, setPlatformFilter] = useState("all");
+  const { platform: platformFilter } = usePlatformFilter();
 
   const token = getAccessToken();
 
@@ -71,6 +65,10 @@ export default function CommerceOrdersPage() {
       }
     },
   });
+
+  useEffect(() => {
+    setPage(1);
+  }, [platformFilter]);
 
   useEffect(() => {
     loadShops();
@@ -202,11 +200,6 @@ export default function CommerceOrdersPage() {
 
   return (
     <>
-    <PlatformTabs
-      tabs={COMMERCE_PLATFORM_TABS}
-      value={platformFilter}
-      onChange={(v) => { setPlatformFilter(v); setPage(1); }}
-    />
     <PageShell
       header={
         <MetricBar>
