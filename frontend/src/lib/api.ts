@@ -167,6 +167,7 @@ export interface OrderSummary {
   item_count: number;
   fulfillment_type: string | null;
   rts_sla: string | null;
+  source_platform?: string;
   created_at: string;
   updated_at: string;
 }
@@ -290,13 +291,14 @@ export function syncProducts(
 export function listOrders(
   workspaceId: string,
   token: string,
-  params?: { shop_id?: string; status_filter?: string; date_from?: string; date_to?: string; page?: number; page_size?: number }
+  params?: { shop_id?: string; status_filter?: string; date_from?: string; date_to?: string; platform?: string; page?: number; page_size?: number }
 ): Promise<PaginatedResponse<OrderSummary>> {
   const query = new URLSearchParams({ workspace_id: workspaceId });
   if (params?.shop_id) query.set("shop_id", params.shop_id);
   if (params?.status_filter) query.set("status_filter", params.status_filter);
   if (params?.date_from) query.set("date_from", params.date_from);
   if (params?.date_to) query.set("date_to", params.date_to);
+  if (params?.platform) query.set("platform", params.platform);
   if (params?.page) query.set("page", String(params.page));
   if (params?.page_size) query.set("page_size", String(params.page_size));
   return apiFetch(`/commerce/orders?${query}`, { token });
@@ -420,6 +422,7 @@ export interface CampaignSummary {
   budget: string | null;
   operation_status: string;
   secondary_status: string | null;
+  source_platform?: string;
   created_at: string;
   updated_at: string;
 }
@@ -503,6 +506,7 @@ export function listCampaigns(
     objective?: string;
     status_filter?: string;
     search?: string;
+    platform?: string;
     page?: number;
     page_size?: number;
   }
@@ -512,6 +516,7 @@ export function listCampaigns(
   if (params?.objective) query.set("objective", params.objective);
   if (params?.status_filter) query.set("status_filter", params.status_filter);
   if (params?.search) query.set("search", params.search);
+  if (params?.platform) query.set("platform", params.platform);
   if (params?.page) query.set("page", String(params.page));
   if (params?.page_size) query.set("page_size", String(params.page_size));
   return apiFetch(`/ads/campaigns?${query}`, { token });
