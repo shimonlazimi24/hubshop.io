@@ -15,3 +15,4 @@ export { ChartCard } from "./chart-card";
 export { InsightPanel, InsightItem } from "./insight-panel";
 export { PageShell } from "./page-shell";
 export { CreativeCard } from "./creative-card";
+export { PlatformTabs, type PlatformTab } from "./platform-tabs";
