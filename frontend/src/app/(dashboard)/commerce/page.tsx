@@ -29,6 +29,7 @@ import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusBadge, type StatusVariant } from "@/components/ui/status-badge";
 import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
 import { EmptyState } from "@/components/ui/empty-state";
+import { PlatformTabs } from "@/components/ui/platform-tabs";
 import { toast } from "@/lib/toast-store";
 
 const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
@@ -42,6 +43,12 @@ const STATUS_MAP: Record<string, StatusVariant> = {
   unpaid: "draft",
 };
 
+const COMMERCE_PLATFORM_TABS = [
+  { key: "all", label: "All Platforms" },
+  { key: "shop", label: "TikTok Shop" },
+  { key: "affiliate", label: "Affiliates" },
+];
+
 export default function CommerceOrdersPage() {
   const [shops, setShops] = useState<Shop[]>([]);
   const [orders, setOrders] = useState<PaginatedResponse<OrderSummary> | null>(null);
@@ -50,6 +57,7 @@ export default function CommerceOrdersPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [liveUpdates, setLiveUpdates] = useState<string[]>([]);
+  const [platformFilter, setPlatformFilter] = useState("all");
 
   const token = getAccessToken();
 
@@ -67,7 +75,7 @@ export default function CommerceOrdersPage() {
   useEffect(() => {
     loadShops();
     loadOrders();
-  }, [statusFilter, page]);
+  }, [statusFilter, platformFilter, page]);
 
   function loadShops() {
     if (!token) return;
@@ -77,8 +85,10 @@ export default function CommerceOrdersPage() {
   function loadOrders() {
     if (!token) return;
     setLoading(true);
+    const platformParam = platformFilter === "all" ? undefined : platformFilter;
     listOrders(WORKSPACE_ID, token, {
       status_filter: statusFilter || undefined,
+      platform: platformParam,
       page,
     })
       .then(setOrders)
@@ -141,6 +151,16 @@ export default function CommerceOrdersPage() {
       ),
     },
     {
+      key: "platform",
+      header: "Platform",
+      render: (row) => (
+        <StatusBadge
+          variant={row.source_platform === "affiliate" ? "syncing" : "active"}
+          label={row.source_platform === "affiliate" ? "Affiliate" : "Shop"}
+        />
+      ),
+    },
+    {
       key: "total",
       header: "Total",
       sortable: true,
@@ -181,6 +201,12 @@ export default function CommerceOrdersPage() {
   ];
 
   return (
+    <>
+    <PlatformTabs
+      tabs={COMMERCE_PLATFORM_TABS}
+      value={platformFilter}
+      onChange={(v) => { setPlatformFilter(v); setPage(1); }}
+    />
     <PageShell
       header={
         <MetricBar>
@@ -285,5 +311,6 @@ export default function CommerceOrdersPage() {
         loading={loading}
       />
     </PageShell>
+    </>
   );
 }
