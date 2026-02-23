@@ -1,10 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { Suspense, useEffect } from "react";
 import { Megaphone, Layers, Image, BarChart3, UsersRound, Crosshair, BookOpen, Zap, Activity, MessageSquare, Search, Wand2, FlaskConical, UserPlus, Fingerprint } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { PlatformTabs } from "@/components/ui/platform-tabs";
+import { usePlatformFilter } from "@/hooks/usePlatformFilter";
 import { cn } from "@/lib/utils";
+
+const ADS_PLATFORM_TABS = [
+  { key: "all", label: "All Platforms" },
+  { key: "marketing", label: "TikTok Ads" },
+  { key: "shop", label: "Shop Promotions" },
+];
 
 const TABS = [
   {
@@ -13,6 +22,7 @@ const TABS = [
     icon: Megaphone,
     exact: ["/ads"],
     prefix: ["/ads/campaigns"],
+    platforms: ["marketing", "shop"],
   },
   {
     href: "/ads/ad-groups",
@@ -20,6 +30,7 @@ const TABS = [
     icon: Layers,
     exact: [],
     prefix: ["/ads/ad-groups"],
+    platforms: ["marketing"],
   },
   {
     href: "/ads/creatives",
@@ -27,6 +38,7 @@ const TABS = [
     icon: Image,
     exact: [],
     prefix: ["/ads/creatives"],
+    platforms: ["marketing"],
   },
   {
     href: "/ads/reports",
@@ -34,6 +46,7 @@ const TABS = [
     icon: BarChart3,
     exact: [],
     prefix: ["/ads/reports"],
+    platforms: ["marketing"],
   },
   {
     href: "/ads/audiences",
@@ -41,6 +54,7 @@ const TABS = [
     icon: UsersRound,
     exact: [],
     prefix: ["/ads/audiences"],
+    platforms: ["marketing"],
   },
   {
     href: "/ads/pixels",
@@ -48,6 +62,7 @@ const TABS = [
     icon: Crosshair,
     exact: [],
     prefix: ["/ads/pixels"],
+    platforms: ["marketing"],
   },
   {
     href: "/ads/catalogs",
@@ -55,6 +70,7 @@ const TABS = [
     icon: BookOpen,
     exact: [],
     prefix: ["/ads/catalogs"],
+    platforms: ["marketing"],
   },
   {
     href: "/ads/automation",
@@ -62,6 +78,7 @@ const TABS = [
     icon: Zap,
     exact: [],
     prefix: ["/ads/automation"],
+    platforms: ["marketing"],
   },
   {
     href: "/ads/events",
@@ -69,6 +86,7 @@ const TABS = [
     icon: Activity,
     exact: [],
     prefix: ["/ads/events"],
+    platforms: ["marketing"],
   },
   {
     href: "/ads/comments",
@@ -76,6 +94,7 @@ const TABS = [
     icon: MessageSquare,
     exact: [],
     prefix: ["/ads/comments"],
+    platforms: ["marketing"],
   },
   {
     href: "/ads/search",
@@ -83,6 +102,7 @@ const TABS = [
     icon: Search,
     exact: [],
     prefix: ["/ads/search"],
+    platforms: ["marketing"],
   },
   {
     href: "/ads/symphony",
@@ -90,6 +110,7 @@ const TABS = [
     icon: Wand2,
     exact: [],
     prefix: ["/ads/symphony"],
+    platforms: ["marketing"],
   },
   {
     href: "/ads/split-tests",
@@ -97,6 +118,7 @@ const TABS = [
     icon: FlaskConical,
     exact: [],
     prefix: ["/ads/split-tests"],
+    platforms: ["marketing"],
   },
   {
     href: "/ads/leads",
@@ -104,6 +126,7 @@ const TABS = [
     icon: UserPlus,
     exact: [],
     prefix: ["/ads/leads"],
+    platforms: ["marketing"],
   },
   {
     href: "/ads/identities",
@@ -111,11 +134,34 @@ const TABS = [
     icon: Fingerprint,
     exact: [],
     prefix: ["/ads/identities"],
+    platforms: ["marketing"],
   },
 ];
 
-export default function AdsLayout({ children }: { children: React.ReactNode }) {
+function AdsLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { platform, setPlatform } = usePlatformFilter();
+
+  const visibleTabs = platform === "all"
+    ? TABS
+    : TABS.filter((tab) => tab.platforms.includes(platform));
+
+  const isCurrentPathVisible = visibleTabs.some(
+    (tab) =>
+      tab.exact.some((m) => pathname === m) ||
+      tab.prefix.some((m) => pathname === m || pathname.startsWith(m + "/"))
+  );
+
+  useEffect(() => {
+    if (!isCurrentPathVisible && visibleTabs.length > 0) {
+      const params = new URLSearchParams();
+      if (platform !== "all") params.set("platform", platform);
+      const qs = params.toString();
+      const target = qs ? `${visibleTabs[0].href}?${qs}` : visibleTabs[0].href;
+      router.push(target);
+    }
+  }, [isCurrentPathVisible, visibleTabs, platform, router]);
 
   return (
     <div>
@@ -124,9 +170,15 @@ export default function AdsLayout({ children }: { children: React.ReactNode }) {
         description="Manage your TikTok ad campaigns, ad groups, and reporting."
       />
 
+      <PlatformTabs
+        tabs={ADS_PLATFORM_TABS}
+        value={platform}
+        onChange={setPlatform}
+      />
+
       <div className="border-b border-gray-200 mb-6">
         <nav className="flex gap-1">
-          {TABS.map((tab) => {
+          {visibleTabs.map((tab) => {
             const isActive =
               tab.exact.some((m) => pathname === m) ||
               tab.prefix.some(
@@ -154,5 +206,13 @@ export default function AdsLayout({ children }: { children: React.ReactNode }) {
 
       {children}
     </div>
+  );
+}
+
+export default function AdsLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={null}>
+      <AdsLayoutInner>{children}</AdsLayoutInner>
+    </Suspense>
   );
 }
