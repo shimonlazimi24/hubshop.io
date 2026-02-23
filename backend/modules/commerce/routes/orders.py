@@ -14,6 +14,7 @@ from backend.modules.commerce.schemas import (
 )
 from backend.modules.commerce.services.fulfillment_service import FulfillmentService
 from backend.modules.commerce.services.order_service import OrderService
+from backend.modules.commerce.services.unified_service import UnifiedCommerceService
 
 router = APIRouter()
 
@@ -30,25 +31,20 @@ async def list_orders(
     status_filter: str | None = None,
     date_from: datetime | None = None,
     date_to: datetime | None = None,
+    platform: str | None = None,
     page: int = 1,
     page_size: int = 20,
 ) -> PaginatedResponse[OrderSummaryResponse]:
-    service = OrderService(db)
-    result = await service.list_orders(
+    service = UnifiedCommerceService(db)
+    return await service.list_orders(
         workspace_id,
+        platform=platform,
         shop_id=shop_id,
-        status=status_filter,
+        status_filter=status_filter,
         date_from=date_from,
         date_to=date_to,
         page=page,
         page_size=page_size,
-    )
-    return PaginatedResponse(
-        items=[OrderSummaryResponse.model_validate(o) for o in result.items],
-        total=result.total,
-        page=result.page,
-        page_size=result.page_size,
-        total_pages=result.total_pages,
     )
 
 
