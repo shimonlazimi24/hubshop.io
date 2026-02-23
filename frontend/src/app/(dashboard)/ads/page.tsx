@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { usePlatformFilter } from "@/hooks/usePlatformFilter";
 import { DollarSign, TrendingUp, Megaphone, Target, RefreshCw, Edit, Pause, Play, Copy, Trophy, AlertTriangle, BarChart3, Plus } from "lucide-react";
 
 import {
@@ -24,7 +25,6 @@ import { StatusBadge, type StatusVariant } from "@/components/ui/status-badge";
 import { ActionMenu } from "@/components/ui/action-menu";
 import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
 import { PageHeader } from "@/components/dashboard/page-header";
-import { PlatformTabs } from "@/components/ui/platform-tabs";
 
 const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
@@ -36,12 +36,6 @@ const OBJECTIVES = [
   "VIDEO_VIEWS",
   "LEAD_GENERATION",
   "PRODUCT_SALES",
-];
-
-const ADS_PLATFORM_TABS = [
-  { key: "all", label: "All Platforms" },
-  { key: "marketing", label: "TikTok Ads" },
-  { key: "shop", label: "Shop Promotions" },
 ];
 
 function mapStatus(status: string): StatusVariant {
@@ -73,7 +67,7 @@ export default function CampaignsPage() {
   const [objectiveFilter, setObjectiveFilter] = useState("");
   const [accountFilter, setAccountFilter] = useState("");
   const [page, setPage] = useState(1);
-  const [platformFilter, setPlatformFilter] = useState("all");
+  const { platform: platformFilter } = usePlatformFilter();
 
   const token = getAccessToken();
 
@@ -81,6 +75,10 @@ export default function CampaignsPage() {
     if (!token) return;
     listAdAccounts(WORKSPACE_ID, token).then(setAdAccounts).catch(console.error);
   }, []);
+
+  useEffect(() => {
+    setPage(1);
+  }, [platformFilter]);
 
   useEffect(() => {
     loadCampaigns();
@@ -206,11 +204,6 @@ export default function CampaignsPage() {
             Create Campaign
           </Link>
         }
-      />
-      <PlatformTabs
-        tabs={ADS_PLATFORM_TABS}
-        value={platformFilter}
-        onChange={(v) => { setPlatformFilter(v); setPage(1); }}
       />
       <PageShell
         header={
