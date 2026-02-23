@@ -12,6 +12,7 @@ from backend.modules.advertising.schemas import (
 )
 from backend.modules.advertising.services.ad_account_service import AdAccountService
 from backend.modules.advertising.services.campaign_service import CampaignService
+from backend.modules.advertising.services.unified_service import UnifiedAdvertisingService
 from backend.modules.commerce.schemas import PaginatedResponse
 
 router = APIRouter()
@@ -29,25 +30,20 @@ async def list_campaigns(
     objective: str | None = None,
     status_filter: str | None = None,
     search: str | None = None,
+    platform: str | None = None,
     page: int = 1,
     page_size: int = 20,
 ) -> PaginatedResponse[CampaignSummaryResponse]:
-    service = CampaignService(db)
-    result = await service.list_campaigns(
+    service = UnifiedAdvertisingService(db)
+    return await service.list_campaigns(
         workspace_id,
+        platform=platform,
         ad_account_id=ad_account_id,
         objective=objective,
         status_filter=status_filter,
         search=search,
         page=page,
         page_size=page_size,
-    )
-    return PaginatedResponse(
-        items=[CampaignSummaryResponse.model_validate(c) for c in result.items],
-        total=result.total,
-        page=result.page,
-        page_size=result.page_size,
-        total_pages=result.total_pages,
     )
 
 
