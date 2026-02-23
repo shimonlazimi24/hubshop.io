@@ -495,8 +495,6 @@ ORDER BY created_at DESC;
 
 | File | Last Modified | Status |
 |------|--------------|--------|
-| `docs/CONTRIB.md` | 2026-02-21 | Updated |
-| `docs/RUNBOOK.md` | 2026-02-21 | Updated |
-| `ARCHITECTURE.md` | 2025-02-19 | Needs update (Phase 7-8, UX redesign not reflected) |
-| `frontend/README.md` | 2025-02-19 | Needs update |
-| `knowledge-base/README.md` | 2025-02-19 | Current (reference material) |
+| `docs/CONTRIB.md` | 2026-02-23 | Updated |
+| `docs/RUNBOOK.md` | 2026-02-23 | Updated |
+| `docs/api-integration-manual.md` | 2026-02-22 | Current |

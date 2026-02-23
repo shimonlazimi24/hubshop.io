@@ -1,0 +1,21 @@
+Codemap Diff Report - 2026-02-23
+=================================
+
+Status: INITIAL GENERATION (no previous version)
+Diff percentage: N/A (first run)
+
+Files Generated:
+  docs/CODEMAPS/architecture.md  - Overall system architecture
+  docs/CODEMAPS/backend.md       - Backend structure (modules, workers, auth)
+  docs/CODEMAPS/frontend.md      - Frontend structure (pages, components, hooks)
+  docs/CODEMAPS/data.md          - Data models and schemas (17 files, 120+ classes)
+
+Documentation Updated:
+  docs/CONTRIB.md                - Updated test counts (550+ -> 878), added 2 missing env vars,
+                                   updated model count (16->17), UI components (13+->20),
+                                   pages (70+->74), added hooks section, updated per-module test table
+  docs/RUNBOOK.md                - Updated staleness review table
+
+Staleness Review:
+  All docs are within 3 days old (2026-02-20 to 2026-02-23). None stale.
+  No files older than 90 days found.

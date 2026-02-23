@@ -95,6 +95,8 @@ docker compose up
 | `TIKTOK_DEVELOPER_CLIENT_SECRET` | TikTok Developer client secret | String | For Developer features |
 | `TIKTOK_MARKETING_APP_ID` | TikTok Marketing app ID | String | For Ads features |
 | `TIKTOK_MARKETING_APP_SECRET` | TikTok Marketing app secret | String | For Ads features |
+| `TIKTOK_RESEARCH_CLIENT_KEY` | TikTok Research API client key | String | For Intelligence features |
+| `TIKTOK_RESEARCH_CLIENT_SECRET` | TikTok Research API client secret | String | For Intelligence features |
 | `CELERY_BROKER_URL` | Celery broker (Redis) | `redis://host:port/db` | Yes |
 | `CELERY_RESULT_BACKEND` | Celery result store (Redis) | `redis://host:port/db` | Yes |
 
@@ -110,7 +112,7 @@ docker compose up
 | `alembic upgrade head` | Run database migrations |
 | `alembic revision --autogenerate -m "description"` | Generate new migration |
 | `alembic downgrade -1` | Rollback last migration |
-| `pytest` | Run all tests (550+ tests) |
+| `pytest` | Run all tests (878 tests) |
 | `pytest tests/unit` | Run unit tests only |
 | `pytest tests/integration` | Run integration tests only |
 | `pytest --cov=backend --cov-report=term-missing` | Run tests with coverage |
@@ -161,7 +163,7 @@ frodo/
     dependencies.py         # DI (DB sessions, current user)
     auth/                   # JWT, RBAC, passwords, routes
     db/
-      models/               # SQLAlchemy ORM models (16 files, 120 entity classes)
+      models/               # SQLAlchemy ORM models (17 files, 120+ entity classes)
         advertising.py      #   AdAccount, Campaign, AdGroup, Ad, Audience, Pixel, Catalog, Creative, SplitTest
         affiliate.py        #   AffiliateProduct, OpenCollaboration, TargetCollaboration
         analytics.py        #   ScheduledReport, Notification, ApiKey, UnifiedKpiSnapshot
@@ -173,6 +175,8 @@ frodo/
         live.py             #   LiveSession, LiveEvent, LiveAnalytics
         messaging.py        #   Conversation, Message, AutoMessage
         organic.py          #   BrandMention, MentionKeyword, OrganicComment
+        organization.py     #   Workspace, WorkspaceMember
+        social_identity.py  #   SocialIdentity
     tiktok/                 # Platform clients (5 clients)
       shop_client.py        #   TikTokShopClient (HMAC-SHA256)
       developer_client.py   #   TikTokDeveloperClient (OAuth 2.0)
@@ -207,7 +211,7 @@ frodo/
     utils/                  # Crypto, pagination
   frontend/
     src/app/(auth)/         # Login, register pages
-    src/app/(dashboard)/    # 70+ dashboard pages with sidebar layout
+    src/app/(dashboard)/    # 74 dashboard pages with sidebar layout
       overview/             #   KPI dashboard + Quick Actions
       connect/              #   Account connection
       commerce/             #   Products, orders, returns, analytics, affiliate, promotions, finance
@@ -222,9 +226,10 @@ frodo/
       analytics/            #   Overview, reports, notifications, API keys
       settings/             #   User settings
     src/components/
-      ui/                   #   Component library (13+ components with barrel export)
+      ui/                   #   Component library (20 components with barrel export)
       dashboard/            #   Page header, sidebar, top bar
     src/config/             # Navigation config (14 sidebar items)
+    src/hooks/              # Custom hooks (usePlatformFilter, useCommerceWebSocket, useSidebarState)
     src/lib/                # API client, auth helpers, toast store
   tests/
     unit/                   # Unit tests by module
@@ -238,7 +243,7 @@ frodo/
 ### Running tests
 
 ```bash
-# All tests (550+ passing)
+# All tests (878 passing)
 pytest
 
 # Unit tests only
@@ -274,17 +279,19 @@ pytest -m e2e          # E2E tests
 
 | Module | Test Count | Areas Covered |
 |--------|-----------|---------------|
-| Foundation | 37 | JWT, AES-256-GCM, bcrypt, RBAC, circuit breaker, webhooks, HMAC, pagination |
-| Commerce | 66 | Products, orders, schemas, webhook handlers, analytics, fulfillment, returns |
-| Advertising | 130+ | Ad accounts, campaigns, ad groups, ads, reports, audiences, pixels, search, symphony, split tests, automation |
-| Content | 20+ | Content models, publish service, video sync |
-| Creators | 25+ | Campaigns, profiles, creator models, discovery |
-| Analytics | 86 | KPIs, reports, notifications, API keys, models |
-| Intelligence | 60+ | Trends, competitors, research queries, data sources |
-| LIVE | 30+ | Sessions, events, analytics, stream monitoring |
-| Messaging | 40+ | Conversations, messages, auto-messages |
-| Organic | 30+ | Mentions, keywords, comments |
-| Integration | 25+ | Route integration, sync pipelines, webhooks, WebSocket |
+| Advertising | 136 | Ad accounts, campaigns, ad groups, ads, reports, audiences, pixels, search, symphony, split tests, automation |
+| Content | 68 | Content models, publish service, video sync, photo publish |
+| Creators | 55 | Campaigns, profiles, creator models, discovery, invitations |
+| Commerce | 54 | Products, orders, schemas, webhook handlers, analytics, fulfillment, returns |
+| Analytics | 47 | KPIs, reports, notifications, API keys, models |
+| Intelligence | 42 | Trends, competitors, research queries, data sources |
+| Models | 39 | DB model schema tests across all entity types |
+| TikTok Clients | 38 | Platform clients (Shop, Developer, Marketing, Research, LIVE) |
+| Workers | 31 | Celery task scheduling, sync workers |
+| LIVE | 26 | Sessions, events, analytics, stream monitoring |
+| Organic | 17 | Mentions, keywords, comments |
+| Messaging | 16 | Conversations, messages, auto-messages |
+| Integration | 37 | Route integration, sync pipelines, webhooks, WebSocket |
 
 ## Code Quality
 
