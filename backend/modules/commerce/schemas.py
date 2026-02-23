@@ -58,6 +58,7 @@ class ProductSummaryResponse(BaseModel):
     currency: str | None = None
     inventory_total: int
     sku_count: int
+    source_platform: str = "shop"
     created_at: datetime
     updated_at: datetime
 
@@ -117,6 +118,7 @@ class OrderSummaryResponse(BaseModel):
     item_count: int
     fulfillment_type: str | None = None
     rts_sla: datetime | None = None
+    source_platform: str = "shop"
     created_at: datetime
     updated_at: datetime
 
@@ -132,6 +134,7 @@ class OrderDetailResponse(BaseModel):
     item_count: int
     fulfillment_type: str | None = None
     rts_sla: datetime | None = None
+    source_platform: str = "shop"
     line_items: list[OrderLineItemResponse] = []
     packages: list[PackageResponse] = []
     detail_json: dict | None = None
