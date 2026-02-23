@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePlatformFilter } from "@/hooks/usePlatformFilter";
 import { Code, Activity, Copy, TrendingUp, AlertTriangle } from "lucide-react";
 import { listPixels, getPixelCode, type Pixel, type PaginatedResponse } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
@@ -21,15 +22,17 @@ export default function PixelsPage() {
   const [selectedPixel, setSelectedPixel] = useState<string | null>(null);
   const [pixelCode, setPixelCode] = useState<string | null>(null);
 
+  const { platform } = usePlatformFilter();
+  const platformParam = platform === "all" ? undefined : platform;
   const token = getAccessToken();
 
   useEffect(() => {
     if (!token) return;
-    listPixels(WORKSPACE_ID, token)
+    listPixels(WORKSPACE_ID, token, { platform: platformParam })
       .then(setData)
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [platform]);
 
   async function handleGetCode(pixelId: string) {
     if (!token) return;

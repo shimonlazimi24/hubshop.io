@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePlatformFilter } from "@/hooks/usePlatformFilter";
 import { Tag, Percent, TrendingUp } from "lucide-react";
 import { listPromotions, type Promotion, type PaginatedResponse } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
@@ -66,19 +67,22 @@ export default function PromotionsPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
+  const { platform } = usePlatformFilter();
+  const platformParam = platform === "all" ? undefined : platform;
   const token = getAccessToken();
 
   useEffect(() => {
     if (!token) return;
     setLoading(true);
     listPromotions(WORKSPACE_ID, token, {
+      platform: platformParam,
       status_filter: statusFilter || undefined,
       page,
     })
       .then(setData)
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [statusFilter, page]);
+  }, [statusFilter, platform, page]);
 
   const items = data?.items ?? [];
   const activeCount = items.filter((p) => p.status === "ACTIVE").length;

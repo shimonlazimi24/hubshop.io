@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePlatformFilter } from "@/hooks/usePlatformFilter";
 import { RotateCcw, AlertTriangle, CheckCircle } from "lucide-react";
 import {
   approveReturn,
@@ -36,16 +37,18 @@ export default function ReturnsPage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
 
+  const { platform } = usePlatformFilter();
+  const platformParam = platform === "all" ? undefined : platform;
   const token = getAccessToken();
 
   useEffect(() => {
     loadReturns();
-  }, [page]);
+  }, [platform, page]);
 
   function loadReturns() {
     if (!token) return;
     setLoading(true);
-    listReturns(WORKSPACE_ID, token, { page })
+    listReturns(WORKSPACE_ID, token, { platform: platformParam, page })
       .then(setReturns)
       .catch(console.error)
       .finally(() => setLoading(false));

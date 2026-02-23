@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePlatformFilter } from "@/hooks/usePlatformFilter";
 import { Users, UserPlus, RefreshCw, Target, TrendingUp, AlertTriangle } from "lucide-react";
 import { listAudiences, syncAudiences, type Audience, type PaginatedResponse } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
@@ -24,16 +25,18 @@ export default function AudiencesPage() {
   const [typeFilter, setTypeFilter] = useState("");
   const [page, setPage] = useState(1);
 
+  const { platform } = usePlatformFilter();
+  const platformParam = platform === "all" ? undefined : platform;
   const token = getAccessToken();
 
   useEffect(() => {
     loadAudiences();
-  }, [page]);
+  }, [platform, page]);
 
   function loadAudiences() {
     if (!token) return;
     setLoading(true);
-    listAudiences(WORKSPACE_ID, token, { page })
+    listAudiences(WORKSPACE_ID, token, { platform: platformParam, page })
       .then(setData)
       .catch(console.error)
       .finally(() => setLoading(false));

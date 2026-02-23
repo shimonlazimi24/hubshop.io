@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePlatformFilter } from "@/hooks/usePlatformFilter";
 import { DollarSign, ShoppingCart, TrendingUp, RotateCcw } from "lucide-react";
 import {
   getCommerceSummary,
@@ -57,6 +58,8 @@ export default function AnalyticsPage() {
   const [days, setDays] = useState(30);
   const [loading, setLoading] = useState(true);
 
+  const { platform } = usePlatformFilter();
+  const platformParam = platform === "all" ? undefined : platform;
   const token = getAccessToken();
 
   useEffect(() => {
@@ -64,10 +67,10 @@ export default function AnalyticsPage() {
     setLoading(true);
 
     Promise.all([
-      getCommerceSummary(WORKSPACE_ID, token, days),
-      getRevenueTimeseries(WORKSPACE_ID, token, days),
-      getTopProducts(WORKSPACE_ID, token, 10),
-      getOrderDistribution(WORKSPACE_ID, token),
+      getCommerceSummary(WORKSPACE_ID, token, days, platformParam),
+      getRevenueTimeseries(WORKSPACE_ID, token, days, platformParam),
+      getTopProducts(WORKSPACE_ID, token, 10, platformParam),
+      getOrderDistribution(WORKSPACE_ID, token, platformParam),
     ])
       .then(([s, t, p, d]) => {
         setSummary(s);
@@ -77,7 +80,7 @@ export default function AnalyticsPage() {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [days]);
+  }, [days, platform]);
 
   const maxRevenue = Math.max(
     ...timeseries.map((p) => parseFloat(p.revenue) || 0),

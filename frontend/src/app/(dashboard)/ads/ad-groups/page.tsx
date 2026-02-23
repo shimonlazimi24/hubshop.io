@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { usePlatformFilter } from "@/hooks/usePlatformFilter";
 import { Layers, DollarSign, Target, TrendingUp, RefreshCw, Trophy, AlertTriangle, BarChart3 } from "lucide-react";
 
 import {
@@ -53,6 +54,8 @@ export default function AdGroupsPage() {
   const [accountFilter, setAccountFilter] = useState("");
   const [page, setPage] = useState(1);
 
+  const { platform } = usePlatformFilter();
+  const platformParam = platform === "all" ? undefined : platform;
   const token = getAccessToken();
 
   useEffect(() => {
@@ -62,12 +65,13 @@ export default function AdGroupsPage() {
 
   useEffect(() => {
     loadAdGroups();
-  }, [statusFilter, accountFilter, page]);
+  }, [statusFilter, accountFilter, platform, page]);
 
   function loadAdGroups() {
     if (!token) return;
     setLoading(true);
     listAdGroups(WORKSPACE_ID, token, {
+      platform: platformParam,
       status_filter: statusFilter || undefined,
       ad_account_id: accountFilter || undefined,
       page,

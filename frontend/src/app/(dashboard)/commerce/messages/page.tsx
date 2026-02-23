@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePlatformFilter } from "@/hooks/usePlatformFilter";
 import { MessageSquare, Clock, Users } from "lucide-react";
 import { listConversations, listShops, type Shop } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
@@ -18,6 +19,8 @@ export default function MessagesPage() {
   const [conversations, setConversations] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const { platform } = usePlatformFilter();
+  const platformParam = platform === "all" ? undefined : platform;
   const token = getAccessToken();
 
   useEffect(() => {

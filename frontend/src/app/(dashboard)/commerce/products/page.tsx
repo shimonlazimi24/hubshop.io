@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { usePlatformFilter } from "@/hooks/usePlatformFilter";
 import { Package, RefreshCw, LayoutGrid, List, AlertTriangle, TrendingUp } from "lucide-react";
 import {
   listProducts,
@@ -44,6 +45,8 @@ export default function ProductsPage() {
   const [page, setPage] = useState(1);
   const [viewMode, setViewMode] = useState<"grid" | "table">("table");
 
+  const { platform } = usePlatformFilter();
+  const platformParam = platform === "all" ? undefined : platform;
   const token = getAccessToken();
 
   useEffect(() => {
@@ -53,12 +56,13 @@ export default function ProductsPage() {
 
   useEffect(() => {
     loadProducts();
-  }, [search, statusFilter, shopFilter, page]);
+  }, [search, statusFilter, shopFilter, platform, page]);
 
   function loadProducts() {
     if (!token) return;
     setLoading(true);
     listProducts(WORKSPACE_ID, token, {
+      platform: platformParam,
       search: search || undefined,
       status_filter: statusFilter || undefined,
       shop_id: shopFilter || undefined,

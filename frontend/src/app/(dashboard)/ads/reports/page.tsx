@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePlatformFilter } from "@/hooks/usePlatformFilter";
 import { BarChart3, TrendingUp, FileText, AlertTriangle } from "lucide-react";
 
 import {
@@ -60,6 +61,8 @@ interface ReportRow {
 }
 
 export default function ReportsPage() {
+  const { platform } = usePlatformFilter();
+  const platformParam = platform === "all" ? undefined : platform;
   const defaultDates = getDefaultDateRange();
   const [adAccounts, setAdAccounts] = useState<AdAccount[]>([]);
   const [selectedAccount, setSelectedAccount] = useState("");

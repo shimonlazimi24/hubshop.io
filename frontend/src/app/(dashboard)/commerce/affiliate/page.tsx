@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePlatformFilter } from "@/hooks/usePlatformFilter";
 import { Users, Percent, TrendingUp } from "lucide-react";
 import {
   listAffiliateProducts,
@@ -79,19 +80,21 @@ export default function AffiliatePage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
 
+  const { platform } = usePlatformFilter();
+  const platformParam = platform === "all" ? undefined : platform;
   const token = getAccessToken();
 
   useEffect(() => {
     if (!token) return;
     setLoading(true);
     Promise.all([
-      listAffiliateProducts(WORKSPACE_ID, token, { page }),
-      listCollaborations(WORKSPACE_ID, token),
+      listAffiliateProducts(WORKSPACE_ID, token, { platform: platformParam, page }),
+      listCollaborations(WORKSPACE_ID, token, { platform: platformParam }),
     ])
       .then(([p, c]) => { setProducts(p); setCollabs(c); })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [page]);
+  }, [platform, page]);
 
   const activeProducts = products?.items.filter((p) => p.status === "ACTIVE").length ?? 0;
 

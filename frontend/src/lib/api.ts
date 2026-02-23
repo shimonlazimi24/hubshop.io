@@ -262,12 +262,13 @@ export function syncShops(workspaceId: string, token: string): Promise<Shop[]> {
 export function listProducts(
   workspaceId: string,
   token: string,
-  params?: { shop_id?: string; status_filter?: string; search?: string; page?: number; page_size?: number }
+  params?: { shop_id?: string; status_filter?: string; search?: string; platform?: string; page?: number; page_size?: number }
 ): Promise<PaginatedResponse<ProductSummary>> {
   const query = new URLSearchParams({ workspace_id: workspaceId });
   if (params?.shop_id) query.set("shop_id", params.shop_id);
   if (params?.status_filter) query.set("status_filter", params.status_filter);
   if (params?.search) query.set("search", params.search);
+  if (params?.platform) query.set("platform", params.platform);
   if (params?.page) query.set("page", String(params.page));
   if (params?.page_size) query.set("page_size", String(params.page_size));
   return apiFetch(`/commerce/products?${query}`, { token });
@@ -335,9 +336,10 @@ export function shipPackage(
 export function listReturns(
   workspaceId: string,
   token: string,
-  params?: { page?: number; page_size?: number }
+  params?: { platform?: string; page?: number; page_size?: number }
 ): Promise<PaginatedResponse<ReturnRequest>> {
   const query = new URLSearchParams({ workspace_id: workspaceId });
+  if (params?.platform) query.set("platform", params.platform);
   if (params?.page) query.set("page", String(params.page));
   if (params?.page_size) query.set("page_size", String(params.page_size));
   return apiFetch(`/commerce/returns?${query}`, { token });
@@ -366,38 +368,47 @@ export function rejectReturn(
 export function getCommerceSummary(
   workspaceId: string,
   token: string,
-  days?: number
+  days?: number,
+  platform?: string
 ): Promise<RevenueSummary> {
   const query = new URLSearchParams({ workspace_id: workspaceId });
   if (days) query.set("days", String(days));
+  if (platform) query.set("platform", platform);
   return apiFetch(`/commerce/analytics/summary?${query}`, { token });
 }
 
 export function getRevenueTimeseries(
   workspaceId: string,
   token: string,
-  days?: number
+  days?: number,
+  platform?: string
 ): Promise<RevenuePoint[]> {
   const query = new URLSearchParams({ workspace_id: workspaceId });
   if (days) query.set("days", String(days));
+  if (platform) query.set("platform", platform);
   return apiFetch(`/commerce/analytics/revenue?${query}`, { token });
 }
 
 export function getTopProducts(
   workspaceId: string,
   token: string,
-  limit?: number
+  limit?: number,
+  platform?: string
 ): Promise<TopProduct[]> {
   const query = new URLSearchParams({ workspace_id: workspaceId });
   if (limit) query.set("limit", String(limit));
+  if (platform) query.set("platform", platform);
   return apiFetch(`/commerce/analytics/top-products?${query}`, { token });
 }
 
 export function getOrderDistribution(
   workspaceId: string,
-  token: string
+  token: string,
+  platform?: string
 ): Promise<OrderStatusDistribution[]> {
-  return apiFetch(`/commerce/analytics/order-distribution?workspace_id=${workspaceId}`, {
+  const query = new URLSearchParams({ workspace_id: workspaceId });
+  if (platform) query.set("platform", platform);
+  return apiFetch(`/commerce/analytics/order-distribution?${query}`, {
     token,
   });
 }
@@ -574,6 +585,7 @@ export function listAdGroups(
     campaign_id?: string;
     ad_account_id?: string;
     status_filter?: string;
+    platform?: string;
     page?: number;
     page_size?: number;
   }
@@ -582,6 +594,7 @@ export function listAdGroups(
   if (params?.campaign_id) query.set("campaign_id", params.campaign_id);
   if (params?.ad_account_id) query.set("ad_account_id", params.ad_account_id);
   if (params?.status_filter) query.set("status_filter", params.status_filter);
+  if (params?.platform) query.set("platform", params.platform);
   if (params?.page) query.set("page", String(params.page));
   if (params?.page_size) query.set("page_size", String(params.page_size));
   return apiFetch(`/ads/ad-groups?${query}`, { token });
@@ -695,10 +708,11 @@ export interface Audience {
 export function listAudiences(
   workspaceId: string,
   token: string,
-  params?: { ad_account_id?: string; page?: number; page_size?: number }
+  params?: { ad_account_id?: string; platform?: string; page?: number; page_size?: number }
 ): Promise<PaginatedResponse<Audience>> {
   const query = new URLSearchParams({ workspace_id: workspaceId });
   if (params?.ad_account_id) query.set("ad_account_id", params.ad_account_id);
+  if (params?.platform) query.set("platform", params.platform);
   if (params?.page) query.set("page", String(params.page));
   if (params?.page_size) query.set("page_size", String(params.page_size));
   return apiFetch(`/ads/audiences?${query}`, { token });
@@ -745,10 +759,11 @@ export interface Pixel {
 export function listPixels(
   workspaceId: string,
   token: string,
-  params?: { ad_account_id?: string; page?: number; page_size?: number }
+  params?: { ad_account_id?: string; platform?: string; page?: number; page_size?: number }
 ): Promise<PaginatedResponse<Pixel>> {
   const query = new URLSearchParams({ workspace_id: workspaceId });
   if (params?.ad_account_id) query.set("ad_account_id", params.ad_account_id);
+  if (params?.platform) query.set("platform", params.platform);
   if (params?.page) query.set("page", String(params.page));
   if (params?.page_size) query.set("page_size", String(params.page_size));
   return apiFetch(`/ads/pixels?${query}`, { token });
@@ -779,10 +794,11 @@ export interface Catalog {
 export function listCatalogs(
   workspaceId: string,
   token: string,
-  params?: { ad_account_id?: string; page?: number; page_size?: number }
+  params?: { ad_account_id?: string; platform?: string; page?: number; page_size?: number }
 ): Promise<PaginatedResponse<Catalog>> {
   const query = new URLSearchParams({ workspace_id: workspaceId });
   if (params?.ad_account_id) query.set("ad_account_id", params.ad_account_id);
+  if (params?.platform) query.set("platform", params.platform);
   if (params?.page) query.set("page", String(params.page));
   if (params?.page_size) query.set("page_size", String(params.page_size));
   return apiFetch(`/ads/catalogs?${query}`, { token });
@@ -988,10 +1004,11 @@ export interface TargetCollaboration {
 export function listAffiliateProducts(
   workspaceId: string,
   token: string,
-  params?: { shop_id?: string; page?: number; page_size?: number }
+  params?: { shop_id?: string; platform?: string; page?: number; page_size?: number }
 ): Promise<PaginatedResponse<AffiliateProduct>> {
   const query = new URLSearchParams({ workspace_id: workspaceId });
   if (params?.shop_id) query.set("shop_id", params.shop_id);
+  if (params?.platform) query.set("platform", params.platform);
   if (params?.page) query.set("page", String(params.page));
   if (params?.page_size) query.set("page_size", String(params.page_size));
   return apiFetch(`/commerce/affiliate/products?${query}`, { token });
@@ -1014,9 +1031,10 @@ export function removeFromMarketplace(productId: string, shopId: string, token: 
 export function listCollaborations(
   workspaceId: string,
   token: string,
-  params?: { page?: number; page_size?: number }
+  params?: { platform?: string; page?: number; page_size?: number }
 ): Promise<PaginatedResponse<OpenCollaboration>> {
   const query = new URLSearchParams({ workspace_id: workspaceId });
+  if (params?.platform) query.set("platform", params.platform);
   if (params?.page) query.set("page", String(params.page));
   if (params?.page_size) query.set("page_size", String(params.page_size));
   return apiFetch(`/commerce/affiliate/collaborations?${query}`, { token });
@@ -1054,11 +1072,12 @@ export interface Promotion {
 export function listPromotions(
   workspaceId: string,
   token: string,
-  params?: { shop_id?: string; status_filter?: string; page?: number; page_size?: number }
+  params?: { shop_id?: string; status_filter?: string; platform?: string; page?: number; page_size?: number }
 ): Promise<PaginatedResponse<Promotion>> {
   const query = new URLSearchParams({ workspace_id: workspaceId });
   if (params?.shop_id) query.set("shop_id", params.shop_id);
   if (params?.status_filter) query.set("status_filter", params.status_filter);
+  if (params?.platform) query.set("platform", params.platform);
   if (params?.page) query.set("page", String(params.page));
   if (params?.page_size) query.set("page_size", String(params.page_size));
   return apiFetch(`/commerce/promotions?${query}`, { token });
@@ -1132,10 +1151,11 @@ export interface Payment {
 export function listSettlements(
   workspaceId: string,
   token: string,
-  params?: { shop_id?: string; page?: number; page_size?: number }
+  params?: { shop_id?: string; platform?: string; page?: number; page_size?: number }
 ): Promise<PaginatedResponse<Settlement>> {
   const query = new URLSearchParams({ workspace_id: workspaceId });
   if (params?.shop_id) query.set("shop_id", params.shop_id);
+  if (params?.platform) query.set("platform", params.platform);
   if (params?.page) query.set("page", String(params.page));
   if (params?.page_size) query.set("page_size", String(params.page_size));
   return apiFetch(`/commerce/finance/settlements?${query}`, { token });
@@ -1144,10 +1164,11 @@ export function listSettlements(
 export function listTransactions(
   workspaceId: string,
   token: string,
-  params?: { shop_id?: string; page?: number; page_size?: number }
+  params?: { shop_id?: string; platform?: string; page?: number; page_size?: number }
 ): Promise<PaginatedResponse<Transaction>> {
   const query = new URLSearchParams({ workspace_id: workspaceId });
   if (params?.shop_id) query.set("shop_id", params.shop_id);
+  if (params?.platform) query.set("platform", params.platform);
   if (params?.page) query.set("page", String(params.page));
   if (params?.page_size) query.set("page_size", String(params.page_size));
   return apiFetch(`/commerce/finance/transactions?${query}`, { token });
@@ -1156,10 +1177,11 @@ export function listTransactions(
 export function listPayments(
   workspaceId: string,
   token: string,
-  params?: { shop_id?: string; page?: number; page_size?: number }
+  params?: { shop_id?: string; platform?: string; page?: number; page_size?: number }
 ): Promise<PaginatedResponse<Payment>> {
   const query = new URLSearchParams({ workspace_id: workspaceId });
   if (params?.shop_id) query.set("shop_id", params.shop_id);
+  if (params?.platform) query.set("platform", params.platform);
   if (params?.page) query.set("page", String(params.page));
   if (params?.page_size) query.set("page_size", String(params.page_size));
   return apiFetch(`/commerce/finance/payments?${query}`, { token });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePlatformFilter } from "@/hooks/usePlatformFilter";
 import { Package, ShoppingBag, RefreshCw, TrendingUp, AlertTriangle } from "lucide-react";
 import { listCatalogs, syncCatalogs, type Catalog, type PaginatedResponse } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
@@ -23,16 +24,18 @@ export default function CatalogsPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
+  const { platform } = usePlatformFilter();
+  const platformParam = platform === "all" ? undefined : platform;
   const token = getAccessToken();
 
   useEffect(() => {
     loadCatalogs();
-  }, [page]);
+  }, [platform, page]);
 
   function loadCatalogs() {
     if (!token) return;
     setLoading(true);
-    listCatalogs(WORKSPACE_ID, token, { page })
+    listCatalogs(WORKSPACE_ID, token, { platform: platformParam, page })
       .then(setData)
       .catch(console.error)
       .finally(() => setLoading(false));

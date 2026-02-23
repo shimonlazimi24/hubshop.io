@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePlatformFilter } from "@/hooks/usePlatformFilter";
 import { DollarSign, CreditCard, Wallet, ArrowUpDown } from "lucide-react";
 import { listSettlements, listTransactions, listPayments, type Settlement, type Transaction, type Payment, type PaginatedResponse } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
@@ -101,17 +102,19 @@ export default function FinancePage() {
   const [payments, setPayments] = useState<PaginatedResponse<Payment> | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const { platform } = usePlatformFilter();
+  const platformParam = platform === "all" ? undefined : platform;
   const token = getAccessToken();
 
   useEffect(() => {
     if (!token) return;
     setLoading(true);
     const fetcher =
-      tab === "settlements" ? listSettlements(WORKSPACE_ID, token).then(setSettlements) :
-      tab === "transactions" ? listTransactions(WORKSPACE_ID, token).then(setTransactions) :
-      listPayments(WORKSPACE_ID, token).then(setPayments);
+      tab === "settlements" ? listSettlements(WORKSPACE_ID, token, { platform: platformParam }).then(setSettlements) :
+      tab === "transactions" ? listTransactions(WORKSPACE_ID, token, { platform: platformParam }).then(setTransactions) :
+      listPayments(WORKSPACE_ID, token, { platform: platformParam }).then(setPayments);
     fetcher.catch(console.error).finally(() => setLoading(false));
-  }, [tab]);
+  }, [tab, platform]);
 
   const tabs: { key: Tab; label: string }[] = [
     { key: "settlements", label: "Settlements" },
