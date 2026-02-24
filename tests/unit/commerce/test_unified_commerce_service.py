@@ -89,3 +89,6 @@ class TestListOrdersUnified:
         assert all(
             item.source_platform in ("shop", "affiliate") for item in result.items
         )
+        # Pagination total should reflect the real total, not just page count
+        assert result.total == 1
+        assert result.total_pages == 1

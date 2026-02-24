@@ -79,7 +79,7 @@ function PlatformTabLayoutInner({
             return (
               <Link
                 key={tab.href}
-                href={tab.href}
+                href={platform !== "all" ? `${tab.href}?platform=${platform}` : tab.href}
                 className={cn(
                   "flex items-center gap-1.5 px-3 pb-2.5 text-sm font-medium border-b-2 transition-colors",
                   isActive

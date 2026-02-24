@@ -1,4 +1,5 @@
 import uuid
+from typing import Literal
 
 from fastapi import APIRouter, HTTPException, status
 
@@ -32,7 +33,7 @@ async def list_campaigns(
     objective: str | None = None,
     status_filter: str | None = None,
     search: str | None = None,
-    platform: str | None = None,
+    platform: Literal["marketing", "shop"] | None = None,
     page: int = 1,
     page_size: int = 20,
 ) -> PaginatedResponse[CampaignSummaryResponse]:

@@ -3,12 +3,15 @@
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useCallback } from "react";
 
+const VALID_PLATFORMS = new Set(["all", "marketing", "shop", "affiliate"]);
+
 export function usePlatformFilter(defaultValue = "all") {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
 
-  const platform = searchParams.get("platform") ?? defaultValue;
+  const raw = searchParams.get("platform") ?? defaultValue;
+  const platform = VALID_PLATFORMS.has(raw) ? raw : defaultValue;
 
   const setPlatform = useCallback(
     (value: string) => {

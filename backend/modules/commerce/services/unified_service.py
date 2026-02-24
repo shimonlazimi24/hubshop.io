@@ -31,6 +31,7 @@ class UnifiedCommerceService:
         page_size: int = 20,
     ) -> PaginatedResponse[OrderSummaryResponse]:
         items: list[OrderSummaryResponse] = []
+        aggregate_total = 0
 
         if platform is None or platform == "shop":
             order_service = OrderService(self._session)
@@ -47,6 +48,7 @@ class UnifiedCommerceService:
                 resp = OrderSummaryResponse.model_validate(o)
                 resp.source_platform = "shop"
                 items.append(resp)
+            aggregate_total += result.total
 
             if platform == "shop":
                 return PaginatedResponse(
@@ -57,11 +59,10 @@ class UnifiedCommerceService:
                     total_pages=result.total_pages,
                 )
 
-        total = len(items)
-        total_pages = max(1, (total + page_size - 1) // page_size)
+        total_pages = max(1, (aggregate_total + page_size - 1) // page_size)
         return PaginatedResponse(
             items=items,
-            total=total,
+            total=aggregate_total,
             page=page,
             page_size=page_size,
             total_pages=total_pages,

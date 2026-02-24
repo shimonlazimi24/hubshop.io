@@ -28,6 +28,7 @@ class UnifiedAdvertisingService:
         page_size: int = 20,
     ) -> PaginatedResponse[CampaignSummaryResponse]:
         items: list[CampaignSummaryResponse] = []
+        aggregate_total = 0
 
         if platform is None or platform == "marketing":
             campaign_service = CampaignService(self._session)
@@ -44,6 +45,7 @@ class UnifiedAdvertisingService:
                 resp = CampaignSummaryResponse.model_validate(c)
                 resp.source_platform = "marketing"
                 items.append(resp)
+            aggregate_total += result.total
 
             if platform == "marketing":
                 return PaginatedResponse(
@@ -54,11 +56,10 @@ class UnifiedAdvertisingService:
                     total_pages=result.total_pages,
                 )
 
-        total = len(items)
-        total_pages = max(1, (total + page_size - 1) // page_size)
+        total_pages = max(1, (aggregate_total + page_size - 1) // page_size)
         return PaginatedResponse(
             items=items,
-            total=total,
+            total=aggregate_total,
             page=page,
             page_size=page_size,
             total_pages=total_pages,
