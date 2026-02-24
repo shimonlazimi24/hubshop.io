@@ -36,9 +36,7 @@ class CreatorCampaignService:
 
         if status_filter:
             query = query.where(CreatorCampaign.status == status_filter)
-            count_query = count_query.where(
-                CreatorCampaign.status == status_filter
-            )
+            count_query = count_query.where(CreatorCampaign.status == status_filter)
 
         total = (await self._session.execute(count_query)).scalar_one()
         offset = (page - 1) * page_size
@@ -49,13 +47,9 @@ class CreatorCampaignService:
         )
         items = list(result.scalars().all())
 
-        return PaginatedResult(
-            items=items, total=total, page=page, page_size=page_size
-        )
+        return PaginatedResult(items=items, total=total, page=page, page_size=page_size)
 
-    async def get_campaign(
-        self, campaign_id: uuid.UUID
-    ) -> CreatorCampaign | None:
+    async def get_campaign(self, campaign_id: uuid.UUID) -> CreatorCampaign | None:
         result = await self._session.execute(
             select(CreatorCampaign).where(CreatorCampaign.id == campaign_id)
         )
@@ -182,8 +176,7 @@ class CreatorCampaignService:
         declined = sum(1 for i in invitations if i.status == "DECLINED")
 
         total_offered = sum(
-            float(i.offered_amount) for i in invitations
-            if i.offered_amount
+            float(i.offered_amount) for i in invitations if i.offered_amount
         )
         acceptance_rate = (accepted / total * 100) if total > 0 else 0.0
 

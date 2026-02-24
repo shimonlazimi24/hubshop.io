@@ -3,7 +3,7 @@
 import uuid
 from datetime import UTC, datetime
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from httpx import ASGITransport, AsyncClient
@@ -14,10 +14,10 @@ from backend.main import app
 from backend.modules.content.services.publish_service import PublishService
 from backend.modules.content.services.video_service import VideoService
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def anyio_backend():
@@ -114,9 +114,7 @@ class TestQueryVideosById:
         service._get_developer_gateway = AsyncMock(return_value=(account, gateway))
 
         workspace_id = uuid.uuid4()
-        result = await service.query_videos_by_id(
-            workspace_id, ["vid_001", "vid_002"]
-        )
+        result = await service.query_videos_by_id(workspace_id, ["vid_001", "vid_002"])
 
         assert len(result) == 2
         assert result[0]["id"] == "vid_001"
@@ -332,9 +330,7 @@ class TestCreatePhotoPublishJob:
 class TestQueryVideosRoute:
     @pytest.mark.asyncio
     @patch(f"{VIDEO_SVC}.query_videos_by_id")
-    async def test_query_videos_route(
-        self, mock_query: AsyncMock
-    ) -> None:
+    async def test_query_videos_route(self, mock_query: AsyncMock) -> None:
         mock_query.return_value = SAMPLE_VIDEOS
 
         workspace_id = uuid.uuid4()
@@ -355,9 +351,7 @@ class TestQueryVideosRoute:
 class TestPublishPhotoRoute:
     @pytest.mark.asyncio
     @patch(f"{PUBLISH_SVC}.create_photo_publish_job")
-    async def test_publish_photo_route(
-        self, mock_publish: AsyncMock
-    ) -> None:
+    async def test_publish_photo_route(self, mock_publish: AsyncMock) -> None:
         job_id = uuid.uuid4()
         account_id = uuid.uuid4()
         now = datetime(2026, 2, 22, 12, 0, 0, tzinfo=UTC)

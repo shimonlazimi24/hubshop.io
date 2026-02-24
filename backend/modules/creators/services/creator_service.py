@@ -78,9 +78,7 @@ class CreatorService:
         )
         items = list(result.scalars().all())
 
-        return PaginatedResult(
-            items=items, total=total, page=page, page_size=page_size
-        )
+        return PaginatedResult(items=items, total=total, page=page, page_size=page_size)
 
     async def get_creator(self, creator_id: uuid.UUID) -> CreatorProfile | None:
         result = await self._session.execute(
@@ -125,7 +123,9 @@ class CreatorService:
 
         if data:
             creator.follower_count = data.get("follower_count", creator.follower_count)
-            creator.following_count = data.get("following_count", creator.following_count)
+            creator.following_count = data.get(
+                "following_count", creator.following_count
+            )
             creator.likes_count = data.get("likes_count", creator.likes_count)
             creator.video_count = data.get("video_count", creator.video_count)
             creator.bio = data.get("bio_description", creator.bio)
@@ -141,18 +141,19 @@ class CreatorService:
         from backend.modules.creators.services.creator_profile_service import (
             CreatorProfileService,
         )
+
         profile_service = CreatorProfileService(self._session)
         return await profile_service.upsert_creator_from_api(workspace_id, creator_data)
 
-    async def get_creator_performance(
-        self, creator_id: uuid.UUID
-    ) -> dict:
+    async def get_creator_performance(self, creator_id: uuid.UUID) -> dict:
         """Get performance metrics for a saved creator."""
         creator = await self.get_creator(creator_id)
         if not creator:
             return {}
 
-        engagement_rate = float(creator.engagement_rate) if creator.engagement_rate else 0.0
+        engagement_rate = (
+            float(creator.engagement_rate) if creator.engagement_rate else 0.0
+        )
         avg_likes = (
             creator.likes_count / creator.video_count
             if creator.video_count > 0
@@ -187,9 +188,7 @@ class CreatorService:
             raise ValueError("No active Developer account found")
 
         result = await self._session.execute(
-            select(TokenVault).where(
-                TokenVault.connected_account_id == account.id
-            )
+            select(TokenVault).where(TokenVault.connected_account_id == account.id)
         )
         vault = result.scalar_one_or_none()
         if not vault:

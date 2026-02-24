@@ -11,7 +11,6 @@ from backend.db.models.live import (
     LiveAnalytics,
     LiveEvent,
     LiveSession,
-    SessionStatus,
 )
 from backend.utils.pagination import PaginatedResult
 
@@ -83,15 +82,11 @@ class LiveAnalyticsService:
         total = (await self._session.execute(count_query)).scalar_one()
         offset = (page - 1) * page_size
         result = await self._session.execute(
-            query.order_by(LiveEvent.timestamp.desc())
-            .offset(offset)
-            .limit(page_size)
+            query.order_by(LiveEvent.timestamp.desc()).offset(offset).limit(page_size)
         )
         items = list(result.scalars().all())
 
-        return PaginatedResult(
-            items=items, total=total, page=page, page_size=page_size
-        )
+        return PaginatedResult(items=items, total=total, page=page, page_size=page_size)
 
     async def compute_analytics(self, session_id: uuid.UUID) -> None:
         """Trigger analytics computation by dispatching Celery task."""

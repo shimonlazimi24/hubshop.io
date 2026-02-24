@@ -2,9 +2,7 @@
 
 import hashlib
 import uuid
-from datetime import date, datetime, timezone
-
-import pytest
+from datetime import date
 
 from backend.db.models.analytics import (
     ApiKey,

@@ -35,7 +35,9 @@ class TestCrypto:
         enc2 = encrypt_token(plaintext)
         assert enc1 != enc2
 
-    def test_decrypt_with_wrong_key_fails(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_decrypt_with_wrong_key_fails(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         from backend.utils.crypto import encrypt_token
 
         encrypted = encrypt_token("secret-token")

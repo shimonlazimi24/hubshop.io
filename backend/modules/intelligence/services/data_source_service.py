@@ -97,9 +97,7 @@ class DataSourceService:
         source.query_params = params
         await self._session.flush()
 
-        logger.info(
-            "Toggled data source %s to enabled=%s", source_id, enabled
-        )
+        logger.info("Toggled data source %s to enabled=%s", source_id, enabled)
         return _serialize_source(source)
 
 
@@ -108,7 +106,7 @@ def _serialize_source(query: ResearchQuery) -> dict[str, Any]:
     params = query.query_params or {}
     display_name = query.name
     if display_name.startswith(_DATASOURCE_PREFIX):
-        display_name = display_name[len(_DATASOURCE_PREFIX):]
+        display_name = display_name[len(_DATASOURCE_PREFIX) :]
 
     return {
         "id": str(query.id),
@@ -116,7 +114,9 @@ def _serialize_source(query: ResearchQuery) -> dict[str, Any]:
         "source_type": params.get("source_type", "unknown"),
         "enabled": params.get("enabled", True),
         "settings": params.get("settings", {}),
-        "created_at": query.created_at.isoformat()
-        if hasattr(query, "created_at") and query.created_at
-        else None,
+        "created_at": (
+            query.created_at.isoformat()
+            if hasattr(query, "created_at") and query.created_at
+            else None
+        ),
     }

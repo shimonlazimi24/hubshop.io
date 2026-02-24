@@ -37,14 +37,10 @@ async def _sync_all_videos() -> None:
                 service = VideoService(session)
                 synced = await service.sync_videos(workspace_id)
                 await session.commit()
-                logger.info(
-                    "Synced %d videos for workspace %s", synced, workspace_id
-                )
+                logger.info("Synced %d videos for workspace %s", synced, workspace_id)
             except Exception:
                 await session.rollback()
-                logger.exception(
-                    "Failed to sync videos for workspace %s", workspace_id
-                )
+                logger.exception("Failed to sync videos for workspace %s", workspace_id)
 
 
 async def _sync_video_metrics() -> None:

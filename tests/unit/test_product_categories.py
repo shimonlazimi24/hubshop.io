@@ -1,5 +1,6 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from backend.modules.commerce.services.product_service import ProductService
 
@@ -37,26 +38,20 @@ class TestGetCategories:
                 ]
             }
         }
-        with patch.object(
-            ProductService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ProductService, "_get_gateway", return_value=mock_gateway):
             service = ProductService(mock_session)
             result = await service.get_categories(shop_id=MagicMock())
             assert len(result) == 2
             assert result[0]["local_name"] == "Electronics"
             assert result[1]["local_name"] == "Phones"
-            mock_gateway.get.assert_called_once_with(
-                "/product/202309/categories"
-            )
+            mock_gateway.get.assert_called_once_with("/product/202309/categories")
 
     @pytest.mark.asyncio
     async def test_get_categories_empty(
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.get.return_value = {"data": {"categories": []}}
-        with patch.object(
-            ProductService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ProductService, "_get_gateway", return_value=mock_gateway):
             service = ProductService(mock_session)
             result = await service.get_categories(shop_id=MagicMock())
             assert result == []
@@ -66,9 +61,7 @@ class TestGetCategories:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.get.return_value = {}
-        with patch.object(
-            ProductService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ProductService, "_get_gateway", return_value=mock_gateway):
             service = ProductService(mock_session)
             result = await service.get_categories(shop_id=MagicMock())
             assert result == []
@@ -80,13 +73,9 @@ class TestRecommendCategories:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.post.return_value = {
-            "data": {
-                "categories": [{"id": "100", "local_name": "Shoes"}]
-            }
+            "data": {"categories": [{"id": "100", "local_name": "Shoes"}]}
         }
-        with patch.object(
-            ProductService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ProductService, "_get_gateway", return_value=mock_gateway):
             service = ProductService(mock_session)
             result = await service.recommend_categories(
                 shop_id=MagicMock(), product_title="Nike Air Max"
@@ -103,9 +92,7 @@ class TestRecommendCategories:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.post.return_value = {"data": {"categories": []}}
-        with patch.object(
-            ProductService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ProductService, "_get_gateway", return_value=mock_gateway):
             service = ProductService(mock_session)
             result = await service.recommend_categories(
                 shop_id=MagicMock(), product_title="Unknown product xyz"
@@ -120,14 +107,10 @@ class TestGetCategoryRules:
     ) -> None:
         mock_gateway.get.return_value = {
             "data": {
-                "category_rules": [
-                    {"property": "size_chart", "is_required": True}
-                ]
+                "category_rules": [{"property": "size_chart", "is_required": True}]
             }
         }
-        with patch.object(
-            ProductService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ProductService, "_get_gateway", return_value=mock_gateway):
             service = ProductService(mock_session)
             result = await service.get_category_rules(
                 shop_id=MagicMock(), category_id="100"
@@ -144,9 +127,7 @@ class TestGetCategoryRules:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.get.return_value = {"data": {"category_rules": []}}
-        with patch.object(
-            ProductService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ProductService, "_get_gateway", return_value=mock_gateway):
             service = ProductService(mock_session)
             result = await service.get_category_rules(
                 shop_id=MagicMock(), category_id="999"
@@ -160,15 +141,9 @@ class TestGetAttributes:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.get.return_value = {
-            "data": {
-                "attributes": [
-                    {"id": "a1", "name": "Color", "is_required": True}
-                ]
-            }
+            "data": {"attributes": [{"id": "a1", "name": "Color", "is_required": True}]}
         }
-        with patch.object(
-            ProductService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ProductService, "_get_gateway", return_value=mock_gateway):
             service = ProductService(mock_session)
             result = await service.get_attributes(
                 shop_id=MagicMock(), category_id="100"
@@ -185,9 +160,7 @@ class TestGetAttributes:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.get.return_value = {"data": {"attributes": []}}
-        with patch.object(
-            ProductService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ProductService, "_get_gateway", return_value=mock_gateway):
             service = ProductService(mock_session)
             result = await service.get_attributes(
                 shop_id=MagicMock(), category_id="999"
@@ -197,9 +170,7 @@ class TestGetAttributes:
 
 class TestGetGateway:
     @pytest.mark.asyncio
-    async def test_get_gateway_shop_not_found(
-        self, mock_session: AsyncMock
-    ) -> None:
+    async def test_get_gateway_shop_not_found(self, mock_session: AsyncMock) -> None:
         with patch(
             "backend.modules.commerce.services.product_service.ShopService"
         ) as mock_shop_service_cls:
@@ -212,9 +183,7 @@ class TestGetGateway:
                 await service._get_gateway(MagicMock())
 
     @pytest.mark.asyncio
-    async def test_get_gateway_returns_gateway(
-        self, mock_session: AsyncMock
-    ) -> None:
+    async def test_get_gateway_returns_gateway(self, mock_session: AsyncMock) -> None:
         with patch(
             "backend.modules.commerce.services.product_service.ShopService"
         ) as mock_shop_service_cls:
@@ -222,9 +191,7 @@ class TestGetGateway:
             mock_gateway = AsyncMock()
             mock_shop_service = AsyncMock()
             mock_shop_service.get_shop.return_value = mock_shop
-            mock_shop_service.build_gateway_for_shop.return_value = (
-                mock_gateway
-            )
+            mock_shop_service.build_gateway_for_shop.return_value = mock_gateway
             mock_shop_service_cls.return_value = mock_shop_service
 
             service = ProductService(mock_session)

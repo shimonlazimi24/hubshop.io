@@ -1,6 +1,6 @@
 # Frodo Backend Codemap
 
-> Freshness: 2026-02-23 | Auto-generated
+> Freshness: 2026-02-24 | Auto-generated
 
 ## Directory Structure
 
@@ -16,7 +16,7 @@ backend/
     social.py                 # SocialAuthService (TikTok/Google OAuth)
     routes.py                 # /login, /register, /refresh, /me, /social
   db/
-    models/                   # 17 model files, 120+ entity classes
+    models/                   # 18 model files, 120+ entity classes
     migrations/               # Alembic migration files
     session.py                # Async session factory
   tiktok/
@@ -31,9 +31,9 @@ backend/
     live/client.py            # TikTokLiveClientWrapper (WebSocket)
   modules/
     connect/                  # 1 route file
-    commerce/                 # services/ + routes/ + schemas.py
-    advertising/              # services/ + routes/ + schemas.py
-    content/                  # services/ + routes/ + schemas.py
+    commerce/                 # services/ (+ unified_service.py) + routes/ + schemas.py
+    advertising/              # services/ (+ unified_service.py) + routes/ + schemas.py
+    content/                  # services/ (+ content_creator_bridge.py) + routes/ (+ bridge.py) + schemas.py
     creators/                 # 5 route files + services/ + schemas.py
     analytics/                # services/ + routes/ + schemas.py
     intelligence/             # services/ + routes/
@@ -92,12 +92,12 @@ Each module follows: `services/` (business logic) + `routes/` or `routes.py` (AP
 
 Schema files exist in: analytics, advertising, commerce, content, creators, live.
 
-## Test Coverage (878 total)
+## Test Coverage (879 total)
 
 | Module | Tests |
 |--------|-------|
 | advertising | 136 |
-| content | 68 |
+| content | 69 |
 | creators | 55 |
 | commerce | 54 |
 | analytics | 47 |

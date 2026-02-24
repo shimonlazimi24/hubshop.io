@@ -75,27 +75,19 @@ class OrderService:
         )
         items = list(result.scalars().all())
 
-        return PaginatedResult(
-            items=items, total=total, page=page, page_size=page_size
-        )
+        return PaginatedResult(items=items, total=total, page=page, page_size=page_size)
 
     async def get_order(self, order_id: uuid.UUID) -> Order | None:
-        result = await self._session.execute(
-            select(Order).where(Order.id == order_id)
-        )
+        result = await self._session.execute(select(Order).where(Order.id == order_id))
         return result.scalar_one_or_none()
 
-    async def get_order_by_platform_id(
-        self, platform_order_id: str
-    ) -> Order | None:
+    async def get_order_by_platform_id(self, platform_order_id: str) -> Order | None:
         result = await self._session.execute(
             select(Order).where(Order.platform_order_id == platform_order_id)
         )
         return result.scalar_one_or_none()
 
-    async def get_order_timeline(
-        self, order_id: uuid.UUID
-    ) -> list[OrderStatusEvent]:
+    async def get_order_timeline(self, order_id: uuid.UUID) -> list[OrderStatusEvent]:
         result = await self._session.execute(
             select(OrderStatusEvent)
             .where(OrderStatusEvent.order_id == order_id)
@@ -125,9 +117,7 @@ class OrderService:
             if next_page_token:
                 body["page_token"] = next_page_token
 
-            resp = await gateway.post(
-                "/order/202309/orders", json_body=body
-            )
+            resp = await gateway.post("/order/202309/orders", json_body=body)
             data = resp.get("data", {})
             orders_list = data.get("orders", [])
 
@@ -139,9 +129,7 @@ class OrderService:
                 )
                 order_data = detail_resp.get("data", {})
                 if order_data:
-                    await self.upsert_order_from_api(
-                        shop=shop, order_data=order_data
-                    )
+                    await self.upsert_order_from_api(shop=shop, order_data=order_data)
                     synced += 1
 
             next_page_token = data.get("next_page_token", "")
@@ -150,9 +138,7 @@ class OrderService:
 
         return synced
 
-    async def upsert_order_from_api(
-        self, *, shop: Shop, order_data: dict
-    ) -> Order:
+    async def upsert_order_from_api(self, *, shop: Shop, order_data: dict) -> Order:
         """Create or update an order from TikTok API payload."""
         platform_id = str(order_data["id"])
         existing = await self.get_order_by_platform_id(platform_id)
@@ -165,15 +151,13 @@ class OrderService:
         line_items_data = order_data.get("line_items", [])
         packages_data = order_data.get("packages", [])
         rts_sla_ts = order_data.get("rts_sla")
-        rts_sla = (
-            datetime.fromtimestamp(int(rts_sla_ts))
-            if rts_sla_ts
-            else None
-        )
+        rts_sla = datetime.fromtimestamp(int(rts_sla_ts)) if rts_sla_ts else None
 
         old_status = None
         if existing:
-            old_status = existing.status.value if existing.status != new_status else None
+            old_status = (
+                existing.status.value if existing.status != new_status else None
+            )
             existing.status = new_status
             existing.total_amount = total_amount
             existing.currency = currency
@@ -278,9 +262,7 @@ class OrderService:
         )
         return resp.get("data", {})
 
-    async def approve_cancellation(
-        self, shop_id: uuid.UUID, order_id: str
-    ) -> dict:
+    async def approve_cancellation(self, shop_id: uuid.UUID, order_id: str) -> dict:
         gateway = await self._get_gateway(shop_id)
         resp = await gateway.post(
             f"/return_refund/202309/cancellations/{order_id}/approve"
@@ -312,18 +294,12 @@ class OrderService:
 
     # --- Price detail ---
 
-    async def get_price_detail(
-        self, shop_id: uuid.UUID, order_id: str
-    ) -> dict:
+    async def get_price_detail(self, shop_id: uuid.UUID, order_id: str) -> dict:
         gateway = await self._get_gateway(shop_id)
-        resp = await gateway.get(
-            f"/order/202407/orders/{order_id}/price_detail"
-        )
+        resp = await gateway.get(f"/order/202407/orders/{order_id}/price_detail")
         return resp.get("data", {})
 
-    async def _sync_line_items(
-        self, order: Order, items_data: list[dict]
-    ) -> None:
+    async def _sync_line_items(self, order: Order, items_data: list[dict]) -> None:
         # Clear existing and re-insert for simplicity
         result = await self._session.execute(
             select(OrderLineItem).where(OrderLineItem.order_id == order.id)
@@ -340,21 +316,16 @@ class OrderService:
                 quantity=item.get("quantity", 1),
                 unit_price=item.get("sale_price", "0"),
                 total_price=str(
-                    float(item.get("sale_price", "0"))
-                    * item.get("quantity", 1)
+                    float(item.get("sale_price", "0")) * item.get("quantity", 1)
                 ),
             )
             self._session.add(li)
 
-    async def _sync_packages(
-        self, order: Order, packages_data: list[dict]
-    ) -> None:
+    async def _sync_packages(self, order: Order, packages_data: list[dict]) -> None:
         for pkg_data in packages_data:
             platform_pkg_id = str(pkg_data["id"])
             result = await self._session.execute(
-                select(Package).where(
-                    Package.platform_package_id == platform_pkg_id
-                )
+                select(Package).where(Package.platform_package_id == platform_pkg_id)
             )
             pkg = result.scalar_one_or_none()
 
@@ -367,7 +338,9 @@ class OrderService:
 
             if pkg:
                 pkg.status = pkg_status
-                pkg.tracking_number = pkg_data.get("tracking_number", pkg.tracking_number)
+                pkg.tracking_number = pkg_data.get(
+                    "tracking_number", pkg.tracking_number
+                )
                 pkg.shipping_provider = pkg_data.get(
                     "shipping_provider_name", pkg.shipping_provider
                 )
@@ -396,8 +369,6 @@ class OrderService:
                     "to_status": to_status,
                 }
             )
-            await r.publish(
-                f"commerce:ws:{order.workspace_id}", message
-            )
+            await r.publish(f"commerce:ws:{order.workspace_id}", message)
         except Exception:
             logger.exception("Failed to publish order update to Redis")

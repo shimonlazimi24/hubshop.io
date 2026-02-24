@@ -63,7 +63,9 @@ class TikTokMarketingClient:
         response.raise_for_status()
         return response.json()
 
-    async def get(self, path: str, params: dict[str, str] | None = None) -> dict[str, Any]:
+    async def get(
+        self, path: str, params: dict[str, str] | None = None
+    ) -> dict[str, Any]:
         return await self.request("GET", path, params=params)
 
     async def post(

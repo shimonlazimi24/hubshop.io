@@ -175,6 +175,4 @@ async def get_form_fields(
         )
 
     service = LeadService(db)
-    return await service.get_form_fields(
-        workspace_id, ad_account, form_id=form_id
-    )
+    return await service.get_form_fields(workspace_id, ad_account, form_id=form_id)

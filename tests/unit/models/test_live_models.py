@@ -1,7 +1,5 @@
 """Tests for LIVE DB models."""
 
-import pytest
-
 from backend.db.models.live import (
     LiveAnalytics,
     LiveEvent,

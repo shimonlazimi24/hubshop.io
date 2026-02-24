@@ -85,9 +85,7 @@ class PublishService:
 
         return job
 
-    async def get_publish_job(
-        self, job_id: uuid.UUID
-    ) -> ContentPublishJob | None:
+    async def get_publish_job(self, job_id: uuid.UUID) -> ContentPublishJob | None:
         result = await self._session.execute(
             select(ContentPublishJob).where(ContentPublishJob.id == job_id)
         )
@@ -110,9 +108,7 @@ class PublishService:
 
         if status_filter:
             query = query.where(ContentPublishJob.status == status_filter)
-            count_query = count_query.where(
-                ContentPublishJob.status == status_filter
-            )
+            count_query = count_query.where(ContentPublishJob.status == status_filter)
 
         total = (await self._session.execute(count_query)).scalar_one()
         offset = (page - 1) * page_size
@@ -123,9 +119,7 @@ class PublishService:
         )
         items = list(result.scalars().all())
 
-        return PaginatedResult(
-            items=items, total=total, page=page, page_size=page_size
-        )
+        return PaginatedResult(items=items, total=total, page=page, page_size=page_size)
 
     async def update_publish_status(
         self,
@@ -136,9 +130,7 @@ class PublishService:
     ) -> ContentPublishJob | None:
         """Update the local publish job record from a webhook or status check."""
         result = await self._session.execute(
-            select(ContentPublishJob).where(
-                ContentPublishJob.publish_id == publish_id
-            )
+            select(ContentPublishJob).where(ContentPublishJob.publish_id == publish_id)
         )
         job = result.scalar_one_or_none()
         if not job:
@@ -160,9 +152,7 @@ class PublishService:
     ) -> ContentPublishJob | None:
         """Check publish status via TikTok API and update local record."""
         result = await self._session.execute(
-            select(ContentPublishJob).where(
-                ContentPublishJob.publish_id == publish_id
-            )
+            select(ContentPublishJob).where(ContentPublishJob.publish_id == publish_id)
         )
         job = result.scalar_one_or_none()
         if not job:
@@ -289,7 +279,10 @@ class PublishService:
                 existing_platform_ids = {
                     v.platform_video_id for v in date_videos[date_key]
                 }
-                if job.platform_video_id and job.platform_video_id in existing_platform_ids:
+                if (
+                    job.platform_video_id
+                    and job.platform_video_id in existing_platform_ids
+                ):
                     continue
                 # Represent job as a lightweight dict compatible with VideoSummaryResponse
                 date_videos[date_key].append(job)
@@ -325,14 +318,10 @@ class PublishService:
         gateway = await self._build_gateway(account)
         return account, gateway
 
-    async def _build_gateway(
-        self, account: ConnectedAccount
-    ) -> PlatformGateway:
+    async def _build_gateway(self, account: ConnectedAccount) -> PlatformGateway:
         """Build a PlatformGateway for a Developer account."""
         result = await self._session.execute(
-            select(TokenVault).where(
-                TokenVault.connected_account_id == account.id
-            )
+            select(TokenVault).where(TokenVault.connected_account_id == account.id)
         )
         vault = result.scalar_one_or_none()
         if not vault:

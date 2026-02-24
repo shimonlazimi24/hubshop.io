@@ -10,7 +10,6 @@ from backend.modules.content.schemas import (
     QueryVideosRequest,
     VideoDetailResponse,
     VideoMetricsResponse,
-    VideoPerformanceSummary,
     VideoSummaryResponse,
 )
 from backend.modules.content.services.video_service import VideoService

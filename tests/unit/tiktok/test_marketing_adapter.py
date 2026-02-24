@@ -1,7 +1,8 @@
 """Tests for TikTok Marketing SDK adapter."""
 
+from unittest.mock import AsyncMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 
 from backend.tiktok.marketing.client import TikTokMarketingClient
 

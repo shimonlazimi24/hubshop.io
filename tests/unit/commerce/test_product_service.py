@@ -6,15 +6,23 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from backend.db.models.commerce import Product, ProductSku, ProductStatus, Shop
-from backend.modules.commerce.services.product_service import ProductService, _STATUS_MAP
+from backend.db.models.commerce import Product, ProductStatus
+from backend.modules.commerce.services.product_service import (
+    _STATUS_MAP,
+    ProductService,
+)
 
 
 class TestStatusMapping:
     def test_all_statuses_mapped(self) -> None:
         expected = {
-            "DRAFT", "PENDING", "LIVE", "SELLER_DEACTIVATED",
-            "PLATFORM_DEACTIVATED", "FROZEN", "DELETED",
+            "DRAFT",
+            "PENDING",
+            "LIVE",
+            "SELLER_DEACTIVATED",
+            "PLATFORM_DEACTIVATED",
+            "FROZEN",
+            "DELETED",
         }
         assert set(_STATUS_MAP.keys()) == expected
 
@@ -75,7 +83,10 @@ class TestUpsertProductFromApi:
 
     @pytest.mark.asyncio
     async def test_creates_new_product(
-        self, mock_session: AsyncMock, sample_shop: SimpleNamespace, sample_api_payload: dict
+        self,
+        mock_session: AsyncMock,
+        sample_shop: SimpleNamespace,
+        sample_api_payload: dict,
     ) -> None:
         service = ProductService(mock_session)
         product = await service.upsert_product_from_api(
@@ -94,7 +105,10 @@ class TestUpsertProductFromApi:
 
     @pytest.mark.asyncio
     async def test_updates_existing_product(
-        self, mock_session: AsyncMock, sample_shop: SimpleNamespace, sample_api_payload: dict
+        self,
+        mock_session: AsyncMock,
+        sample_shop: SimpleNamespace,
+        sample_api_payload: dict,
     ) -> None:
         existing = SimpleNamespace(
             id=uuid.uuid4(),
@@ -162,9 +176,7 @@ class TestUpsertProductFromApi:
             "skus": [],
         }
         service = ProductService(mock_session)
-        await service.upsert_product_from_api(
-            shop=sample_shop, product_data=payload
-        )
+        await service.upsert_product_from_api(shop=sample_shop, product_data=payload)
         added = mock_session.add.call_args_list[0][0][0]
         assert added.status == ProductStatus.DRAFT  # Falls back to DRAFT
 

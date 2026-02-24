@@ -1,6 +1,6 @@
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -40,14 +40,10 @@ class PromotionService:
         total = (await self._session.execute(count_query)).scalar_one()
         offset = (page - 1) * page_size
         result = await self._session.execute(
-            query.order_by(Promotion.updated_at.desc())
-            .offset(offset)
-            .limit(page_size)
+            query.order_by(Promotion.updated_at.desc()).offset(offset).limit(page_size)
         )
         items = list(result.scalars().all())
-        return PaginatedResult(
-            items=items, total=total, page=page, page_size=page_size
-        )
+        return PaginatedResult(items=items, total=total, page=page, page_size=page_size)
 
     async def get_promotion(self, promotion_id: uuid.UUID) -> Promotion | None:
         result = await self._session.execute(
@@ -133,9 +129,7 @@ class PromotionService:
         )
         return promotion
 
-    async def deactivate_promotion(
-        self, promotion: Promotion, shop: Shop
-    ) -> Promotion:
+    async def deactivate_promotion(self, promotion: Promotion, shop: Shop) -> Promotion:
         shop_service = ShopService(self._session)
         gateway = await shop_service.build_gateway_for_shop(shop)
 
@@ -164,14 +158,10 @@ class PromotionService:
 
         return synced
 
-    async def _upsert_promotion(
-        self, shop: Shop, activity_data: dict
-    ) -> Promotion:
+    async def _upsert_promotion(self, shop: Shop, activity_data: dict) -> Promotion:
         platform_id = str(activity_data.get("activity_id", ""))
         result = await self._session.execute(
-            select(Promotion).where(
-                Promotion.platform_activity_id == platform_id
-            )
+            select(Promotion).where(Promotion.platform_activity_id == platform_id)
         )
         promotion = result.scalar_one_or_none()
 

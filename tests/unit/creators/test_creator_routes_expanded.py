@@ -47,6 +47,7 @@ def override_deps(mock_user, mock_db):
 # Helper factories
 # ---------------------------------------------------------------------------
 
+
 def _make_creator(**overrides) -> SimpleNamespace:
     defaults = {
         "id": str(uuid.uuid4()),
@@ -101,15 +102,20 @@ def _make_invitation(**overrides) -> SimpleNamespace:
     return SimpleNamespace(**defaults)
 
 
-PROFILE_SVC = "backend.modules.creators.services.creator_profile_service.CreatorProfileService"
+PROFILE_SVC = (
+    "backend.modules.creators.services.creator_profile_service.CreatorProfileService"
+)
 CREATOR_SVC = "backend.modules.creators.services.creator_service.CreatorService"
 SPARK_SVC = "backend.modules.creators.services.spark_ads_service.SparkAdsService"
-CAMPAIGN_SVC = "backend.modules.creators.services.campaign_service.CreatorCampaignService"
+CAMPAIGN_SVC = (
+    "backend.modules.creators.services.campaign_service.CreatorCampaignService"
+)
 
 
 # ---------------------------------------------------------------------------
 # 1. POST /creators/profiles/{id}/sync-metrics — 200
 # ---------------------------------------------------------------------------
+
 
 class TestSyncMetricsRoute:
     @pytest.mark.asyncio
@@ -143,9 +149,7 @@ class TestSyncMetricsRoute:
 
     @pytest.mark.asyncio
     @patch(f"{PROFILE_SVC}.get_creator")
-    async def test_sync_metrics_not_found(
-        self, mock_get: AsyncMock
-    ) -> None:
+    async def test_sync_metrics_not_found(self, mock_get: AsyncMock) -> None:
         mock_get.return_value = None
 
         transport = ASGITransport(app=app)
@@ -161,6 +165,7 @@ class TestSyncMetricsRoute:
 # ---------------------------------------------------------------------------
 # 3. GET /creators/profiles/{id}/videos — 200
 # ---------------------------------------------------------------------------
+
 
 class TestGetCreatorVideosRoute:
     @pytest.mark.asyncio
@@ -196,12 +201,11 @@ class TestGetCreatorVideosRoute:
 # 4. POST /creators/spark-ads/authorizations/{id}/check — 200
 # ---------------------------------------------------------------------------
 
+
 class TestCheckAuthStatusRoute:
     @pytest.mark.asyncio
     @patch(f"{SPARK_SVC}.check_authorization_status")
-    async def test_check_auth_status_route(
-        self, mock_check: AsyncMock
-    ) -> None:
+    async def test_check_auth_status_route(self, mock_check: AsyncMock) -> None:
         auth = _make_authorization()
         mock_check.return_value = auth
 
@@ -224,9 +228,7 @@ class TestCheckAuthStatusRoute:
 
     @pytest.mark.asyncio
     @patch(f"{SPARK_SVC}.check_authorization_status")
-    async def test_check_auth_not_found(
-        self, mock_check: AsyncMock
-    ) -> None:
+    async def test_check_auth_not_found(self, mock_check: AsyncMock) -> None:
         mock_check.return_value = None
 
         transport = ASGITransport(app=app)
@@ -242,12 +244,11 @@ class TestCheckAuthStatusRoute:
 # 6. PUT /creators/campaigns/{cid}/invitations/{iid}/status — 200
 # ---------------------------------------------------------------------------
 
+
 class TestUpdateInvitationStatusRoute:
     @pytest.mark.asyncio
     @patch(f"{CAMPAIGN_SVC}.update_invitation_status")
-    async def test_update_invitation_status_route(
-        self, mock_update: AsyncMock
-    ) -> None:
+    async def test_update_invitation_status_route(self, mock_update: AsyncMock) -> None:
         invitation = _make_invitation(status="ACCEPTED")
         mock_update.return_value = invitation
 
@@ -272,9 +273,7 @@ class TestUpdateInvitationStatusRoute:
 
     @pytest.mark.asyncio
     @patch(f"{CAMPAIGN_SVC}.update_invitation_status")
-    async def test_update_invitation_not_found(
-        self, mock_update: AsyncMock
-    ) -> None:
+    async def test_update_invitation_not_found(self, mock_update: AsyncMock) -> None:
         mock_update.return_value = None
 
         transport = ASGITransport(app=app)
@@ -291,6 +290,7 @@ class TestUpdateInvitationStatusRoute:
 # ---------------------------------------------------------------------------
 # 8. GET /creators/campaigns/{id}/stats — 200
 # ---------------------------------------------------------------------------
+
 
 class TestCampaignStatsRoute:
     @pytest.mark.asyncio
@@ -330,9 +330,7 @@ class TestCampaignStatsRoute:
 
     @pytest.mark.asyncio
     @patch(f"{CAMPAIGN_SVC}.get_campaign")
-    async def test_campaign_stats_not_found(
-        self, mock_get: AsyncMock
-    ) -> None:
+    async def test_campaign_stats_not_found(self, mock_get: AsyncMock) -> None:
         mock_get.return_value = None
 
         transport = ASGITransport(app=app)
@@ -347,6 +345,7 @@ class TestCampaignStatsRoute:
 # ---------------------------------------------------------------------------
 # 10. POST /creators/discover/save — 201
 # ---------------------------------------------------------------------------
+
 
 class TestSaveCreatorFromDiscoveryRoute:
     @pytest.mark.asyncio

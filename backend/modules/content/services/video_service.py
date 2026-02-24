@@ -54,19 +54,13 @@ class VideoService:
         )
         items = list(result.scalars().all())
 
-        return PaginatedResult(
-            items=items, total=total, page=page, page_size=page_size
-        )
+        return PaginatedResult(items=items, total=total, page=page, page_size=page_size)
 
     async def get_video(self, video_id: uuid.UUID) -> Video | None:
-        result = await self._session.execute(
-            select(Video).where(Video.id == video_id)
-        )
+        result = await self._session.execute(select(Video).where(Video.id == video_id))
         return result.scalar_one_or_none()
 
-    async def get_video_metrics(
-        self, video_id: uuid.UUID
-    ) -> list[VideoMetrics]:
+    async def get_video_metrics(self, video_id: uuid.UUID) -> list[VideoMetrics]:
         result = await self._session.execute(
             select(VideoMetrics)
             .where(VideoMetrics.video_id == video_id)
@@ -89,14 +83,10 @@ class VideoService:
         for account in accounts:
             try:
                 gateway = await self._build_gateway(account)
-                synced = await self._sync_account_videos(
-                    workspace_id, account, gateway
-                )
+                synced = await self._sync_account_videos(workspace_id, account, gateway)
                 total_synced += synced
             except Exception:
-                logger.exception(
-                    "Failed to sync videos for account %s", account.id
-                )
+                logger.exception("Failed to sync videos for account %s", account.id)
 
         return total_synced
 
@@ -119,7 +109,9 @@ class VideoService:
             resp = await gateway.post(
                 "/video/list/",
                 json_body=body,
-                params={"fields": "id,title,video_description,cover_image_url,share_url,embed_link,duration,create_time,like_count,comment_count,share_count,view_count"},
+                params={
+                    "fields": "id,title,video_description,cover_image_url,share_url,embed_link,duration,create_time,like_count,comment_count,share_count,view_count"
+                },
             )
             data = resp.get("data", {})
             videos = data.get("videos", [])
@@ -159,9 +151,7 @@ class VideoService:
 
         create_time = None
         if video_data.get("create_time"):
-            create_time = datetime.fromtimestamp(
-                video_data["create_time"], tz=UTC
-            )
+            create_time = datetime.fromtimestamp(video_data["create_time"], tz=UTC)
 
         if video:
             video.title = title
@@ -289,9 +279,7 @@ class VideoService:
         )
         return list(result.scalars().all())
 
-    async def get_video_performance_summary(
-        self, workspace_id: uuid.UUID
-    ) -> dict:
+    async def get_video_performance_summary(self, workspace_id: uuid.UUID) -> dict:
         """Aggregate performance summary across all workspace videos."""
         result = await self._session.execute(
             select(
@@ -323,9 +311,7 @@ class VideoService:
             "avg_engagement_rate": round(engagement_rate, 2),
         }
 
-    async def compare_video_performance(
-        self, video_ids: list[uuid.UUID]
-    ) -> list[dict]:
+    async def compare_video_performance(self, video_ids: list[uuid.UUID]) -> list[dict]:
         """Compare metrics across multiple videos for benchmarking."""
         result = await self._session.execute(
             select(Video).where(Video.id.in_(video_ids))
@@ -333,17 +319,25 @@ class VideoService:
         videos = list(result.scalars().all())
         comparisons = []
         for video in videos:
-            total_engagement = video.like_count + video.comment_count + video.share_count
-            engagement_rate = (total_engagement / video.view_count * 100) if video.view_count > 0 else 0.0
-            comparisons.append({
-                "video_id": str(video.id),
-                "title": video.title,
-                "view_count": video.view_count,
-                "like_count": video.like_count,
-                "comment_count": video.comment_count,
-                "share_count": video.share_count,
-                "engagement_rate": round(engagement_rate, 2),
-            })
+            total_engagement = (
+                video.like_count + video.comment_count + video.share_count
+            )
+            engagement_rate = (
+                (total_engagement / video.view_count * 100)
+                if video.view_count > 0
+                else 0.0
+            )
+            comparisons.append(
+                {
+                    "video_id": str(video.id),
+                    "title": video.title,
+                    "view_count": video.view_count,
+                    "like_count": video.like_count,
+                    "comment_count": video.comment_count,
+                    "share_count": video.share_count,
+                    "engagement_rate": round(engagement_rate, 2),
+                }
+            )
         return comparisons
 
     async def _get_developer_gateway(
@@ -364,14 +358,10 @@ class VideoService:
         gateway = await self._build_gateway(account)
         return account, gateway
 
-    async def _build_gateway(
-        self, account: ConnectedAccount
-    ) -> PlatformGateway:
+    async def _build_gateway(self, account: ConnectedAccount) -> PlatformGateway:
         """Build a PlatformGateway for a Developer account."""
         result = await self._session.execute(
-            select(TokenVault).where(
-                TokenVault.connected_account_id == account.id
-            )
+            select(TokenVault).where(TokenVault.connected_account_id == account.id)
         )
         vault = result.scalar_one_or_none()
         if not vault:

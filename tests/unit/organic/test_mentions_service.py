@@ -114,9 +114,7 @@ class TestGetFrequentKeywords:
         }
 
         service = MentionsService(mock_session)
-        result = await service.get_frequent_keywords(
-            workspace_id, connected_account_id
-        )
+        result = await service.get_frequent_keywords(workspace_id, connected_account_id)
 
         assert len(result["keywords"]) == 2
         assert result["keywords"][0]["keyword"] == "quality"
@@ -143,9 +141,7 @@ class TestGetFrequentHashtags:
         }
 
         service = MentionsService(mock_session)
-        result = await service.get_frequent_hashtags(
-            workspace_id, connected_account_id
-        )
+        result = await service.get_frequent_hashtags(workspace_id, connected_account_id)
 
         assert len(result["hashtags"]) == 2
         assert result["hashtags"][0]["hashtag"] == "#mybrand"
@@ -243,15 +239,11 @@ class TestListEnabledHashtags:
         patched_build_gateway,
     ) -> None:
         mock_gateway.get.return_value = {
-            "data": {
-                "hashtags": ["#mybrand", "#brandname", "#brandlife"]
-            }
+            "data": {"hashtags": ["#mybrand", "#brandname", "#brandlife"]}
         }
 
         service = MentionsService(mock_session)
-        result = await service.list_enabled_hashtags(
-            workspace_id, connected_account_id
-        )
+        result = await service.list_enabled_hashtags(workspace_id, connected_account_id)
 
         assert len(result["hashtags"]) == 3
         assert "#mybrand" in result["hashtags"]

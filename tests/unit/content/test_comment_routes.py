@@ -78,9 +78,7 @@ VIDEO_SVC = "backend.modules.content.services.video_service.VideoService"
 class TestListComments:
     @pytest.mark.asyncio
     @patch(f"{COMMENT_SVC}.list_comments")
-    async def test_list_comments_route(
-        self, mock_list: AsyncMock
-    ) -> None:
+    async def test_list_comments_route(self, mock_list: AsyncMock) -> None:
         comment = _make_comment()
         mock_list.return_value = PaginatedResult(
             items=[comment], total=1, page=1, page_size=20
@@ -105,9 +103,7 @@ class TestListComments:
 
     @pytest.mark.asyncio
     @patch(f"{COMMENT_SVC}.list_comments")
-    async def test_list_comments_empty(
-        self, mock_list: AsyncMock
-    ) -> None:
+    async def test_list_comments_empty(self, mock_list: AsyncMock) -> None:
         mock_list.return_value = PaginatedResult(
             items=[], total=0, page=1, page_size=20
         )
@@ -187,9 +183,7 @@ class TestReplyToComment:
 
     @pytest.mark.asyncio
     @patch(f"{VIDEO_SVC}.get_video")
-    async def test_reply_video_not_found(
-        self, mock_get_video: AsyncMock
-    ) -> None:
+    async def test_reply_video_not_found(self, mock_get_video: AsyncMock) -> None:
         mock_get_video.return_value = None
 
         transport = ASGITransport(app=app)
@@ -226,9 +220,7 @@ class TestDeleteComment:
 
     @pytest.mark.asyncio
     @patch(f"{VIDEO_SVC}.get_video")
-    async def test_delete_video_not_found(
-        self, mock_get_video: AsyncMock
-    ) -> None:
+    async def test_delete_video_not_found(self, mock_get_video: AsyncMock) -> None:
         mock_get_video.return_value = None
 
         transport = ASGITransport(app=app)

@@ -1,7 +1,7 @@
 """Tests for NotificationService - CRUD, read status, preferences."""
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
@@ -133,7 +133,7 @@ class TestMarkRead:
     async def test_mark_read_already_read(self) -> None:
         user_id = uuid.uuid4()
         notification_id = uuid.uuid4()
-        read_time = datetime(2026, 2, 19, 10, 0, 0, tzinfo=timezone.utc)
+        read_time = datetime(2026, 2, 19, 10, 0, 0, tzinfo=UTC)
         notification = SimpleNamespace(
             id=notification_id,
             user_id=user_id,
@@ -228,9 +228,7 @@ class TestPreferences:
         assert prefs[1].channel == "EMAIL"
 
     @pytest.mark.asyncio
-    async def test_update_preference_creates_new(
-        self, user_id: uuid.UUID
-    ) -> None:
+    async def test_update_preference_creates_new(self, user_id: uuid.UUID) -> None:
         session = AsyncMock()
         session.add = MagicMock()
         session.flush = AsyncMock()
@@ -240,9 +238,7 @@ class TestPreferences:
         session.execute.return_value = result_mock
 
         service = NotificationService(session)
-        pref = await service.update_preference(
-            user_id, "commerce", "EMAIL", True
-        )
+        pref = await service.update_preference(user_id, "commerce", "EMAIL", True)
 
         assert session.add.called
         added = session.add.call_args_list[0][0][0]
@@ -253,9 +249,7 @@ class TestPreferences:
         assert added.is_enabled is True
 
     @pytest.mark.asyncio
-    async def test_update_preference_updates_existing(
-        self, user_id: uuid.UUID
-    ) -> None:
+    async def test_update_preference_updates_existing(self, user_id: uuid.UUID) -> None:
         session = AsyncMock()
         session.add = MagicMock()
 
@@ -271,9 +265,7 @@ class TestPreferences:
         session.execute.return_value = result_mock
 
         service = NotificationService(session)
-        pref = await service.update_preference(
-            user_id, "commerce", "EMAIL", False
-        )
+        pref = await service.update_preference(user_id, "commerce", "EMAIL", False)
 
         assert pref.is_enabled is False
         # Should NOT add when updating existing

@@ -62,7 +62,10 @@ async def add_to_marketplace(
 
     service = AffiliateService(db)
     product = await service.add_to_marketplace(
-        workspace_id, shop, product_id=body.product_id, commission_rate=body.commission_rate
+        workspace_id,
+        shop,
+        product_id=body.product_id,
+        commission_rate=body.commission_rate,
     )
     return AffiliateProductResponse.model_validate(product)
 
@@ -134,12 +137,17 @@ async def create_open_collaboration(
 
     service = AffiliateService(db)
     collab = await service.create_open_collaboration(
-        workspace_id, shop, product_id=body.product_id, commission_rate=body.commission_rate
+        workspace_id,
+        shop,
+        product_id=body.product_id,
+        commission_rate=body.commission_rate,
     )
     return OpenCollaborationResponse.model_validate(collab)
 
 
-@router.post("/affiliate/collaborations/target", response_model=TargetCollaborationResponse)
+@router.post(
+    "/affiliate/collaborations/target", response_model=TargetCollaborationResponse
+)
 async def create_target_collaboration(
     workspace_id: uuid.UUID,
     body: CreateTargetCollaborationRequest,

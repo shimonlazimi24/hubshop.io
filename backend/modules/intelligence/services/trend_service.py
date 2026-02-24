@@ -2,7 +2,7 @@
 
 import logging
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from sqlalchemy import select
@@ -31,7 +31,7 @@ class TrendService:
 
         Returns the number of trend snapshots created.
         """
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
         end_date = now.strftime("%Y%m%d")
         start_date = (now - timedelta(days=7)).strftime("%Y%m%d")
 
@@ -69,9 +69,7 @@ class TrendService:
             created += 1
 
         await self._session.flush()
-        logger.info(
-            "Synced %d hashtag trends for workspace %s", created, workspace_id
-        )
+        logger.info("Synced %d hashtag trends for workspace %s", created, workspace_id)
         return created
 
     async def get_trending_hashtags(
@@ -86,7 +84,9 @@ class TrendService:
                 TrendSnapshot.workspace_id == workspace_id,
                 TrendSnapshot.trend_type == TrendType.HASHTAG.value,
             )
-            .order_by(TrendSnapshot.captured_at.desc(), TrendSnapshot.engagement_score.desc())
+            .order_by(
+                TrendSnapshot.captured_at.desc(), TrendSnapshot.engagement_score.desc()
+            )
             .limit(limit)
         )
         snapshots = result.scalars().all()
@@ -114,7 +114,9 @@ class TrendService:
                 TrendSnapshot.workspace_id == workspace_id,
                 TrendSnapshot.trend_type == TrendType.SOUND.value,
             )
-            .order_by(TrendSnapshot.captured_at.desc(), TrendSnapshot.engagement_score.desc())
+            .order_by(
+                TrendSnapshot.captured_at.desc(), TrendSnapshot.engagement_score.desc()
+            )
             .limit(limit)
         )
         snapshots = result.scalars().all()
@@ -137,7 +139,7 @@ class TrendService:
         days: int = 30,
     ) -> list[dict[str, Any]]:
         """Return time-series data for a specific hashtag over the given days."""
-        cutoff = datetime.now(tz=timezone.utc) - timedelta(days=days)
+        cutoff = datetime.now(tz=UTC) - timedelta(days=days)
         result = await self._session.execute(
             select(TrendSnapshot)
             .where(

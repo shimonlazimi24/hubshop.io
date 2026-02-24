@@ -13,6 +13,12 @@ class TestPagination:
     def test_total_pages(self) -> None:
         assert PaginatedResult(items=[], total=0, page=1, page_size=20).total_pages == 0
         assert PaginatedResult(items=[], total=1, page=1, page_size=20).total_pages == 1
-        assert PaginatedResult(items=[], total=20, page=1, page_size=20).total_pages == 1
-        assert PaginatedResult(items=[], total=21, page=1, page_size=20).total_pages == 2
-        assert PaginatedResult(items=[], total=100, page=1, page_size=10).total_pages == 10
+        assert (
+            PaginatedResult(items=[], total=20, page=1, page_size=20).total_pages == 1
+        )
+        assert (
+            PaginatedResult(items=[], total=21, page=1, page_size=20).total_pages == 2
+        )
+        assert (
+            PaginatedResult(items=[], total=100, page=1, page_size=10).total_pages == 10
+        )

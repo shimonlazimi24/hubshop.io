@@ -1,15 +1,15 @@
 """Tests for DataSourceService - register, list, toggle."""
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from backend.modules.intelligence.services.data_source_service import (
-    DataSourceService,
     _DATASOURCE_PREFIX,
+    DataSourceService,
 )
 
 
@@ -99,9 +99,7 @@ class TestListSources:
         return uuid.uuid4()
 
     @pytest.mark.asyncio
-    async def test_list_returns_all_sources(
-        self, workspace_id: uuid.UUID
-    ) -> None:
+    async def test_list_returns_all_sources(self, workspace_id: uuid.UUID) -> None:
         session = AsyncMock()
         src1 = SimpleNamespace(
             id=uuid.uuid4(),
@@ -111,7 +109,7 @@ class TestListSources:
                 "enabled": True,
                 "settings": {},
             },
-            created_at=datetime(2026, 2, 19, tzinfo=timezone.utc),
+            created_at=datetime(2026, 2, 19, tzinfo=UTC),
         )
         src2 = SimpleNamespace(
             id=uuid.uuid4(),
@@ -121,7 +119,7 @@ class TestListSources:
                 "enabled": False,
                 "settings": {"api_version": "v1.3"},
             },
-            created_at=datetime(2026, 2, 18, tzinfo=timezone.utc),
+            created_at=datetime(2026, 2, 18, tzinfo=UTC),
         )
         result_mock = MagicMock()
         result_mock.scalars.return_value.all.return_value = [src1, src2]
@@ -156,9 +154,7 @@ class TestToggleSource:
         return uuid.uuid4()
 
     @pytest.mark.asyncio
-    async def test_toggle_enables_source(
-        self, workspace_id: uuid.UUID
-    ) -> None:
+    async def test_toggle_enables_source(self, workspace_id: uuid.UUID) -> None:
         session = AsyncMock()
         session.flush = AsyncMock()
 
@@ -171,7 +167,7 @@ class TestToggleSource:
                 "enabled": False,
                 "settings": {},
             },
-            created_at=datetime(2026, 2, 19, tzinfo=timezone.utc),
+            created_at=datetime(2026, 2, 19, tzinfo=UTC),
         )
         result_mock = MagicMock()
         result_mock.scalar_one_or_none.return_value = source
@@ -185,9 +181,7 @@ class TestToggleSource:
         assert source.query_params["enabled"] is True
 
     @pytest.mark.asyncio
-    async def test_toggle_disables_source(
-        self, workspace_id: uuid.UUID
-    ) -> None:
+    async def test_toggle_disables_source(self, workspace_id: uuid.UUID) -> None:
         session = AsyncMock()
         session.flush = AsyncMock()
 
@@ -200,7 +194,7 @@ class TestToggleSource:
                 "enabled": True,
                 "settings": {},
             },
-            created_at=datetime(2026, 2, 19, tzinfo=timezone.utc),
+            created_at=datetime(2026, 2, 19, tzinfo=UTC),
         )
         result_mock = MagicMock()
         result_mock.scalar_one_or_none.return_value = source
@@ -213,25 +207,19 @@ class TestToggleSource:
         assert result["enabled"] is False
 
     @pytest.mark.asyncio
-    async def test_toggle_nonexistent_source(
-        self, workspace_id: uuid.UUID
-    ) -> None:
+    async def test_toggle_nonexistent_source(self, workspace_id: uuid.UUID) -> None:
         session = AsyncMock()
         result_mock = MagicMock()
         result_mock.scalar_one_or_none.return_value = None
         session.execute = AsyncMock(return_value=result_mock)
 
         service = DataSourceService(session)
-        result = await service.toggle_source(
-            workspace_id, uuid.uuid4(), True
-        )
+        result = await service.toggle_source(workspace_id, uuid.uuid4(), True)
 
         assert result is None
 
     @pytest.mark.asyncio
-    async def test_toggle_preserves_other_params(
-        self, workspace_id: uuid.UUID
-    ) -> None:
+    async def test_toggle_preserves_other_params(self, workspace_id: uuid.UUID) -> None:
         session = AsyncMock()
         session.flush = AsyncMock()
 
@@ -244,7 +232,7 @@ class TestToggleSource:
                 "enabled": True,
                 "settings": {"region": "US", "max_count": 100},
             },
-            created_at=datetime(2026, 2, 19, tzinfo=timezone.utc),
+            created_at=datetime(2026, 2, 19, tzinfo=UTC),
         )
         result_mock = MagicMock()
         result_mock.scalar_one_or_none.return_value = source

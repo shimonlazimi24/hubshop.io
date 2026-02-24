@@ -110,9 +110,7 @@ class Shop(Base, UUIDMixin, TimestampMixin):
     products: Mapped[list["Product"]] = relationship(
         back_populates="shop", lazy="noload"
     )
-    orders: Mapped[list["Order"]] = relationship(
-        back_populates="shop", lazy="noload"
-    )
+    orders: Mapped[list["Order"]] = relationship(back_populates="shop", lazy="noload")
 
 
 class Product(Base, UUIDMixin, TimestampMixin):
@@ -159,9 +157,7 @@ class Product(Base, UUIDMixin, TimestampMixin):
         back_populates="product", lazy="selectin", cascade="all, delete-orphan"
     )
 
-    __table_args__ = (
-        Index("ix_products_workspace_status", "workspace_id", "status"),
-    )
+    __table_args__ = (Index("ix_products_workspace_status", "workspace_id", "status"),)
 
 
 class ProductSku(Base, UUIDMixin, TimestampMixin):
@@ -374,9 +370,7 @@ class Promotion(Base, UUIDMixin, TimestampMixin):
     discount_type: Mapped[str | None] = mapped_column(
         String(50), nullable=True, comment="PERCENTAGE, FIXED_AMOUNT"
     )
-    discount_value: Mapped[str | None] = mapped_column(
-        String(20), nullable=True
-    )
+    discount_value: Mapped[str | None] = mapped_column(String(20), nullable=True)
     detail_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
 
     __table_args__ = (

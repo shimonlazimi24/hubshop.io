@@ -19,9 +19,7 @@ class TestListCampaigns:
         camp1 = SimpleNamespace(
             id=uuid.uuid4(), name="Summer Campaign", status="ACTIVE"
         )
-        camp2 = SimpleNamespace(
-            id=uuid.uuid4(), name="Winter Campaign", status="DRAFT"
-        )
+        camp2 = SimpleNamespace(id=uuid.uuid4(), name="Winter Campaign", status="DRAFT")
         items_result = MagicMock()
         items_result.scalars.return_value.all.return_value = [camp1, camp2]
 

@@ -42,12 +42,15 @@ class TrendSnapshot(Base, UUIDMixin, TimestampMixin):
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     engagement_score: Mapped[float] = mapped_column(
-        Float, nullable=False, default=0.0,
+        Float,
+        nullable=False,
+        default=0.0,
     )
     region: Mapped[str | None] = mapped_column(String(10), nullable=True)
     metadata_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     captured_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False,
+        DateTime(timezone=True),
+        nullable=False,
     )
 
     __table_args__ = (
@@ -74,7 +77,8 @@ class CompetitorTracker(Base, UUIDMixin, TimestampMixin):
     platform_user_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     profile_data: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     last_synced_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True,
+        DateTime(timezone=True),
+        nullable=True,
     )
 
     __table_args__ = (
@@ -101,7 +105,8 @@ class CompetitorContent(Base, UUIDMixin, TimestampMixin):
     metrics: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     hashtags: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     published_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True,
+        DateTime(timezone=True),
+        nullable=True,
     )
 
     __table_args__ = (
@@ -126,7 +131,8 @@ class ResearchQuery(Base, UUIDMixin, TimestampMixin):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     query_params: Mapped[dict] = mapped_column(JSONB, nullable=False)
     last_run_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True,
+        DateTime(timezone=True),
+        nullable=True,
     )
     created_by: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),

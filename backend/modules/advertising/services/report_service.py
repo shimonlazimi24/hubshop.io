@@ -1,6 +1,6 @@
 import logging
 import uuid
-from datetime import UTC, datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -129,9 +129,7 @@ class ReportService:
         data = resp.get("data", {})
         return str(data.get("task_id", ""))
 
-    async def check_async_report(
-        self, ad_account: AdAccount, task_id: str
-    ) -> dict:
+    async def check_async_report(self, ad_account: AdAccount, task_id: str) -> dict:
         """Check async report status."""
         account_service = AdAccountService(self._session)
         gateway = await account_service.build_gateway_for_ad_account(ad_account)
@@ -150,9 +148,7 @@ class ReportService:
             "download_url": data.get("download_url"),
         }
 
-    async def download_async_report(
-        self, ad_account: AdAccount, task_id: str
-    ) -> dict:
+    async def download_async_report(self, ad_account: AdAccount, task_id: str) -> dict:
         """Download async report results."""
         account_service = AdAccountService(self._session)
         gateway = await account_service.build_gateway_for_ad_account(ad_account)
@@ -166,9 +162,7 @@ class ReportService:
         )
         return resp.get("data", {})
 
-    async def cancel_async_report(
-        self, ad_account: AdAccount, task_id: str
-    ) -> dict:
+    async def cancel_async_report(self, ad_account: AdAccount, task_id: str) -> dict:
         """Cancel an async report task."""
         account_service = AdAccountService(self._session)
         gateway = await account_service.build_gateway_for_ad_account(ad_account)

@@ -35,27 +35,19 @@ class AdGroupService:
             count_query = count_query.where(AdGroup.campaign_id == campaign_id)
         if ad_account_id:
             query = query.where(AdGroup.ad_account_id == ad_account_id)
-            count_query = count_query.where(
-                AdGroup.ad_account_id == ad_account_id
-            )
+            count_query = count_query.where(AdGroup.ad_account_id == ad_account_id)
         if status_filter:
             query = query.where(AdGroup.operation_status == status_filter)
-            count_query = count_query.where(
-                AdGroup.operation_status == status_filter
-            )
+            count_query = count_query.where(AdGroup.operation_status == status_filter)
 
         total = (await self._session.execute(count_query)).scalar_one()
         offset = (page - 1) * page_size
         result = await self._session.execute(
-            query.order_by(AdGroup.updated_at.desc())
-            .offset(offset)
-            .limit(page_size)
+            query.order_by(AdGroup.updated_at.desc()).offset(offset).limit(page_size)
         )
         items = list(result.scalars().all())
 
-        return PaginatedResult(
-            items=items, total=total, page=page, page_size=page_size
-        )
+        return PaginatedResult(items=items, total=total, page=page, page_size=page_size)
 
     async def get_ad_group(self, adgroup_id: uuid.UUID) -> AdGroup | None:
         result = await self._session.execute(
@@ -255,12 +247,8 @@ class AdGroupService:
         name = adgroup_data.get("adgroup_name", "")
         placement = adgroup_data.get("placement_type")
         bid_type = adgroup_data.get("bid_type")
-        bid_amount = (
-            str(adgroup_data["bid"]) if "bid" in adgroup_data else None
-        )
-        budget = (
-            str(adgroup_data["budget"]) if "budget" in adgroup_data else None
-        )
+        bid_amount = str(adgroup_data["bid"]) if "bid" in adgroup_data else None
+        budget = str(adgroup_data["budget"]) if "budget" in adgroup_data else None
         opt_goal = adgroup_data.get("optimization_goal")
         op_status = adgroup_data.get("operation_status", "ENABLE")
 

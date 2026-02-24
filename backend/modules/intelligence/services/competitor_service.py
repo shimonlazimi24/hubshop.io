@@ -2,7 +2,7 @@
 
 import logging
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from sqlalchemy import select
@@ -38,7 +38,7 @@ class CompetitorService:
             display_name=user_data.get("display_name"),
             platform_user_id=user_data.get("user_id"),
             profile_data=user_data,
-            last_synced_at=datetime.now(tz=timezone.utc),
+            last_synced_at=datetime.now(tz=UTC),
         )
         self._session.add(tracker)
         await self._session.flush()
@@ -51,9 +51,9 @@ class CompetitorService:
             "username": tracker.username,
             "display_name": tracker.display_name,
             "profile_data": tracker.profile_data,
-            "last_synced_at": tracker.last_synced_at.isoformat()
-            if tracker.last_synced_at
-            else None,
+            "last_synced_at": (
+                tracker.last_synced_at.isoformat() if tracker.last_synced_at else None
+            ),
         }
 
     async def remove_competitor(
@@ -93,9 +93,9 @@ class CompetitorService:
                 "username": t.username,
                 "display_name": t.display_name,
                 "profile_data": t.profile_data,
-                "last_synced_at": t.last_synced_at.isoformat()
-                if t.last_synced_at
-                else None,
+                "last_synced_at": (
+                    t.last_synced_at.isoformat() if t.last_synced_at else None
+                ),
             }
             for t in trackers
         ]
@@ -116,7 +116,7 @@ class CompetitorService:
         )
         trackers = result.scalars().all()
 
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
         end_date = now.strftime("%Y%m%d")
         start_date = (now - timedelta(days=30)).strftime("%Y%m%d")
 
@@ -159,11 +159,11 @@ class CompetitorService:
                         description=video.get("video_description"),
                         metrics=metrics,
                         hashtags=video.get("hashtag_names"),
-                        published_at=datetime.fromtimestamp(
-                            video["create_time"], tz=timezone.utc
-                        )
-                        if video.get("create_time")
-                        else None,
+                        published_at=(
+                            datetime.fromtimestamp(video["create_time"], tz=UTC)
+                            if video.get("create_time")
+                            else None
+                        ),
                     )
                     self._session.add(content)
                     total_synced += 1
@@ -208,9 +208,9 @@ class CompetitorService:
             "username": tracker.username,
             "display_name": tracker.display_name,
             "profile_data": tracker.profile_data,
-            "last_synced_at": tracker.last_synced_at.isoformat()
-            if tracker.last_synced_at
-            else None,
+            "last_synced_at": (
+                tracker.last_synced_at.isoformat() if tracker.last_synced_at else None
+            ),
             "content": [
                 {
                     "id": str(c.id),
@@ -218,9 +218,9 @@ class CompetitorService:
                     "description": c.description,
                     "metrics": c.metrics,
                     "hashtags": c.hashtags,
-                    "published_at": c.published_at.isoformat()
-                    if c.published_at
-                    else None,
+                    "published_at": (
+                        c.published_at.isoformat() if c.published_at else None
+                    ),
                 }
                 for c in content_items
             ],
@@ -259,9 +259,7 @@ class CompetitorService:
             total_comments = sum(
                 c.metrics.get("comment_count", 0) for c in content_items
             )
-            total_shares = sum(
-                c.metrics.get("share_count", 0) for c in content_items
-            )
+            total_shares = sum(c.metrics.get("share_count", 0) for c in content_items)
             total_views = sum(c.metrics.get("view_count", 0) for c in content_items)
             video_count = len(content_items)
 

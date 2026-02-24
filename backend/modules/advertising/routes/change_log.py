@@ -33,9 +33,7 @@ async def get_task_status(
         )
 
     service = ChangeLogService(db)
-    return await service.get_task_status(
-        workspace_id, ad_account, task_id=task_id
-    )
+    return await service.get_task_status(workspace_id, ad_account, task_id=task_id)
 
 
 @router.get("/change-log/tasks/{task_id}/download")

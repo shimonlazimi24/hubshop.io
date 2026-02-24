@@ -57,9 +57,7 @@ class TestSyncTrends:
                 return_value=mock_trend_service,
             ),
         ):
-            mock_factory.return_value.__aenter__ = AsyncMock(
-                return_value=mock_session
-            )
+            mock_factory.return_value.__aenter__ = AsyncMock(return_value=mock_session)
             mock_factory.return_value.__aexit__ = AsyncMock(return_value=False)
 
             from backend.workers.intelligence_sync import _sync_trends
@@ -106,9 +104,7 @@ class TestSyncTrends:
                 return_value=mock_trend_service,
             ),
         ):
-            mock_factory.return_value.__aenter__ = AsyncMock(
-                return_value=mock_session
-            )
+            mock_factory.return_value.__aenter__ = AsyncMock(return_value=mock_session)
             mock_factory.return_value.__aexit__ = AsyncMock(return_value=False)
 
             from backend.workers.intelligence_sync import _sync_trends
@@ -168,9 +164,7 @@ class TestSyncCompetitorContent:
                 return_value=mock_competitor_service,
             ),
         ):
-            mock_factory.return_value.__aenter__ = AsyncMock(
-                return_value=mock_session
-            )
+            mock_factory.return_value.__aenter__ = AsyncMock(return_value=mock_session)
             mock_factory.return_value.__aexit__ = AsyncMock(return_value=False)
 
             from backend.workers.intelligence_sync import _sync_competitor_content

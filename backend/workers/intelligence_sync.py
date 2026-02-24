@@ -2,7 +2,6 @@
 
 import asyncio
 import logging
-from datetime import UTC, datetime
 
 from sqlalchemy import select
 
@@ -51,9 +50,7 @@ async def _sync_trends() -> None:
                     logger.info("Synced trends for workspace %s", workspace.id)
                 except Exception:
                     await session.rollback()
-                    logger.exception(
-                        "Failed trend sync for workspace %s", workspace.id
-                    )
+                    logger.exception("Failed trend sync for workspace %s", workspace.id)
     finally:
         await research_client.close()
 

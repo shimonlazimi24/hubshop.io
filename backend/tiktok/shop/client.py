@@ -2,7 +2,6 @@ import hashlib
 import hmac
 import time
 from typing import Any
-from urllib.parse import urlencode
 
 import httpx
 
@@ -69,7 +68,9 @@ class TikTokShopClient:
 
         import json as json_module
 
-        body_str = json_module.dumps(json_body, separators=(",", ":")) if json_body else ""
+        body_str = (
+            json_module.dumps(json_body, separators=(",", ":")) if json_body else ""
+        )
         all_params["sign"] = self._generate_signature(path, all_params, body_str)
         all_params["access_token"] = self._access_token
 
@@ -88,7 +89,9 @@ class TikTokShopClient:
         response.raise_for_status()
         return response.json()
 
-    async def get(self, path: str, params: dict[str, str] | None = None) -> dict[str, Any]:
+    async def get(
+        self, path: str, params: dict[str, str] | None = None
+    ) -> dict[str, Any]:
         return await self.request("GET", path, params=params)
 
     async def post(

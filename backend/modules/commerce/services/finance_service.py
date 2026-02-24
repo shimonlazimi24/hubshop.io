@@ -36,9 +36,7 @@ class FinanceService:
         page: int = 1,
         page_size: int = 20,
     ) -> PaginatedResult[Settlement]:
-        query = select(Settlement).where(
-            Settlement.workspace_id == workspace_id
-        )
+        query = select(Settlement).where(Settlement.workspace_id == workspace_id)
         count_query = select(func.count(Settlement.id)).where(
             Settlement.workspace_id == workspace_id
         )
@@ -53,18 +51,12 @@ class FinanceService:
         total = (await self._session.execute(count_query)).scalar_one()
         offset = (page - 1) * page_size
         result = await self._session.execute(
-            query.order_by(Settlement.created_at.desc())
-            .offset(offset)
-            .limit(page_size)
+            query.order_by(Settlement.created_at.desc()).offset(offset).limit(page_size)
         )
         items = list(result.scalars().all())
-        return PaginatedResult(
-            items=items, total=total, page=page, page_size=page_size
-        )
+        return PaginatedResult(items=items, total=total, page=page, page_size=page_size)
 
-    async def get_settlement(
-        self, settlement_id: uuid.UUID
-    ) -> Settlement | None:
+    async def get_settlement(self, settlement_id: uuid.UUID) -> Settlement | None:
         result = await self._session.execute(
             select(Settlement).where(Settlement.id == settlement_id)
         )
@@ -88,14 +80,10 @@ class FinanceService:
 
         return synced
 
-    async def _upsert_settlement(
-        self, shop: Shop, data: dict
-    ) -> Settlement:
+    async def _upsert_settlement(self, shop: Shop, data: dict) -> Settlement:
         platform_id = str(data.get("settlement_id", ""))
         result = await self._session.execute(
-            select(Settlement).where(
-                Settlement.platform_settlement_id == platform_id
-            )
+            select(Settlement).where(Settlement.platform_settlement_id == platform_id)
         )
         settlement = result.scalar_one_or_none()
 
@@ -129,9 +117,7 @@ class FinanceService:
         page: int = 1,
         page_size: int = 20,
     ) -> PaginatedResult[Transaction]:
-        query = select(Transaction).where(
-            Transaction.workspace_id == workspace_id
-        )
+        query = select(Transaction).where(Transaction.workspace_id == workspace_id)
         count_query = select(func.count(Transaction.id)).where(
             Transaction.workspace_id == workspace_id
         )
@@ -153,9 +139,7 @@ class FinanceService:
             .limit(page_size)
         )
         items = list(result.scalars().all())
-        return PaginatedResult(
-            items=items, total=total, page=page, page_size=page_size
-        )
+        return PaginatedResult(items=items, total=total, page=page, page_size=page_size)
 
     async def sync_transactions(self, shop: Shop) -> int:
         shop_service = ShopService(self._session)
@@ -175,9 +159,7 @@ class FinanceService:
 
         return synced
 
-    async def _upsert_transaction(
-        self, shop: Shop, data: dict
-    ) -> Transaction:
+    async def _upsert_transaction(self, shop: Shop, data: dict) -> Transaction:
         platform_id = str(data.get("transaction_id", ""))
         result = await self._session.execute(
             select(Transaction).where(
@@ -227,14 +209,10 @@ class FinanceService:
         total = (await self._session.execute(count_query)).scalar_one()
         offset = (page - 1) * page_size
         result = await self._session.execute(
-            query.order_by(Payment.created_at.desc())
-            .offset(offset)
-            .limit(page_size)
+            query.order_by(Payment.created_at.desc()).offset(offset).limit(page_size)
         )
         items = list(result.scalars().all())
-        return PaginatedResult(
-            items=items, total=total, page=page, page_size=page_size
-        )
+        return PaginatedResult(items=items, total=total, page=page, page_size=page_size)
 
     async def sync_payments(self, shop: Shop) -> int:
         shop_service = ShopService(self._session)
@@ -295,9 +273,7 @@ class FinanceService:
     ) -> list[dict]:
         """Fetch transactions for a specific order from the TikTok API."""
         gateway = await self._get_gateway(shop_id)
-        resp = await gateway.get(
-            f"/finance/202501/orders/{order_id}/transactions"
-        )
+        resp = await gateway.get(f"/finance/202501/orders/{order_id}/transactions")
         return resp.get("data", {}).get("transactions", [])
 
     async def get_transactions_by_statement(
@@ -310,9 +286,7 @@ class FinanceService:
         )
         return resp.get("data", {}).get("transactions", [])
 
-    async def get_unsettled_transactions(
-        self, shop_id: uuid.UUID
-    ) -> list[dict]:
+    async def get_unsettled_transactions(self, shop_id: uuid.UUID) -> list[dict]:
         """Fetch unsettled transactions for a shop from the TikTok API."""
         gateway = await self._get_gateway(shop_id)
         resp = await gateway.get("/finance/202507/transactions/unsettled")

@@ -40,14 +40,10 @@ class PixelService:
         )
         items = list(result.scalars().all())
 
-        return PaginatedResult(
-            items=items, total=total, page=page, page_size=page_size
-        )
+        return PaginatedResult(items=items, total=total, page=page, page_size=page_size)
 
     async def get_pixel(self, pixel_id: uuid.UUID) -> Pixel | None:
-        result = await self._session.execute(
-            select(Pixel).where(Pixel.id == pixel_id)
-        )
+        result = await self._session.execute(select(Pixel).where(Pixel.id == pixel_id))
         return result.scalar_one_or_none()
 
     async def create_pixel(
@@ -83,9 +79,7 @@ class PixelService:
         await self._session.flush()
         return pixel
 
-    async def get_pixel_code(
-        self, pixel: Pixel, ad_account: AdAccount
-    ) -> str:
+    async def get_pixel_code(self, pixel: Pixel, ad_account: AdAccount) -> str:
         """Fetch the pixel code snippet from TikTok API."""
         account_service = AdAccountService(self._session)
         gateway = await account_service.build_gateway_for_ad_account(ad_account)
@@ -130,9 +124,7 @@ class PixelService:
 
         return synced
 
-    async def _upsert_pixel(
-        self, ad_account: AdAccount, pixel_data: dict
-    ) -> Pixel:
+    async def _upsert_pixel(self, ad_account: AdAccount, pixel_data: dict) -> Pixel:
         platform_id = str(pixel_data.get("pixel_id", ""))
         result = await self._session.execute(
             select(Pixel).where(Pixel.platform_pixel_id == platform_id)

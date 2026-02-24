@@ -1,7 +1,6 @@
 import asyncio
 import logging
-import time
-from datetime import UTC, datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 
@@ -60,9 +59,7 @@ async def _sync_shop_orders() -> None:
                 await session.commit()
             except Exception:
                 await session.rollback()
-                logger.exception(
-                    "Failed to sync orders for shop %s", shop.id
-                )
+                logger.exception("Failed to sync orders for shop %s", shop.id)
 
 
 async def _sync_single_shop_orders(session, shop: Shop) -> int:  # type: ignore[no-untyped-def]
@@ -103,9 +100,7 @@ async def _sync_shop_products() -> None:
                 await session.commit()
             except Exception:
                 await session.rollback()
-                logger.exception(
-                    "Failed to sync products for shop %s", shop.id
-                )
+                logger.exception("Failed to sync products for shop %s", shop.id)
 
 
 async def _sync_single_shop_products(session, shop: Shop) -> int:  # type: ignore[no-untyped-def]
@@ -139,9 +134,7 @@ def sync_single_shop_orders(shop_id: str) -> None:
 
     async def _sync() -> None:
         async with async_session_factory() as session:
-            result = await session.execute(
-                select(Shop).where(Shop.id == shop_id)
-            )
+            result = await session.execute(select(Shop).where(Shop.id == shop_id))
             shop = result.scalar_one_or_none()
             if shop:
                 await _sync_single_shop_orders(session, shop)
@@ -156,9 +149,7 @@ def sync_single_shop_products(shop_id: str) -> None:
 
     async def _sync() -> None:
         async with async_session_factory() as session:
-            result = await session.execute(
-                select(Shop).where(Shop.id == shop_id)
-            )
+            result = await session.execute(select(Shop).where(Shop.id == shop_id))
             shop = result.scalar_one_or_none()
             if shop:
                 await _sync_single_shop_products(session, shop)

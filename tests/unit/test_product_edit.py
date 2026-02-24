@@ -1,7 +1,7 @@
 import uuid
+from unittest.mock import AsyncMock, patch
 
 import pytest
-from unittest.mock import AsyncMock, patch
 
 from backend.modules.commerce.services.product_service import ProductService
 
@@ -23,15 +23,11 @@ class TestEditProduct:
         mock_session: AsyncMock,
         mock_gateway: AsyncMock,
     ) -> None:
-        mock_gateway.put.return_value = {
-            "data": {"product_id": "prod-100"}
-        }
+        mock_gateway.put.return_value = {"data": {"product_id": "prod-100"}}
         platform_id = "prod-100"
         shop_id = uuid.uuid4()
 
-        with patch.object(
-            ProductService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ProductService, "_get_gateway", return_value=mock_gateway):
             service = ProductService(mock_session)
             result = await service.edit_product(
                 shop_id,
@@ -50,12 +46,8 @@ class TestEditProduct:
                     "title": "Updated Title",
                     "description": "Updated description",
                     "category_id": "cat-5",
-                    "main_images": [
-                        {"uri": "https://example.com/new.jpg"}
-                    ],
-                    "skus": [
-                        {"id": "sku-1", "price": {"sale_price": "29.99"}}
-                    ],
+                    "main_images": [{"uri": "https://example.com/new.jpg"}],
+                    "skus": [{"id": "sku-1", "price": {"sale_price": "29.99"}}],
                 },
             )
 
@@ -67,9 +59,7 @@ class TestEditProduct:
     ) -> None:
         mock_gateway.put.return_value = {"data": {}}
 
-        with patch.object(
-            ProductService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ProductService, "_get_gateway", return_value=mock_gateway):
             service = ProductService(mock_session)
             result = await service.edit_product(
                 uuid.uuid4(),
@@ -94,9 +84,7 @@ class TestEditProduct:
     ) -> None:
         mock_gateway.put.return_value = {}
 
-        with patch.object(
-            ProductService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ProductService, "_get_gateway", return_value=mock_gateway):
             service = ProductService(mock_session)
             result = await service.edit_product(
                 uuid.uuid4(),
@@ -118,14 +106,10 @@ class TestPartialEditProduct:
         mock_session: AsyncMock,
         mock_gateway: AsyncMock,
     ) -> None:
-        mock_gateway.put.return_value = {
-            "data": {"product_id": "prod-400"}
-        }
+        mock_gateway.put.return_value = {"data": {"product_id": "prod-400"}}
         platform_id = "prod-400"
 
-        with patch.object(
-            ProductService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ProductService, "_get_gateway", return_value=mock_gateway):
             service = ProductService(mock_session)
             result = await service.partial_edit_product(
                 uuid.uuid4(),
@@ -152,9 +136,7 @@ class TestPartialEditProduct:
         platform_id = "prod-500"
         new_skus = [{"id": "sku-new", "price": {"sale_price": "9.99"}}]
 
-        with patch.object(
-            ProductService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ProductService, "_get_gateway", return_value=mock_gateway):
             service = ProductService(mock_session)
             await service.partial_edit_product(
                 uuid.uuid4(),
@@ -180,9 +162,7 @@ class TestPartialEditProduct:
     ) -> None:
         mock_gateway.put.return_value = {"data": {}}
 
-        with patch.object(
-            ProductService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ProductService, "_get_gateway", return_value=mock_gateway):
             service = ProductService(mock_session)
             await service.partial_edit_product(
                 uuid.uuid4(),
@@ -205,9 +185,7 @@ class TestPartialEditProduct:
         mock_gateway.put.return_value = {"data": {}}
         platform_id = "prod-700"
 
-        with patch.object(
-            ProductService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ProductService, "_get_gateway", return_value=mock_gateway):
             service = ProductService(mock_session)
             await service.partial_edit_product(
                 uuid.uuid4(),

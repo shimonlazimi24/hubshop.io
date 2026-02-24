@@ -31,8 +31,9 @@ async def add_competitor(
     # Research client is injected via sync tasks in production;
     # for the route we create a lightweight stub that the caller
     # can override or mock in tests.
-    from backend.tiktok.research.client import TikTokResearchClient
     import os
+
+    from backend.tiktok.research.client import TikTokResearchClient
 
     client = TikTokResearchClient(
         client_key=os.environ.get("TIKTOK_DEVELOPER_CLIENT_KEY", ""),
@@ -40,9 +41,7 @@ async def add_competitor(
     )
     try:
         service = CompetitorService(db)
-        return await service.add_competitor(
-            workspace_id, body.tiktok_username, client
-        )
+        return await service.add_competitor(workspace_id, body.tiktok_username, client)
     finally:
         await client.close()
 

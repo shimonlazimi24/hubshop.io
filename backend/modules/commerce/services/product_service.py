@@ -55,15 +55,11 @@ class ProductService:
         total = (await self._session.execute(count_query)).scalar_one()
         offset = (page - 1) * page_size
         result = await self._session.execute(
-            query.order_by(Product.updated_at.desc())
-            .offset(offset)
-            .limit(page_size)
+            query.order_by(Product.updated_at.desc()).offset(offset).limit(page_size)
         )
         items = list(result.scalars().all())
 
-        return PaginatedResult(
-            items=items, total=total, page=page, page_size=page_size
-        )
+        return PaginatedResult(items=items, total=total, page=page, page_size=page_size)
 
     async def get_product(self, product_id: uuid.UUID) -> Product | None:
         result = await self._session.execute(
@@ -83,16 +79,12 @@ class ProductService:
             if next_page_token:
                 body["page_token"] = next_page_token
 
-            resp = await gateway.post(
-                "/product/202309/products/search", json_body=body
-            )
+            resp = await gateway.post("/product/202309/products/search", json_body=body)
             data = resp.get("data", {})
             products_list = data.get("products", [])
 
             for product_data in products_list:
-                await self.upsert_product_from_api(
-                    shop=shop, product_data=product_data
-                )
+                await self.upsert_product_from_api(shop=shop, product_data=product_data)
                 synced += 1
 
             next_page_token = data.get("next_page_token", "")
@@ -121,21 +113,11 @@ class ProductService:
         )
         skus_data = product_data.get("skus", [])
         inventory_total = sum(
-            s.get("inventory", [{}])[0].get("quantity", 0)
-            if s.get("inventory")
-            else 0
+            s.get("inventory", [{}])[0].get("quantity", 0) if s.get("inventory") else 0
             for s in skus_data
         )
-        price = (
-            skus_data[0].get("price", {}).get("sale_price")
-            if skus_data
-            else None
-        )
-        currency = (
-            skus_data[0].get("price", {}).get("currency")
-            if skus_data
-            else None
-        )
+        price = skus_data[0].get("price", {}).get("sale_price") if skus_data else None
+        currency = skus_data[0].get("price", {}).get("currency") if skus_data else None
 
         if product:
             product.title = title
@@ -167,16 +149,12 @@ class ProductService:
         await self._sync_skus(product, skus_data)
         return product
 
-    async def _sync_skus(
-        self, product: Product, skus_data: list[dict]
-    ) -> None:
+    async def _sync_skus(self, product: Product, skus_data: list[dict]) -> None:
         """Upsert SKUs for a product."""
         for sku_data in skus_data:
             platform_sku_id = str(sku_data["id"])
             result = await self._session.execute(
-                select(ProductSku).where(
-                    ProductSku.platform_sku_id == platform_sku_id
-                )
+                select(ProductSku).where(ProductSku.platform_sku_id == platform_sku_id)
             )
             sku = result.scalar_one_or_none()
 
@@ -233,19 +211,13 @@ class ProductService:
     ) -> list[dict]:
         """Get rules for a specific category."""
         gateway = await self._get_gateway(shop_id)
-        resp = await gateway.get(
-            f"/product/202309/categories/{category_id}/rules"
-        )
+        resp = await gateway.get(f"/product/202309/categories/{category_id}/rules")
         return resp.get("data", {}).get("category_rules", [])
 
-    async def get_attributes(
-        self, shop_id: uuid.UUID, category_id: str
-    ) -> list[dict]:
+    async def get_attributes(self, shop_id: uuid.UUID, category_id: str) -> list[dict]:
         """Get attributes for a specific category."""
         gateway = await self._get_gateway(shop_id)
-        resp = await gateway.get(
-            f"/product/202309/categories/{category_id}/attributes"
-        )
+        resp = await gateway.get(f"/product/202309/categories/{category_id}/attributes")
         return resp.get("data", {}).get("attributes", [])
 
     async def create_product(
@@ -280,9 +252,7 @@ class ProductService:
         # Fetch full product to persist locally
         product_id = data.get("product_id", "")
         if product_id:
-            detail_resp = await gateway.get(
-                f"/product/202309/products/{product_id}"
-            )
+            detail_resp = await gateway.get(f"/product/202309/products/{product_id}")
             product_data = detail_resp.get("data", {})
             if product_data:
                 shop = await ShopService(self._session).get_shop(shop_id)
@@ -340,9 +310,7 @@ class ProductService:
         self, platform_product_id: str, new_status: str
     ) -> Product | None:
         result = await self._session.execute(
-            select(Product).where(
-                Product.platform_product_id == platform_product_id
-            )
+            select(Product).where(Product.platform_product_id == platform_product_id)
         )
         product = result.scalar_one_or_none()
         if product:
@@ -353,9 +321,7 @@ class ProductService:
         self, platform_product_id: str, total_inventory: int
     ) -> Product | None:
         result = await self._session.execute(
-            select(Product).where(
-                Product.platform_product_id == platform_product_id
-            )
+            select(Product).where(Product.platform_product_id == platform_product_id)
         )
         product = result.scalar_one_or_none()
         if product:
@@ -364,9 +330,7 @@ class ProductService:
 
     # --- Task 4: Product Lifecycle Batch Operations ---
 
-    async def delete_products(
-        self, shop_id: uuid.UUID, product_ids: list[str]
-    ) -> dict:
+    async def delete_products(self, shop_id: uuid.UUID, product_ids: list[str]) -> dict:
         """Batch delete products via TikTok API."""
         gateway = await self._get_gateway(shop_id)
         resp = await gateway.delete(
@@ -434,9 +398,7 @@ class ProductService:
 
     # --- Task 6: Image & File Upload ---
 
-    async def upload_product_image(
-        self, shop_id: uuid.UUID, image_url: str
-    ) -> dict:
+    async def upload_product_image(self, shop_id: uuid.UUID, image_url: str) -> dict:
         """Upload product image via URL to TikTok CDN."""
         gateway = await self._get_gateway(shop_id)
         resp = await gateway.post(

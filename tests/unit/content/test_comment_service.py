@@ -1,9 +1,9 @@
 """Tests for CommentService - list, sync, reply, delete, upsert."""
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -121,9 +121,7 @@ class TestSyncComments:
             "data": {"comments": comments_data, "has_more": False}
         }
 
-        video = SimpleNamespace(
-            id=uuid.uuid4(), platform_video_id="vid_456"
-        )
+        video = SimpleNamespace(id=uuid.uuid4(), platform_video_id="vid_456")
 
         service = CommentService(session)
         service._get_developer_gateway = AsyncMock(
@@ -159,9 +157,7 @@ class TestSyncComments:
         }
         mock_gateway.post = AsyncMock(side_effect=[page1, page2])
 
-        video = SimpleNamespace(
-            id=uuid.uuid4(), platform_video_id="vid_789"
-        )
+        video = SimpleNamespace(id=uuid.uuid4(), platform_video_id="vid_789")
 
         service = CommentService(session)
         service._get_developer_gateway = AsyncMock(
@@ -185,13 +181,9 @@ class TestReplyToComment:
         mock_gateway = AsyncMock()
         mock_account = SimpleNamespace(id=uuid.uuid4())
 
-        mock_gateway.post.return_value = {
-            "data": {"comment_id": "cmt_reply_1"}
-        }
+        mock_gateway.post.return_value = {"data": {"comment_id": "cmt_reply_1"}}
 
-        video = SimpleNamespace(
-            id=uuid.uuid4(), platform_video_id="vid_100"
-        )
+        video = SimpleNamespace(id=uuid.uuid4(), platform_video_id="vid_100")
 
         service = CommentService(session)
         service._get_developer_gateway = AsyncMock(
@@ -222,18 +214,14 @@ class TestDeleteComment:
 
         mock_gateway.post.return_value = {"data": {}}
 
-        video = SimpleNamespace(
-            id=uuid.uuid4(), platform_video_id="vid_200"
-        )
+        video = SimpleNamespace(id=uuid.uuid4(), platform_video_id="vid_200")
 
         service = CommentService(session)
         service._get_developer_gateway = AsyncMock(
             return_value=(mock_account, mock_gateway)
         )
 
-        result = await service.delete_comment(
-            uuid.uuid4(), video, "cmt_delete_1"
-        )
+        result = await service.delete_comment(uuid.uuid4(), video, "cmt_delete_1")
 
         assert result is True
         mock_gateway.post.assert_called_once_with(
@@ -272,9 +260,7 @@ class TestUpsertComment:
         video_id = uuid.uuid4()
         workspace_id = uuid.uuid4()
 
-        comment = await service._upsert_comment(
-            video_id, workspace_id, comment_data
-        )
+        comment = await service._upsert_comment(video_id, workspace_id, comment_data)
 
         session.add.assert_called_once()
         session.flush.assert_awaited_once()
@@ -342,9 +328,7 @@ class TestCommentModel:
         comment.reply_count = 7
         comment.author_username = "tester"
         comment.author_avatar_url = "https://img.example.com/tester.jpg"
-        comment.comment_create_time = datetime(
-            2026, 2, 20, 12, 0, 0, tzinfo=timezone.utc
-        )
+        comment.comment_create_time = datetime(2026, 2, 20, 12, 0, 0, tzinfo=UTC)
         comment.detail_json = {"id": "cmt_model_1", "text": "Test comment text"}
 
         assert comment.workspace_id == ws_id
@@ -357,7 +341,7 @@ class TestCommentModel:
         assert comment.author_username == "tester"
         assert comment.author_avatar_url == "https://img.example.com/tester.jpg"
         assert comment.comment_create_time == datetime(
-            2026, 2, 20, 12, 0, 0, tzinfo=timezone.utc
+            2026, 2, 20, 12, 0, 0, tzinfo=UTC
         )
         assert comment.detail_json == {
             "id": "cmt_model_1",

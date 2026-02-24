@@ -1,7 +1,7 @@
 """Tests for ReportService - CRUD, pagination, next-run calculation."""
 
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
@@ -130,7 +130,7 @@ class TestUpdateReport:
             frequency="WEEKLY",
             format="CSV",
             is_active=True,
-            next_run_at=datetime.now(tz=timezone.utc),
+            next_run_at=datetime.now(tz=UTC),
         )
 
         service = ReportService(session)
@@ -179,16 +179,16 @@ class TestDeleteReport:
 
 class TestCalculateNextRun:
     def test_calculate_next_run_daily(self) -> None:
-        now = datetime(2026, 2, 20, 12, 0, 0, tzinfo=timezone.utc)
+        now = datetime(2026, 2, 20, 12, 0, 0, tzinfo=UTC)
         result = ReportService._calculate_next_run("DAILY", now)
         assert result == now + timedelta(days=1)
 
     def test_calculate_next_run_weekly(self) -> None:
-        now = datetime(2026, 2, 20, 12, 0, 0, tzinfo=timezone.utc)
+        now = datetime(2026, 2, 20, 12, 0, 0, tzinfo=UTC)
         result = ReportService._calculate_next_run("WEEKLY", now)
         assert result == now + timedelta(weeks=1)
 
     def test_calculate_next_run_monthly(self) -> None:
-        now = datetime(2026, 2, 20, 12, 0, 0, tzinfo=timezone.utc)
+        now = datetime(2026, 2, 20, 12, 0, 0, tzinfo=UTC)
         result = ReportService._calculate_next_run("MONTHLY", now)
         assert result == now + timedelta(days=30)

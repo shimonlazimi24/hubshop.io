@@ -2,8 +2,8 @@ from fastapi import APIRouter
 
 from backend.modules.content.routes.bridge import router as bridge_router
 from backend.modules.content.routes.calendar import router as calendar_router
-from backend.modules.content.routes.commercial import router as commercial_router
 from backend.modules.content.routes.comments import router as comments_router
+from backend.modules.content.routes.commercial import router as commercial_router
 from backend.modules.content.routes.publish import router as publish_router
 from backend.modules.content.routes.videos import router as videos_router
 

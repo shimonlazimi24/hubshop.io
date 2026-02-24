@@ -12,7 +12,9 @@ logger = logging.getLogger("frodo.access")
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
     """Log all incoming requests with timing and correlation ID."""
 
-    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+    async def dispatch(
+        self, request: Request, call_next: RequestResponseEndpoint
+    ) -> Response:
         request_id = str(uuid.uuid4())[:8]
         request.state.request_id = request_id
         start = time.perf_counter()

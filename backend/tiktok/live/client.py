@@ -5,7 +5,7 @@ import inspect
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -93,7 +93,7 @@ class TikTokLiveClientWrapper:
                     user_id=str(event.user.user_id) if event.user else None,
                     username=event.user.nickname if event.user else None,
                     payload={"comment": event.comment},
-                    timestamp=datetime.now(timezone.utc),
+                    timestamp=datetime.now(UTC),
                 )
             )
 
@@ -108,7 +108,7 @@ class TikTokLiveClientWrapper:
                         "gift_name": event.gift.name if event.gift else "unknown",
                         "repeat_count": event.repeat_count,
                     },
-                    timestamp=datetime.now(timezone.utc),
+                    timestamp=datetime.now(UTC),
                 )
             )
 
@@ -120,7 +120,7 @@ class TikTokLiveClientWrapper:
                     user_id=str(event.user.user_id) if event.user else None,
                     username=event.user.nickname if event.user else None,
                     payload={},
-                    timestamp=datetime.now(timezone.utc),
+                    timestamp=datetime.now(UTC),
                 )
             )
 
@@ -132,7 +132,7 @@ class TikTokLiveClientWrapper:
                     user_id=str(event.user.user_id) if event.user else None,
                     username=event.user.nickname if event.user else None,
                     payload={},
-                    timestamp=datetime.now(timezone.utc),
+                    timestamp=datetime.now(UTC),
                 )
             )
 
@@ -144,7 +144,7 @@ class TikTokLiveClientWrapper:
                     user_id=str(event.user.user_id) if event.user else None,
                     username=event.user.nickname if event.user else None,
                     payload={},
-                    timestamp=datetime.now(timezone.utc),
+                    timestamp=datetime.now(UTC),
                 )
             )
 
@@ -156,7 +156,7 @@ class TikTokLiveClientWrapper:
                     user_id=str(event.user.user_id) if event.user else None,
                     username=event.user.nickname if event.user else None,
                     payload={},
-                    timestamp=datetime.now(timezone.utc),
+                    timestamp=datetime.now(UTC),
                 )
             )
 
@@ -168,7 +168,7 @@ class TikTokLiveClientWrapper:
                     user_id=None,
                     username=None,
                     payload={},
-                    timestamp=datetime.now(timezone.utc),
+                    timestamp=datetime.now(UTC),
                 )
             )
             self._connected = False

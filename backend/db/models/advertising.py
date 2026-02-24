@@ -2,7 +2,7 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Index, String, func
+from sqlalchemy import DateTime, ForeignKey, Index, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -165,7 +165,9 @@ class AdGroup(Base, UUIDMixin, TimestampMixin):
     )
     adgroup_name: Mapped[str] = mapped_column(String(500), nullable=False)
     placement_type: Mapped[str | None] = mapped_column(
-        String(100), nullable=True, comment="PLACEMENT_TYPE_AUTOMATIC or PLACEMENT_TYPE_NORMAL"
+        String(100),
+        nullable=True,
+        comment="PLACEMENT_TYPE_AUTOMATIC or PLACEMENT_TYPE_NORMAL",
     )
     bid_type: Mapped[str | None] = mapped_column(
         String(50), nullable=True, comment="BID_TYPE_NO_BID, BID_TYPE_CUSTOM, etc."
@@ -298,9 +300,7 @@ class Audience(Base, UUIDMixin, TimestampMixin):
         String(50), nullable=False, comment="CUSTOM or LOOKALIKE"
     )
     size: Mapped[int | None] = mapped_column(nullable=True)
-    status: Mapped[str] = mapped_column(
-        String(50), nullable=False, default="ENABLE"
-    )
+    status: Mapped[str] = mapped_column(String(50), nullable=False, default="ENABLE")
     detail_json: Mapped[dict | None] = mapped_column(
         JSONB, nullable=True, comment="Full API snapshot"
     )
@@ -357,9 +357,7 @@ class Catalog(Base, UUIDMixin, TimestampMixin):
     )
     name: Mapped[str] = mapped_column(String(500), nullable=False)
     product_count: Mapped[int] = mapped_column(nullable=False, default=0)
-    status: Mapped[str] = mapped_column(
-        String(50), nullable=False, default="ACTIVE"
-    )
+    status: Mapped[str] = mapped_column(String(50), nullable=False, default="ACTIVE")
     detail_json: Mapped[dict | None] = mapped_column(
         JSONB, nullable=True, comment="Full API snapshot"
     )

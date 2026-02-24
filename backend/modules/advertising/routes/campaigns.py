@@ -12,7 +12,9 @@ from backend.modules.advertising.schemas import (
 )
 from backend.modules.advertising.services.ad_account_service import AdAccountService
 from backend.modules.advertising.services.campaign_service import CampaignService
-from backend.modules.advertising.services.unified_service import UnifiedAdvertisingService
+from backend.modules.advertising.services.unified_service import (
+    UnifiedAdvertisingService,
+)
 from backend.modules.commerce.schemas import PaginatedResponse
 
 router = APIRouter()

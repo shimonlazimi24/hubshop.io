@@ -33,14 +33,10 @@ async def _take_daily_kpi_snapshots() -> None:
                 service = KpiService(session)
                 await service.take_snapshot(workspace.id)
                 await session.commit()
-                logger.info(
-                    "Took KPI snapshot for workspace %s", workspace.id
-                )
+                logger.info("Took KPI snapshot for workspace %s", workspace.id)
             except Exception:
                 await session.rollback()
-                logger.exception(
-                    "Failed KPI snapshot for workspace %s", workspace.id
-                )
+                logger.exception("Failed KPI snapshot for workspace %s", workspace.id)
 
 
 async def _run_scheduled_reports() -> None:
@@ -67,9 +63,7 @@ async def _run_scheduled_reports() -> None:
                 logger.info("Generated scheduled report %s", report.id)
             except Exception:
                 await session.rollback()
-                logger.exception(
-                    "Failed to generate report %s", report.id
-                )
+                logger.exception("Failed to generate report %s", report.id)
 
 
 @celery_app.task(name="backend.workers.analytics_sync.take_daily_kpi_snapshots")

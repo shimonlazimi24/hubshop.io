@@ -1,7 +1,7 @@
 import uuid
+from unittest.mock import AsyncMock, patch
 
 import pytest
-from unittest.mock import AsyncMock, patch
 
 from backend.modules.commerce.services.order_service import OrderService
 
@@ -22,9 +22,7 @@ class TestCancelOrder:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.post.return_value = {"data": {"cancellation_id": "c1"}}
-        with patch.object(
-            OrderService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(OrderService, "_get_gateway", return_value=mock_gateway):
             service = OrderService(mock_session)
             result = await service.cancel_order(
                 shop_id=uuid.uuid4(),
@@ -39,9 +37,7 @@ class TestCancelOrder:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.post.return_value = {"data": {"cancellation_id": "c1"}}
-        with patch.object(
-            OrderService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(OrderService, "_get_gateway", return_value=mock_gateway):
             service = OrderService(mock_session)
             await service.cancel_order(
                 shop_id=uuid.uuid4(),
@@ -57,9 +53,7 @@ class TestCancelOrder:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.post.return_value = {"data": {"cancellation_id": "c1"}}
-        with patch.object(
-            OrderService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(OrderService, "_get_gateway", return_value=mock_gateway):
             service = OrderService(mock_session)
             result = await service.cancel_order(
                 shop_id=uuid.uuid4(),
@@ -75,9 +69,7 @@ class TestApproveCancellation:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.post.return_value = {"data": {"status": "approved"}}
-        with patch.object(
-            OrderService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(OrderService, "_get_gateway", return_value=mock_gateway):
             service = OrderService(mock_session)
             await service.approve_cancellation(
                 shop_id=uuid.uuid4(), order_id="order123"
@@ -90,9 +82,7 @@ class TestApproveCancellation:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.post.return_value = {"data": {"status": "approved"}}
-        with patch.object(
-            OrderService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(OrderService, "_get_gateway", return_value=mock_gateway):
             service = OrderService(mock_session)
             result = await service.approve_cancellation(
                 shop_id=uuid.uuid4(), order_id="order123"
@@ -106,9 +96,7 @@ class TestRejectCancellation:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.post.return_value = {"data": {"status": "rejected"}}
-        with patch.object(
-            OrderService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(OrderService, "_get_gateway", return_value=mock_gateway):
             service = OrderService(mock_session)
             await service.reject_cancellation(
                 shop_id=uuid.uuid4(),
@@ -123,9 +111,7 @@ class TestRejectCancellation:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.post.return_value = {"data": {"status": "rejected"}}
-        with patch.object(
-            OrderService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(OrderService, "_get_gateway", return_value=mock_gateway):
             service = OrderService(mock_session)
             await service.reject_cancellation(
                 shop_id=uuid.uuid4(),
@@ -140,9 +126,7 @@ class TestRejectCancellation:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.post.return_value = {"data": {"status": "rejected"}}
-        with patch.object(
-            OrderService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(OrderService, "_get_gateway", return_value=mock_gateway):
             service = OrderService(mock_session)
             await service.reject_cancellation(
                 shop_id=uuid.uuid4(),
@@ -160,9 +144,7 @@ class TestSearchCancellations:
         mock_gateway.post.return_value = {
             "data": {"cancellations": [{"id": "c1"}, {"id": "c2"}]}
         }
-        with patch.object(
-            OrderService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(OrderService, "_get_gateway", return_value=mock_gateway):
             service = OrderService(mock_session)
             await service.search_cancellations(shop_id=uuid.uuid4())
             endpoint = mock_gateway.post.call_args[0][0]
@@ -175,9 +157,7 @@ class TestSearchCancellations:
         mock_gateway.post.return_value = {
             "data": {"cancellations": [{"id": "c1"}, {"id": "c2"}]}
         }
-        with patch.object(
-            OrderService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(OrderService, "_get_gateway", return_value=mock_gateway):
             service = OrderService(mock_session)
             result = await service.search_cancellations(shop_id=uuid.uuid4())
             assert len(result) == 2
@@ -188,9 +168,7 @@ class TestSearchCancellations:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.post.return_value = {"data": {}}
-        with patch.object(
-            OrderService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(OrderService, "_get_gateway", return_value=mock_gateway):
             service = OrderService(mock_session)
             result = await service.search_cancellations(shop_id=uuid.uuid4())
             assert result == []
@@ -204,13 +182,9 @@ class TestGetPriceDetail:
         mock_gateway.get.return_value = {
             "data": {"subtotal": "100.00", "shipping": "5.00"}
         }
-        with patch.object(
-            OrderService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(OrderService, "_get_gateway", return_value=mock_gateway):
             service = OrderService(mock_session)
-            await service.get_price_detail(
-                shop_id=uuid.uuid4(), order_id="order789"
-            )
+            await service.get_price_detail(shop_id=uuid.uuid4(), order_id="order789")
             endpoint = mock_gateway.get.call_args[0][0]
             assert endpoint == "/order/202407/orders/order789/price_detail"
 
@@ -221,9 +195,7 @@ class TestGetPriceDetail:
         mock_gateway.get.return_value = {
             "data": {"subtotal": "100.00", "shipping": "5.00"}
         }
-        with patch.object(
-            OrderService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(OrderService, "_get_gateway", return_value=mock_gateway):
             service = OrderService(mock_session)
             result = await service.get_price_detail(
                 shop_id=uuid.uuid4(), order_id="order789"

@@ -1,7 +1,7 @@
 """Tests for CommerceAnalyticsService - aggregation queries with mock data."""
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
@@ -51,8 +51,8 @@ class TestGetRevenueSummary:
         service = CommerceAnalyticsService(session)
         result = await service.get_revenue_summary(
             workspace_id,
-            period_start=datetime(2026, 1, 1, tzinfo=timezone.utc),
-            period_end=datetime(2026, 1, 31, tzinfo=timezone.utc),
+            period_start=datetime(2026, 1, 1, tzinfo=UTC),
+            period_end=datetime(2026, 1, 31, tzinfo=UTC),
         )
 
         assert result["total_revenue"] == "350.00"
@@ -94,8 +94,8 @@ class TestGetRevenueSummary:
         service = CommerceAnalyticsService(session)
         result = await service.get_revenue_summary(
             workspace_id,
-            period_start=datetime(2026, 1, 1, tzinfo=timezone.utc),
-            period_end=datetime(2026, 1, 31, tzinfo=timezone.utc),
+            period_start=datetime(2026, 1, 1, tzinfo=UTC),
+            period_end=datetime(2026, 1, 31, tzinfo=UTC),
         )
 
         assert result["total_revenue"] == "0.00"

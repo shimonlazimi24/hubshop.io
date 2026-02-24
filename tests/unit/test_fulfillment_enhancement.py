@@ -1,7 +1,7 @@
 import uuid
+from unittest.mock import AsyncMock, patch
 
 import pytest
-from unittest.mock import AsyncMock, patch
 
 from backend.modules.commerce.services.fulfillment_service import FulfillmentService
 
@@ -158,9 +158,7 @@ class TestSearchPackages:
     async def test_search_packages_calls_correct_endpoint(
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
-        mock_gateway.post.return_value = {
-            "data": {"packages": [{"id": "pkg1"}]}
-        }
+        mock_gateway.post.return_value = {"data": {"packages": [{"id": "pkg1"}]}}
         with patch.object(
             FulfillmentService, "_get_gateway", return_value=mock_gateway
         ):
@@ -213,10 +211,7 @@ class TestGetShippingDocument:
                 package_id="pkg123",
             )
             endpoint = mock_gateway.get.call_args[0][0]
-            assert (
-                endpoint
-                == "/fulfillment/202309/packages/pkg123/shipping_document"
-            )
+            assert endpoint == "/fulfillment/202309/packages/pkg123/shipping_document"
 
     @pytest.mark.asyncio
     async def test_get_shipping_document_sends_correct_params(
@@ -286,10 +281,7 @@ class TestUpdateShippingInfo:
                 shipping_provider_id="fedex",
             )
             endpoint = mock_gateway.post.call_args[0][0]
-            assert (
-                endpoint
-                == "/fulfillment/202309/packages/shipping_info/update"
-            )
+            assert endpoint == "/fulfillment/202309/packages/shipping_info/update"
 
     @pytest.mark.asyncio
     async def test_update_shipping_info_sends_correct_body(

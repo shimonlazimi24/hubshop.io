@@ -13,10 +13,12 @@ from backend.modules.webhooks.verification import (
 class TestShopWebhookVerification:
     def test_valid_signature(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(
-            "backend.modules.webhooks.verification.settings.tiktok_shop_app_key", "app_key"
+            "backend.modules.webhooks.verification.settings.tiktok_shop_app_key",
+            "app_key",
         )
         monkeypatch.setattr(
-            "backend.modules.webhooks.verification.settings.tiktok_shop_app_secret", "app_secret"
+            "backend.modules.webhooks.verification.settings.tiktok_shop_app_secret",
+            "app_secret",
         )
 
         body = b'{"type":"ORDER_STATUS_CHANGE","data":{}}'
@@ -30,10 +32,12 @@ class TestShopWebhookVerification:
 
     def test_invalid_signature(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(
-            "backend.modules.webhooks.verification.settings.tiktok_shop_app_key", "app_key"
+            "backend.modules.webhooks.verification.settings.tiktok_shop_app_key",
+            "app_key",
         )
         monkeypatch.setattr(
-            "backend.modules.webhooks.verification.settings.tiktok_shop_app_secret", "app_secret"
+            "backend.modules.webhooks.verification.settings.tiktok_shop_app_secret",
+            "app_secret",
         )
 
         body = b'{"type":"ORDER_STATUS_CHANGE"}'
@@ -41,10 +45,12 @@ class TestShopWebhookVerification:
 
     def test_tampered_body(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(
-            "backend.modules.webhooks.verification.settings.tiktok_shop_app_key", "app_key"
+            "backend.modules.webhooks.verification.settings.tiktok_shop_app_key",
+            "app_key",
         )
         monkeypatch.setattr(
-            "backend.modules.webhooks.verification.settings.tiktok_shop_app_secret", "app_secret"
+            "backend.modules.webhooks.verification.settings.tiktok_shop_app_secret",
+            "app_secret",
         )
 
         original_body = b'{"amount":"100"}'

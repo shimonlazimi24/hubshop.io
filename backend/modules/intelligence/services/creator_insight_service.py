@@ -2,10 +2,9 @@
 
 import logging
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.db.models.intelligence import ResearchQuery
@@ -34,7 +33,7 @@ class CreatorInsightService:
         Queries videos matching the given criteria and extracts unique
         creator usernames with aggregated engagement metrics.
         """
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
         end_date = now.strftime("%Y%m%d")
         start_date = (now - timedelta(days=30)).strftime("%Y%m%d")
 
@@ -102,7 +101,7 @@ class CreatorInsightService:
         user_resp = await research_client.query_user_info(creator_username)
         user_data = user_resp.get("data", {})
 
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
         end_date = now.strftime("%Y%m%d")
         start_date = (now - timedelta(days=30)).strftime("%Y%m%d")
 
@@ -144,7 +143,7 @@ class CreatorInsightService:
             name=f"Creator Insight: {creator_data.get('username', 'unknown')}",
             query_params=creator_data,
             created_by=user_id,
-            last_run_at=datetime.now(tz=timezone.utc),
+            last_run_at=datetime.now(tz=UTC),
         )
         self._session.add(query)
         await self._session.flush()
@@ -158,7 +157,5 @@ class CreatorInsightService:
             "id": str(query.id),
             "name": query.name,
             "query_params": query.query_params,
-            "last_run_at": query.last_run_at.isoformat()
-            if query.last_run_at
-            else None,
+            "last_run_at": query.last_run_at.isoformat() if query.last_run_at else None,
         }

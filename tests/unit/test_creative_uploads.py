@@ -38,12 +38,8 @@ class TestUploadVideo:
         mock_ad_account: MagicMock,
         workspace_id: uuid.UUID,
     ) -> None:
-        mock_gateway.post.return_value = {
-            "data": {"video_id": "v_001"}
-        }
-        with patch.object(
-            CreativeService, "_get_gateway", return_value=mock_gateway
-        ):
+        mock_gateway.post.return_value = {"data": {"video_id": "v_001"}}
+        with patch.object(CreativeService, "_get_gateway", return_value=mock_gateway):
             service = CreativeService(mock_session)
             result = await service.upload_video(
                 workspace_id,
@@ -68,12 +64,8 @@ class TestUploadVideo:
         mock_ad_account: MagicMock,
         workspace_id: uuid.UUID,
     ) -> None:
-        mock_gateway.post.return_value = {
-            "data": {"video_id": "v_002"}
-        }
-        with patch.object(
-            CreativeService, "_get_gateway", return_value=mock_gateway
-        ):
+        mock_gateway.post.return_value = {"data": {"video_id": "v_002"}}
+        with patch.object(CreativeService, "_get_gateway", return_value=mock_gateway):
             service = CreativeService(mock_session)
             result = await service.upload_video(
                 workspace_id,
@@ -110,9 +102,7 @@ class TestGetVideoInfo:
                 ]
             }
         }
-        with patch.object(
-            CreativeService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(CreativeService, "_get_gateway", return_value=mock_gateway):
             service = CreativeService(mock_session)
             result = await service.get_video_info(
                 workspace_id,
@@ -138,12 +128,8 @@ class TestUploadImage:
         mock_ad_account: MagicMock,
         workspace_id: uuid.UUID,
     ) -> None:
-        mock_gateway.post.return_value = {
-            "data": {"image_id": "img_001"}
-        }
-        with patch.object(
-            CreativeService, "_get_gateway", return_value=mock_gateway
-        ):
+        mock_gateway.post.return_value = {"data": {"image_id": "img_001"}}
+        with patch.object(CreativeService, "_get_gateway", return_value=mock_gateway):
             service = CreativeService(mock_session)
             result = await service.upload_image(
                 workspace_id,
@@ -168,12 +154,8 @@ class TestUploadImage:
         mock_ad_account: MagicMock,
         workspace_id: uuid.UUID,
     ) -> None:
-        mock_gateway.post.return_value = {
-            "data": {"image_id": "img_002"}
-        }
-        with patch.object(
-            CreativeService, "_get_gateway", return_value=mock_gateway
-        ):
+        mock_gateway.post.return_value = {"data": {"image_id": "img_002"}}
+        with patch.object(CreativeService, "_get_gateway", return_value=mock_gateway):
             service = CreativeService(mock_session)
             result = await service.upload_image(
                 workspace_id,
@@ -209,9 +191,7 @@ class TestGetImageInfo:
                 ]
             }
         }
-        with patch.object(
-            CreativeService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(CreativeService, "_get_gateway", return_value=mock_gateway):
             service = CreativeService(mock_session)
             result = await service.get_image_info(
                 workspace_id,
@@ -245,9 +225,7 @@ class TestSearchMusic:
                 ]
             }
         }
-        with patch.object(
-            CreativeService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(CreativeService, "_get_gateway", return_value=mock_gateway):
             service = CreativeService(mock_session)
             result = await service.search_music(
                 workspace_id,
@@ -275,9 +253,7 @@ class TestSearchMusic:
         workspace_id: uuid.UUID,
     ) -> None:
         mock_gateway.get.return_value = {"data": {"list": []}}
-        with patch.object(
-            CreativeService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(CreativeService, "_get_gateway", return_value=mock_gateway):
             service = CreativeService(mock_session)
             await service.search_music(
                 workspace_id,
@@ -314,9 +290,7 @@ class TestGetAdCreativeInfo:
                 ]
             }
         }
-        with patch.object(
-            CreativeService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(CreativeService, "_get_gateway", return_value=mock_gateway):
             service = CreativeService(mock_session)
             result = await service.get_ad_creative_info(
                 workspace_id,
@@ -348,9 +322,7 @@ class TestGetAdCreativeInfo:
                 ]
             }
         }
-        with patch.object(
-            CreativeService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(CreativeService, "_get_gateway", return_value=mock_gateway):
             service = CreativeService(mock_session)
             result = await service.get_ad_creative_info(
                 workspace_id,

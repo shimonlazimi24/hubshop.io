@@ -49,18 +49,23 @@ class LiveSession(Base, UUIDMixin, TimestampMixin):
         index=True,
     )
     unique_id: Mapped[str] = mapped_column(
-        String(255), nullable=False,
+        String(255),
+        nullable=False,
         comment="TikTok username",
     )
     room_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     status: Mapped[str] = mapped_column(
-        String(50), nullable=False, default=SessionStatus.MONITORING.value,
+        String(50),
+        nullable=False,
+        default=SessionStatus.MONITORING.value,
     )
     started_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False,
+        DateTime(timezone=True),
+        nullable=False,
     )
     ended_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True,
+        DateTime(timezone=True),
+        nullable=True,
     )
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
 
@@ -89,7 +94,8 @@ class LiveEvent(Base, UUIDMixin):
     username: Mapped[str | None] = mapped_column(String(255), nullable=True)
     payload: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     timestamp: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False,
+        DateTime(timezone=True),
+        nullable=False,
     )
 
     __table_args__ = (

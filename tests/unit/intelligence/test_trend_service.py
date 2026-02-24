@@ -1,13 +1,12 @@
 """Tests for TrendService - sync, query, and history."""
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from backend.db.models.intelligence import TrendType
 from backend.modules.intelligence.services.trend_service import TrendService
 
 
@@ -56,17 +55,13 @@ class TestSyncTrends:
         assert session.flush.called
 
     @pytest.mark.asyncio
-    async def test_sync_trends_empty_videos(
-        self, workspace_id: uuid.UUID
-    ) -> None:
+    async def test_sync_trends_empty_videos(self, workspace_id: uuid.UUID) -> None:
         session = AsyncMock()
         session.add = MagicMock()
         session.flush = AsyncMock()
 
         research_client = AsyncMock()
-        research_client.query_videos = AsyncMock(
-            return_value={"data": {"videos": []}}
-        )
+        research_client.query_videos = AsyncMock(return_value={"data": {"videos": []}})
 
         service = TrendService(session)
         count = await service.sync_trends(workspace_id, research_client)
@@ -144,9 +139,7 @@ class TestSyncTrends:
         assert added.engagement_score == 300.0
 
     @pytest.mark.asyncio
-    async def test_sync_trends_no_data_key(
-        self, workspace_id: uuid.UUID
-    ) -> None:
+    async def test_sync_trends_no_data_key(self, workspace_id: uuid.UUID) -> None:
         session = AsyncMock()
         session.add = MagicMock()
         session.flush = AsyncMock()
@@ -175,7 +168,7 @@ class TestGetTrendingHashtags:
             name="dance",
             engagement_score=500.0,
             region=None,
-            captured_at=datetime(2026, 2, 19, tzinfo=timezone.utc),
+            captured_at=datetime(2026, 2, 19, tzinfo=UTC),
             metadata_json=None,
         )
         snap2 = SimpleNamespace(
@@ -183,7 +176,7 @@ class TestGetTrendingHashtags:
             name="fyp",
             engagement_score=1000.0,
             region="US",
-            captured_at=datetime(2026, 2, 19, tzinfo=timezone.utc),
+            captured_at=datetime(2026, 2, 19, tzinfo=UTC),
             metadata_json={"extra": True},
         )
         result_mock = MagicMock()
@@ -200,9 +193,7 @@ class TestGetTrendingHashtags:
         assert hashtags[1]["name"] == "dance"
 
     @pytest.mark.asyncio
-    async def test_returns_empty_list(
-        self, workspace_id: uuid.UUID
-    ) -> None:
+    async def test_returns_empty_list(self, workspace_id: uuid.UUID) -> None:
         session = AsyncMock()
         result_mock = MagicMock()
         result_mock.scalars.return_value.all.return_value = []
@@ -227,7 +218,7 @@ class TestGetTrendingSounds:
             name="cool_beat",
             engagement_score=750.0,
             region=None,
-            captured_at=datetime(2026, 2, 19, tzinfo=timezone.utc),
+            captured_at=datetime(2026, 2, 19, tzinfo=UTC),
             metadata_json=None,
         )
         result_mock = MagicMock()
@@ -259,16 +250,14 @@ class TestGetTrendHistory:
         return uuid.uuid4()
 
     @pytest.mark.asyncio
-    async def test_returns_time_series(
-        self, workspace_id: uuid.UUID
-    ) -> None:
+    async def test_returns_time_series(self, workspace_id: uuid.UUID) -> None:
         session = AsyncMock()
         snap1 = SimpleNamespace(
-            captured_at=datetime(2026, 2, 10, tzinfo=timezone.utc),
+            captured_at=datetime(2026, 2, 10, tzinfo=UTC),
             engagement_score=100.0,
         )
         snap2 = SimpleNamespace(
-            captured_at=datetime(2026, 2, 15, tzinfo=timezone.utc),
+            captured_at=datetime(2026, 2, 15, tzinfo=UTC),
             engagement_score=250.0,
         )
         result_mock = MagicMock()
@@ -283,17 +272,13 @@ class TestGetTrendHistory:
         assert history[1]["engagement_score"] == 250.0
 
     @pytest.mark.asyncio
-    async def test_returns_empty_history(
-        self, workspace_id: uuid.UUID
-    ) -> None:
+    async def test_returns_empty_history(self, workspace_id: uuid.UUID) -> None:
         session = AsyncMock()
         result_mock = MagicMock()
         result_mock.scalars.return_value.all.return_value = []
         session.execute = AsyncMock(return_value=result_mock)
 
         service = TrendService(session)
-        history = await service.get_trend_history(
-            workspace_id, "nonexistent", days=7
-        )
+        history = await service.get_trend_history(workspace_id, "nonexistent", days=7)
 
         assert history == []

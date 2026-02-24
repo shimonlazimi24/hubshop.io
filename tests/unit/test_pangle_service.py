@@ -1,5 +1,6 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from backend.modules.advertising.services.pangle_service import PangleService
 
@@ -22,9 +23,7 @@ class TestGetBlockList:
         mock_gateway.get.return_value = {
             "data": {"block_list": ["app1", "app2"], "total": 2}
         }
-        with patch.object(
-            PangleService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(PangleService, "_get_gateway", return_value=mock_gateway):
             service = PangleService(mock_session)
             result = await service.get_block_list(
                 ad_account=MagicMock(advertiser_id="adv1")
@@ -44,12 +43,8 @@ class TestGetBlockList:
     async def test_get_block_list_custom_pagination(
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
-        mock_gateway.get.return_value = {
-            "data": {"block_list": ["app5"], "total": 1}
-        }
-        with patch.object(
-            PangleService, "_get_gateway", return_value=mock_gateway
-        ):
+        mock_gateway.get.return_value = {"data": {"block_list": ["app5"], "total": 1}}
+        with patch.object(PangleService, "_get_gateway", return_value=mock_gateway):
             service = PangleService(mock_session)
             result = await service.get_block_list(
                 ad_account=MagicMock(advertiser_id="adv1"),
@@ -71,9 +66,7 @@ class TestGetBlockList:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.get.return_value = {}
-        with patch.object(
-            PangleService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(PangleService, "_get_gateway", return_value=mock_gateway):
             service = PangleService(mock_session)
             result = await service.get_block_list(
                 ad_account=MagicMock(advertiser_id="adv1")
@@ -87,9 +80,7 @@ class TestUpdateBlockList:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.post.return_value = {"data": {}}
-        with patch.object(
-            PangleService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(PangleService, "_get_gateway", return_value=mock_gateway):
             service = PangleService(mock_session)
             result = await service.update_block_list(
                 ad_account=MagicMock(advertiser_id="adv1"),
@@ -108,9 +99,7 @@ class TestUpdateBlockList:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.post.return_value = {"data": {}}
-        with patch.object(
-            PangleService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(PangleService, "_get_gateway", return_value=mock_gateway):
             service = PangleService(mock_session)
             result = await service.update_block_list(
                 ad_account=MagicMock(advertiser_id="adv1"),
@@ -127,9 +116,7 @@ class TestUpdateBlockList:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.post.return_value = {}
-        with patch.object(
-            PangleService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(PangleService, "_get_gateway", return_value=mock_gateway):
             service = PangleService(mock_session)
             result = await service.update_block_list(
                 ad_account=MagicMock(advertiser_id="adv1"),
@@ -153,9 +140,7 @@ class TestGetAudiencePackages:
                 "total": 2,
             }
         }
-        with patch.object(
-            PangleService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(PangleService, "_get_gateway", return_value=mock_gateway):
             service = PangleService(mock_session)
             result = await service.get_audience_packages(
                 ad_account=MagicMock(advertiser_id="adv1")
@@ -176,9 +161,7 @@ class TestGetAudiencePackages:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.get.return_value = {}
-        with patch.object(
-            PangleService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(PangleService, "_get_gateway", return_value=mock_gateway):
             service = PangleService(mock_session)
             result = await service.get_audience_packages(
                 ad_account=MagicMock(advertiser_id="adv1")

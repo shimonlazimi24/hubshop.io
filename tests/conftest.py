@@ -2,7 +2,9 @@ import os
 
 # Set test environment variables before any imports
 os.environ.setdefault("APP_ENV", "test")
-os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://frodo:frodo@localhost:5432/frodo_test")
+os.environ.setdefault(
+    "DATABASE_URL", "postgresql+asyncpg://frodo:frodo@localhost:5432/frodo_test"
+)
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/15")
 os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key-for-jwt")
 os.environ.setdefault("SECRET_KEY", "test-secret-key")

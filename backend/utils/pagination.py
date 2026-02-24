@@ -24,4 +24,6 @@ class PaginatedResult(Generic[T]):
 
     @property
     def total_pages(self) -> int:
-        return (self.total + self.page_size - 1) // self.page_size if self.total > 0 else 0
+        return (
+            (self.total + self.page_size - 1) // self.page_size if self.total > 0 else 0
+        )

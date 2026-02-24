@@ -1,7 +1,7 @@
 """Tests for expanded SparkAdsService and CreatorService performance reporting."""
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
@@ -9,7 +9,6 @@ import pytest
 
 from backend.modules.creators.services.creator_service import CreatorService
 from backend.modules.creators.services.spark_ads_service import SparkAdsService
-
 
 # ---------------------------------------------------------------------------
 # cancel_authorization
@@ -139,14 +138,14 @@ class TestListAuthorizedVideos:
                 workspace_id=workspace_id,
                 status="APPROVED",
                 authorization_code="CODE_A",
-                created_at=datetime.now(tz=timezone.utc),
+                created_at=datetime.now(tz=UTC),
             ),
             SimpleNamespace(
                 id=uuid.uuid4(),
                 workspace_id=workspace_id,
                 status="APPROVED",
                 authorization_code="CODE_B",
-                created_at=datetime.now(tz=timezone.utc),
+                created_at=datetime.now(tz=UTC),
             ),
         ]
         session = AsyncMock()

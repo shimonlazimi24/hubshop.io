@@ -47,9 +47,7 @@ class TestAdAccountRoutes:
     @patch(
         "backend.modules.advertising.services.ad_account_service.AdAccountService.list_ad_accounts"
     )
-    async def test_list_ad_accounts_empty(
-        self, mock_list: AsyncMock
-    ) -> None:
+    async def test_list_ad_accounts_empty(self, mock_list: AsyncMock) -> None:
         mock_list.return_value = []
 
         transport = ASGITransport(app=app)
@@ -65,16 +63,12 @@ class TestAdAccountRoutes:
     @patch(
         "backend.modules.advertising.services.ad_account_service.AdAccountService.get_ad_account"
     )
-    async def test_get_ad_account_not_found(
-        self, mock_get: AsyncMock
-    ) -> None:
+    async def test_get_ad_account_not_found(self, mock_get: AsyncMock) -> None:
         mock_get.return_value = None
 
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
-            response = await client.get(
-                f"/api/ads/accounts/{uuid.uuid4()}"
-            )
+            response = await client.get(f"/api/ads/accounts/{uuid.uuid4()}")
 
         assert response.status_code == 404
 
@@ -82,9 +76,7 @@ class TestAdAccountRoutes:
     @patch(
         "backend.modules.advertising.services.ad_account_service.AdAccountService.sync_ad_accounts_from_connected"
     )
-    async def test_sync_ad_accounts(
-        self, mock_sync: AsyncMock
-    ) -> None:
+    async def test_sync_ad_accounts(self, mock_sync: AsyncMock) -> None:
         mock_sync.return_value = [SimpleNamespace(id=uuid.uuid4())]
 
         transport = ASGITransport(app=app)
@@ -102,9 +94,7 @@ class TestCampaignRoutes:
     @patch(
         "backend.modules.advertising.services.campaign_service.CampaignService.list_campaigns"
     )
-    async def test_list_campaigns_paginated(
-        self, mock_list: AsyncMock
-    ) -> None:
+    async def test_list_campaigns_paginated(self, mock_list: AsyncMock) -> None:
         mock_list.return_value = PaginatedResult(
             items=[], total=0, page=1, page_size=20
         )
@@ -125,16 +115,12 @@ class TestCampaignRoutes:
     @patch(
         "backend.modules.advertising.services.campaign_service.CampaignService.get_campaign"
     )
-    async def test_get_campaign_not_found(
-        self, mock_get: AsyncMock
-    ) -> None:
+    async def test_get_campaign_not_found(self, mock_get: AsyncMock) -> None:
         mock_get.return_value = None
 
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
-            response = await client.get(
-                f"/api/ads/campaigns/{uuid.uuid4()}"
-            )
+            response = await client.get(f"/api/ads/campaigns/{uuid.uuid4()}")
 
         assert response.status_code == 404
 
@@ -171,9 +157,7 @@ class TestCampaignRoutes:
     async def test_sync_campaigns(
         self, mock_sync: AsyncMock, mock_list: AsyncMock
     ) -> None:
-        mock_list.return_value = [
-            SimpleNamespace(id=uuid.uuid4(), advertiser_id="111")
-        ]
+        mock_list.return_value = [SimpleNamespace(id=uuid.uuid4(), advertiser_id="111")]
         mock_sync.return_value = 5
 
         transport = ASGITransport(app=app)
@@ -191,9 +175,7 @@ class TestAdGroupRoutes:
     @patch(
         "backend.modules.advertising.services.ad_group_service.AdGroupService.list_ad_groups"
     )
-    async def test_list_ad_groups_paginated(
-        self, mock_list: AsyncMock
-    ) -> None:
+    async def test_list_ad_groups_paginated(self, mock_list: AsyncMock) -> None:
         mock_list.return_value = PaginatedResult(
             items=[], total=0, page=1, page_size=20
         )
@@ -212,28 +194,20 @@ class TestAdGroupRoutes:
     @patch(
         "backend.modules.advertising.services.ad_group_service.AdGroupService.get_ad_group"
     )
-    async def test_get_ad_group_not_found(
-        self, mock_get: AsyncMock
-    ) -> None:
+    async def test_get_ad_group_not_found(self, mock_get: AsyncMock) -> None:
         mock_get.return_value = None
 
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
-            response = await client.get(
-                f"/api/ads/ad-groups/{uuid.uuid4()}"
-            )
+            response = await client.get(f"/api/ads/ad-groups/{uuid.uuid4()}")
 
         assert response.status_code == 404
 
 
 class TestAdRoutes:
     @pytest.mark.asyncio
-    @patch(
-        "backend.modules.advertising.services.ad_service.AdService.list_ads"
-    )
-    async def test_list_ads_paginated(
-        self, mock_list: AsyncMock
-    ) -> None:
+    @patch("backend.modules.advertising.services.ad_service.AdService.list_ads")
+    async def test_list_ads_paginated(self, mock_list: AsyncMock) -> None:
         mock_list.return_value = PaginatedResult(
             items=[], total=0, page=1, page_size=20
         )
@@ -249,19 +223,13 @@ class TestAdRoutes:
         assert data["items"] == []
 
     @pytest.mark.asyncio
-    @patch(
-        "backend.modules.advertising.services.ad_service.AdService.get_ad"
-    )
-    async def test_get_ad_not_found(
-        self, mock_get: AsyncMock
-    ) -> None:
+    @patch("backend.modules.advertising.services.ad_service.AdService.get_ad")
+    async def test_get_ad_not_found(self, mock_get: AsyncMock) -> None:
         mock_get.return_value = None
 
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
-            response = await client.get(
-                f"/api/ads/creatives/{uuid.uuid4()}"
-            )
+            response = await client.get(f"/api/ads/creatives/{uuid.uuid4()}")
 
         assert response.status_code == 404
 

@@ -60,21 +60,29 @@ class UnifiedKpiSnapshot(Base, UUIDMixin, TimestampMixin):
         index=True,
     )
     date: Mapped[datetime] = mapped_column(
-        Date, nullable=False, comment="Snapshot date",
+        Date,
+        nullable=False,
+        comment="Snapshot date",
     )
     # Commerce KPIs
     total_orders: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     total_revenue: Mapped[str] = mapped_column(
-        String(20), nullable=False, default="0",
+        String(20),
+        nullable=False,
+        default="0",
         comment="Revenue as string to avoid precision issues",
     )
     average_order_value: Mapped[str] = mapped_column(
-        String(20), nullable=False, default="0",
+        String(20),
+        nullable=False,
+        default="0",
     )
     # Advertising KPIs
     active_campaigns: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     total_ad_spend: Mapped[str] = mapped_column(
-        String(20), nullable=False, default="0",
+        String(20),
+        nullable=False,
+        default="0",
     )
     total_impressions: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     total_clicks: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
@@ -85,14 +93,18 @@ class UnifiedKpiSnapshot(Base, UUIDMixin, TimestampMixin):
     total_shares: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     # Creator KPIs
     saved_creators: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    active_creator_campaigns: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    active_creator_campaigns: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0
+    )
     # Computed metrics
     roas: Mapped[str | None] = mapped_column(
-        String(20), nullable=True,
+        String(20),
+        nullable=True,
         comment="Return on ad spend",
     )
     ctr: Mapped[str | None] = mapped_column(
-        String(20), nullable=True,
+        String(20),
+        nullable=True,
         comment="Click-through rate",
     )
 
@@ -123,28 +135,39 @@ class ScheduledReport(Base, UUIDMixin, TimestampMixin):
     name: Mapped[str] = mapped_column(String(500), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     modules: Mapped[dict] = mapped_column(
-        JSONB, nullable=False, default=dict,
+        JSONB,
+        nullable=False,
+        default=dict,
         comment='List of modules to include: ["commerce", "advertising", "content", "creators"]',
     )
     metrics: Mapped[dict] = mapped_column(
-        JSONB, nullable=False, default=dict,
+        JSONB,
+        nullable=False,
+        default=dict,
         comment="Specific metrics to include in report",
     )
     frequency: Mapped[str] = mapped_column(
-        String(50), nullable=False, default="WEEKLY",
+        String(50),
+        nullable=False,
+        default="WEEKLY",
     )
     format: Mapped[str] = mapped_column(
-        String(10), nullable=False, default="CSV",
+        String(10),
+        nullable=False,
+        default="CSV",
     )
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     last_run_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True,
+        DateTime(timezone=True),
+        nullable=True,
     )
     next_run_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True,
+        DateTime(timezone=True),
+        nullable=True,
     )
     last_result_json: Mapped[dict | None] = mapped_column(
-        JSONB, nullable=True,
+        JSONB,
+        nullable=True,
         comment="Result of last report generation",
     )
 
@@ -169,18 +192,22 @@ class Notification(Base, UUIDMixin, TimestampMixin):
         index=True,
     )
     notification_type: Mapped[str] = mapped_column(
-        String(50), nullable=False, default="INFO",
+        String(50),
+        nullable=False,
+        default="INFO",
     )
     title: Mapped[str] = mapped_column(String(500), nullable=False)
     message: Mapped[str] = mapped_column(Text, nullable=False)
     module: Mapped[str | None] = mapped_column(
-        String(50), nullable=True,
+        String(50),
+        nullable=True,
         comment="Source module: commerce, advertising, content, creators",
     )
     action_url: Mapped[str | None] = mapped_column(String(2048), nullable=True)
     is_read: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     read_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True,
+        DateTime(timezone=True),
+        nullable=True,
     )
 
     __table_args__ = (
@@ -198,11 +225,14 @@ class NotificationPreference(Base, UUIDMixin, TimestampMixin):
         nullable=False,
     )
     module: Mapped[str] = mapped_column(
-        String(50), nullable=False,
+        String(50),
+        nullable=False,
         comment="Module: commerce, advertising, content, creators, system",
     )
     channel: Mapped[str] = mapped_column(
-        String(50), nullable=False, default="IN_APP",
+        String(50),
+        nullable=False,
+        default="IN_APP",
     )
     is_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
@@ -233,23 +263,30 @@ class ApiKey(Base, UUIDMixin, TimestampMixin):
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     key_prefix: Mapped[str] = mapped_column(
-        String(12), nullable=False,
+        String(12),
+        nullable=False,
         comment="First 8 chars of key for identification",
     )
     key_hash: Mapped[str] = mapped_column(
-        String(128), nullable=False, unique=True,
+        String(128),
+        nullable=False,
+        unique=True,
         comment="SHA-256 hash of the full API key",
     )
     scopes: Mapped[dict] = mapped_column(
-        JSONB, nullable=False, default=dict,
+        JSONB,
+        nullable=False,
+        default=dict,
         comment='Allowed scopes: ["commerce:read", "ads:read", "content:read"]',
     )
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     last_used_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True,
+        DateTime(timezone=True),
+        nullable=True,
     )
     expires_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True,
+        DateTime(timezone=True),
+        nullable=True,
     )
 
     __table_args__ = (

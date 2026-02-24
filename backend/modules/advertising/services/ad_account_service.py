@@ -88,14 +88,10 @@ class AdAccountService:
 
         return synced
 
-    async def build_gateway(
-        self, account: ConnectedAccount
-    ) -> PlatformGateway:
+    async def build_gateway(self, account: ConnectedAccount) -> PlatformGateway:
         """Build a PlatformGateway for a connected Marketing account."""
         result = await self._session.execute(
-            select(TokenVault).where(
-                TokenVault.connected_account_id == account.id
-            )
+            select(TokenVault).where(TokenVault.connected_account_id == account.id)
         )
         vault = result.scalar_one_or_none()
         if not vault:
@@ -120,9 +116,7 @@ class AdAccountService:
         )
         account = result.scalar_one_or_none()
         if not account:
-            raise ValueError(
-                f"No connected account for ad account {ad_account.id}"
-            )
+            raise ValueError(f"No connected account for ad account {ad_account.id}")
         return await self.build_gateway(account)
 
     def _extract_advertiser_ids(self, account: ConnectedAccount) -> list[str]:

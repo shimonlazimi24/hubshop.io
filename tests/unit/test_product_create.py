@@ -1,7 +1,7 @@
 import uuid
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 
 from backend.modules.commerce.services.product_service import ProductService
 
@@ -46,9 +46,7 @@ class TestCreateProduct:
         sample_skus: list[dict],
     ) -> None:
         product_id = "prod-123"
-        mock_gateway.post.return_value = {
-            "data": {"product_id": product_id}
-        }
+        mock_gateway.post.return_value = {"data": {"product_id": product_id}}
         mock_gateway.get.return_value = {
             "data": {
                 "id": product_id,
@@ -61,9 +59,7 @@ class TestCreateProduct:
         mock_shop.workspace_id = uuid.uuid4()
 
         with (
-            patch.object(
-                ProductService, "_get_gateway", return_value=mock_gateway
-            ),
+            patch.object(ProductService, "_get_gateway", return_value=mock_gateway),
             patch(
                 "backend.modules.commerce.services.product_service.ShopService"
             ) as mock_shop_svc_cls,
@@ -127,9 +123,7 @@ class TestCreateProduct:
         dims = {"length": "10", "width": "5", "height": "3", "unit": "CM"}
 
         with (
-            patch.object(
-                ProductService, "_get_gateway", return_value=mock_gateway
-            ),
+            patch.object(ProductService, "_get_gateway", return_value=mock_gateway),
             patch(
                 "backend.modules.commerce.services.product_service.ShopService"
             ) as mock_shop_svc_cls,
@@ -166,9 +160,7 @@ class TestCreateProduct:
         """If API returns no product_id, skip the detail fetch and persist."""
         mock_gateway.post.return_value = {"data": {}}
 
-        with patch.object(
-            ProductService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ProductService, "_get_gateway", return_value=mock_gateway):
             service = ProductService(mock_session)
             result = await service.create_product(
                 uuid.uuid4(),
@@ -192,9 +184,7 @@ class TestCreateProduct:
         """Images with 'uri' key instead of 'url' should still work."""
         mock_gateway.post.return_value = {"data": {}}
 
-        with patch.object(
-            ProductService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ProductService, "_get_gateway", return_value=mock_gateway):
             service = ProductService(mock_session)
             await service.create_product(
                 uuid.uuid4(),

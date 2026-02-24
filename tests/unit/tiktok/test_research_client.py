@@ -1,5 +1,6 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from backend.tiktok.research.client import TikTokResearchClient
 
@@ -13,10 +14,15 @@ class TestTikTokResearchClient:
         assert client._access_token is None
 
     def test_base_url(self) -> None:
-        assert TikTokResearchClient.BASE_URL == "https://open.tiktokapis.com/v2/research"
+        assert (
+            TikTokResearchClient.BASE_URL == "https://open.tiktokapis.com/v2/research"
+        )
 
     def test_token_url(self) -> None:
-        assert TikTokResearchClient.TOKEN_URL == "https://open.tiktokapis.com/v2/oauth/token/"
+        assert (
+            TikTokResearchClient.TOKEN_URL
+            == "https://open.tiktokapis.com/v2/oauth/token/"
+        )
 
     @pytest.mark.asyncio
     async def test_ensure_token_fetches_when_missing(self) -> None:
@@ -24,7 +30,9 @@ class TestTikTokResearchClient:
         mock_resp = MagicMock()
         mock_resp.json.return_value = {"data": {"access_token": "new_token"}}
         mock_resp.raise_for_status = MagicMock()
-        with patch.object(client._http, "post", new_callable=AsyncMock, return_value=mock_resp):
+        with patch.object(
+            client._http, "post", new_callable=AsyncMock, return_value=mock_resp
+        ):
             token = await client._ensure_token()
             assert token == "new_token"
             assert client._access_token == "new_token"

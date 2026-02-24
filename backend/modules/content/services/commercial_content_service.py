@@ -178,9 +178,7 @@ class CommercialContentService:
             raise ValueError("No active Developer account found")
 
         result = await self._session.execute(
-            select(TokenVault).where(
-                TokenVault.connected_account_id == account.id
-            )
+            select(TokenVault).where(TokenVault.connected_account_id == account.id)
         )
         vault = result.scalar_one_or_none()
         if not vault:

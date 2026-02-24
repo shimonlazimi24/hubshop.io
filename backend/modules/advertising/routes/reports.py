@@ -1,5 +1,3 @@
-import uuid
-
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 
@@ -94,9 +92,7 @@ async def check_async_report(
     db: DBSession,
 ) -> AsyncReportStatusResponse:
     account_service = AdAccountService(db)
-    ad_account = await account_service.get_ad_account_by_advertiser_id(
-        ad_account_id
-    )
+    ad_account = await account_service.get_ad_account_by_advertiser_id(ad_account_id)
     if not ad_account:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -116,9 +112,7 @@ async def download_async_report(
     db: DBSession,
 ) -> dict:
     account_service = AdAccountService(db)
-    ad_account = await account_service.get_ad_account_by_advertiser_id(
-        ad_account_id
-    )
+    ad_account = await account_service.get_ad_account_by_advertiser_id(ad_account_id)
     if not ad_account:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -137,9 +131,7 @@ async def cancel_async_report(
     db: DBSession,
 ) -> dict:
     account_service = AdAccountService(db)
-    ad_account = await account_service.get_ad_account_by_advertiser_id(
-        ad_account_id
-    )
+    ad_account = await account_service.get_ad_account_by_advertiser_id(ad_account_id)
     if not ad_account:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

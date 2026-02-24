@@ -29,9 +29,7 @@ class TestGetSessionAnalytics:
         # Second call: fetch analytics
         analytics_result = MagicMock()
         analytics_result.scalar_one_or_none.return_value = analytics_obj
-        mock_session.execute = AsyncMock(
-            side_effect=[session_check, analytics_result]
-        )
+        mock_session.execute = AsyncMock(side_effect=[session_check, analytics_result])
 
         service = LiveAnalyticsService(mock_session)
         result = await service.get_session_analytics(workspace_id, session_id)
@@ -62,9 +60,7 @@ class TestGetSessionAnalytics:
         session_check.scalar_one_or_none.return_value = session_id
         analytics_result = MagicMock()
         analytics_result.scalar_one_or_none.return_value = None
-        mock_session.execute = AsyncMock(
-            side_effect=[session_check, analytics_result]
-        )
+        mock_session.execute = AsyncMock(side_effect=[session_check, analytics_result])
 
         service = LiveAnalyticsService(mock_session)
         result = await service.get_session_analytics(workspace_id, session_id)
@@ -182,9 +178,7 @@ class TestComputeAnalytics:
         mock_session = AsyncMock()
         session_id = uuid.uuid4()
 
-        with patch(
-            "backend.workers.live_sync.compute_live_analytics"
-        ) as mock_task:
+        with patch("backend.workers.live_sync.compute_live_analytics") as mock_task:
             mock_task.delay = MagicMock()
 
             service = LiveAnalyticsService(mock_session)
@@ -231,9 +225,7 @@ class TestGetSessionsSummary:
         ids_result = MagicMock()
         ids_result.all.return_value = []
 
-        mock_session.execute = AsyncMock(
-            side_effect=[total_result, ids_result]
-        )
+        mock_session.execute = AsyncMock(side_effect=[total_result, ids_result])
 
         service = LiveAnalyticsService(mock_session)
         result = await service.get_sessions_summary(uuid.uuid4(), days=7)
@@ -251,9 +243,7 @@ class TestGetSessionsSummary:
         ids_result = MagicMock()
         ids_result.all.return_value = []
 
-        mock_session.execute = AsyncMock(
-            side_effect=[total_result, ids_result]
-        )
+        mock_session.execute = AsyncMock(side_effect=[total_result, ids_result])
 
         service = LiveAnalyticsService(mock_session)
         result = await service.get_sessions_summary(uuid.uuid4(), days=90)

@@ -1,8 +1,7 @@
 import enum
 import uuid
-from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Index, Integer, String
+from sqlalchemy import ForeignKey, Index, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -54,13 +53,13 @@ class AffiliateProduct(Base, UUIDMixin, TimestampMixin):
     commission_rate: Mapped[str | None] = mapped_column(
         String(20), nullable=True, comment="Commission rate as string (e.g. '10.5')"
     )
-    status: Mapped[str] = mapped_column(
-        String(50), nullable=False, default="ACTIVE"
-    )
+    status: Mapped[str] = mapped_column(String(50), nullable=False, default="ACTIVE")
     detail_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
 
     __table_args__ = (
-        Index("ix_affiliate_products_shop_product", "shop_id", "product_id", unique=True),
+        Index(
+            "ix_affiliate_products_shop_product", "shop_id", "product_id", unique=True
+        ),
     )
 
 
@@ -75,9 +74,7 @@ class OpenCollaboration(Base, UUIDMixin, TimestampMixin):
     )
     product_id: Mapped[str] = mapped_column(String(255), nullable=False)
     commission_rate: Mapped[str] = mapped_column(String(20), nullable=False)
-    status: Mapped[str] = mapped_column(
-        String(50), nullable=False, default="ACTIVE"
-    )
+    status: Mapped[str] = mapped_column(String(50), nullable=False, default="ACTIVE")
     detail_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
 
 
@@ -93,9 +90,7 @@ class TargetCollaboration(Base, UUIDMixin, TimestampMixin):
     product_id: Mapped[str] = mapped_column(String(255), nullable=False)
     creator_id: Mapped[str] = mapped_column(String(255), nullable=False)
     commission_rate: Mapped[str] = mapped_column(String(20), nullable=False)
-    status: Mapped[str] = mapped_column(
-        String(50), nullable=False, default="ACTIVE"
-    )
+    status: Mapped[str] = mapped_column(String(50), nullable=False, default="ACTIVE")
     invite_status: Mapped[str] = mapped_column(
         String(50), nullable=False, default="PENDING"
     )
@@ -117,7 +112,5 @@ class CreatorApplication(Base, UUIDMixin, TimestampMixin):
         comment="Open/Target collaboration ID",
     )
     creator_id: Mapped[str] = mapped_column(String(255), nullable=False)
-    status: Mapped[str] = mapped_column(
-        String(50), nullable=False, default="PENDING"
-    )
+    status: Mapped[str] = mapped_column(String(50), nullable=False, default="PENDING")
     detail_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True)

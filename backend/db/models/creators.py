@@ -55,7 +55,8 @@ class CreatorProfile(Base, UUIDMixin, TimestampMixin):
         index=True,
     )
     platform_creator_id: Mapped[str] = mapped_column(
-        String(255), nullable=False,
+        String(255),
+        nullable=False,
         comment="TikTok creator/user ID",
     )
     username: Mapped[str | None] = mapped_column(String(255), nullable=True)
@@ -67,34 +68,43 @@ class CreatorProfile(Base, UUIDMixin, TimestampMixin):
     likes_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     video_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     tier: Mapped[str | None] = mapped_column(
-        String(50), nullable=True,
+        String(50),
+        nullable=True,
         comment="NANO, MICRO, MID, MACRO, MEGA",
     )
     categories: Mapped[dict | None] = mapped_column(
-        JSONB, nullable=True,
+        JSONB,
+        nullable=True,
         comment="Content categories/niches",
     )
     audience_demographics: Mapped[dict | None] = mapped_column(
-        JSONB, nullable=True,
+        JSONB,
+        nullable=True,
         comment="Age, gender, location breakdown",
     )
     engagement_rate: Mapped[str | None] = mapped_column(
-        String(20), nullable=True,
+        String(20),
+        nullable=True,
         comment="Average engagement rate as string",
     )
     is_saved: Mapped[bool] = mapped_column(
-        nullable=False, default=False,
+        nullable=False,
+        default=False,
         comment="Whether creator is saved to workspace list",
     )
     detail_json: Mapped[dict | None] = mapped_column(
-        JSONB, nullable=True, comment="Full API snapshot",
+        JSONB,
+        nullable=True,
+        comment="Full API snapshot",
     )
 
     invitations: Mapped[list["CreatorInvitation"]] = relationship(
-        back_populates="creator", lazy="noload",
+        back_populates="creator",
+        lazy="noload",
     )
     authorizations: Mapped[list["ContentAuthorization"]] = relationship(
-        back_populates="creator", lazy="noload",
+        back_populates="creator",
+        lazy="noload",
     )
 
     __table_args__ = (
@@ -120,29 +130,37 @@ class CreatorCampaign(Base, UUIDMixin, TimestampMixin):
     name: Mapped[str] = mapped_column(String(500), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(
-        String(50), nullable=False, default="DRAFT",
+        String(50),
+        nullable=False,
+        default="DRAFT",
     )
     budget: Mapped[str | None] = mapped_column(
-        String(20), nullable=True,
+        String(20),
+        nullable=True,
         comment="Total campaign budget as string",
     )
     start_date: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True,
+        DateTime(timezone=True),
+        nullable=True,
     )
     end_date: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True,
+        DateTime(timezone=True),
+        nullable=True,
     )
     target_categories: Mapped[dict | None] = mapped_column(
-        JSONB, nullable=True,
+        JSONB,
+        nullable=True,
         comment="Target content categories",
     )
     requirements: Mapped[dict | None] = mapped_column(
-        JSONB, nullable=True,
+        JSONB,
+        nullable=True,
         comment="Creator requirements (min followers, engagement, etc.)",
     )
 
     invitations: Mapped[list["CreatorInvitation"]] = relationship(
-        back_populates="campaign", lazy="noload",
+        back_populates="campaign",
+        lazy="noload",
     )
 
     __table_args__ = (
@@ -166,15 +184,19 @@ class CreatorInvitation(Base, UUIDMixin, TimestampMixin):
         index=True,
     )
     status: Mapped[str] = mapped_column(
-        String(50), nullable=False, default="PENDING",
+        String(50),
+        nullable=False,
+        default="PENDING",
     )
     message: Mapped[str | None] = mapped_column(Text, nullable=True)
     offered_amount: Mapped[str | None] = mapped_column(
-        String(20), nullable=True,
+        String(20),
+        nullable=True,
         comment="Payment offer as string",
     )
     responded_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True,
+        DateTime(timezone=True),
+        nullable=True,
     )
 
     campaign: Mapped["CreatorCampaign"] = relationship(back_populates="invitations")
@@ -206,18 +228,23 @@ class ContentAuthorization(Base, UUIDMixin, TimestampMixin):
         index=True,
     )
     platform_video_id: Mapped[str | None] = mapped_column(
-        String(255), nullable=True,
+        String(255),
+        nullable=True,
         comment="TikTok video ID authorized for Spark Ads",
     )
     authorization_code: Mapped[str | None] = mapped_column(
-        String(500), nullable=True,
+        String(500),
+        nullable=True,
         comment="Spark Ads authorization code",
     )
     status: Mapped[str] = mapped_column(
-        String(50), nullable=False, default="PENDING",
+        String(50),
+        nullable=False,
+        default="PENDING",
     )
     expires_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True,
+        DateTime(timezone=True),
+        nullable=True,
     )
 
     creator: Mapped["CreatorProfile"] = relationship(back_populates="authorizations")

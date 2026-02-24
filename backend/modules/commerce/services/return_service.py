@@ -45,9 +45,7 @@ class ReturnService:
         page: int = 1,
         page_size: int = 20,
     ) -> PaginatedResult[ReturnRequest]:
-        query = select(ReturnRequest).where(
-            ReturnRequest.workspace_id == workspace_id
-        )
+        query = select(ReturnRequest).where(ReturnRequest.workspace_id == workspace_id)
         count_query = select(func.count(ReturnRequest.id)).where(
             ReturnRequest.workspace_id == workspace_id
         )
@@ -61,9 +59,7 @@ class ReturnService:
         )
         items = list(result.scalars().all())
 
-        return PaginatedResult(
-            items=items, total=total, page=page, page_size=page_size
-        )
+        return PaginatedResult(items=items, total=total, page=page, page_size=page_size)
 
     async def approve_return(
         self, return_id: uuid.UUID, *, reason: str | None = None
@@ -126,9 +122,7 @@ class ReturnService:
         await self._publish_return_update(ret)
         return ret
 
-    async def upsert_return_from_webhook(
-        self, payload: dict
-    ) -> ReturnRequest | None:
+    async def upsert_return_from_webhook(self, payload: dict) -> ReturnRequest | None:
         """Create or update a return request from a webhook payload."""
         platform_return_id = str(payload.get("return_id", ""))
         if not platform_return_id:
@@ -154,15 +148,11 @@ class ReturnService:
             # Need to find the order
             platform_order_id = str(payload.get("order_id", ""))
             order_result = await self._session.execute(
-                select(Order).where(
-                    Order.platform_order_id == platform_order_id
-                )
+                select(Order).where(Order.platform_order_id == platform_order_id)
             )
             order = order_result.scalar_one_or_none()
             if not order:
-                logger.warning(
-                    "Return webhook for unknown order %s", platform_order_id
-                )
+                logger.warning("Return webhook for unknown order %s", platform_order_id)
                 return None
 
             ret = ReturnRequest(
@@ -207,9 +197,7 @@ class ReturnService:
         )
         return resp.get("data", {})
 
-    async def search_returns(
-        self, shop_id: uuid.UUID, **filters: object
-    ) -> list[dict]:
+    async def search_returns(self, shop_id: uuid.UUID, **filters: object) -> list[dict]:
         """Search returns via the TikTok API with optional filters."""
         gateway = await self._get_gateway(shop_id)
         resp = await gateway.post(
@@ -223,9 +211,7 @@ class ReturnService:
     ) -> list[dict]:
         """Get return records for a specific return."""
         gateway = await self._get_gateway(shop_id)
-        resp = await gateway.get(
-            f"/return_refund/202309/returns/{return_id}/records"
-        )
+        resp = await gateway.get(f"/return_refund/202309/returns/{return_id}/records")
         return resp.get("data", {}).get("records", [])
 
     async def get_reject_reasons(self, shop_id: uuid.UUID) -> list[dict]:
@@ -249,15 +235,11 @@ class ReturnService:
         return resp.get("data", {})
 
     async def _get_order(self, order_id: uuid.UUID) -> Order | None:
-        result = await self._session.execute(
-            select(Order).where(Order.id == order_id)
-        )
+        result = await self._session.execute(select(Order).where(Order.id == order_id))
         return result.scalar_one_or_none()
 
     async def _get_shop(self, shop_id: uuid.UUID) -> Shop | None:
-        result = await self._session.execute(
-            select(Shop).where(Shop.id == shop_id)
-        )
+        result = await self._session.execute(select(Shop).where(Shop.id == shop_id))
         return result.scalar_one_or_none()
 
     async def _publish_return_update(self, ret: ReturnRequest) -> None:
@@ -271,8 +253,6 @@ class ReturnService:
                     "status": ret.status.value,
                 }
             )
-            await r.publish(
-                f"commerce:ws:{ret.workspace_id}", message
-            )
+            await r.publish(f"commerce:ws:{ret.workspace_id}", message)
         except Exception:
             logger.exception("Failed to publish return update to Redis")

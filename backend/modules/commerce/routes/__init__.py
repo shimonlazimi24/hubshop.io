@@ -9,10 +9,10 @@ from backend.modules.commerce.routes.finance import router as finance_router
 from backend.modules.commerce.routes.fulfillment import router as fulfillment_router
 from backend.modules.commerce.routes.logistics import router as logistics_router
 from backend.modules.commerce.routes.orders import router as orders_router
-from backend.modules.commerce.routes.seller import router as seller_router
 from backend.modules.commerce.routes.products import router as products_router
 from backend.modules.commerce.routes.promotions import router as promotions_router
 from backend.modules.commerce.routes.returns import router as returns_router
+from backend.modules.commerce.routes.seller import router as seller_router
 from backend.modules.commerce.routes.shops import router as shops_router
 from backend.modules.commerce.routes.ws import router as ws_router
 

@@ -59,13 +59,9 @@ class CreatorProfileService:
         )
         items = list(result.scalars().all())
 
-        return PaginatedResult(
-            items=items, total=total, page=page, page_size=page_size
-        )
+        return PaginatedResult(items=items, total=total, page=page, page_size=page_size)
 
-    async def get_creator(
-        self, creator_id: uuid.UUID
-    ) -> CreatorProfile | None:
+    async def get_creator(self, creator_id: uuid.UUID) -> CreatorProfile | None:
         result = await self._session.execute(
             select(CreatorProfile).where(CreatorProfile.id == creator_id)
         )
@@ -115,9 +111,13 @@ class CreatorProfileService:
             creator.following_count = following_count
             creator.likes_count = likes_count
             creator.video_count = video_count
-            creator.engagement_rate = str(engagement_rate) if engagement_rate else creator.engagement_rate
+            creator.engagement_rate = (
+                str(engagement_rate) if engagement_rate else creator.engagement_rate
+            )
             creator.categories = categories or creator.categories
-            creator.audience_demographics = audience_demographics or creator.audience_demographics
+            creator.audience_demographics = (
+                audience_demographics or creator.audience_demographics
+            )
             creator.tier = tier
             creator.detail_json = creator_data
         else:

@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import String, case, cast, func, select
+from sqlalchemy import String, cast, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.db.models.commerce import (
@@ -49,9 +49,7 @@ class CommerceAnalyticsService:
             Order.created_at <= period_end,
         )
         amounts_result = await self._session.execute(amount_query)
-        total_revenue = sum(
-            float(a) for (a,) in amounts_result.all() if a
-        )
+        total_revenue = sum(float(a) for (a,) in amounts_result.all() if a)
 
         aov = total_revenue / total_orders if total_orders > 0 else 0.0
 
@@ -92,15 +90,20 @@ class CommerceAnalyticsService:
         period_end: datetime,
     ) -> list[dict]:
         """Daily revenue and order count timeseries."""
-        query = select(
-            func.date_trunc("day", Order.created_at).label("day"),
-            func.count(Order.id).label("order_count"),
-        ).where(
-            Order.workspace_id == workspace_id,
-            Order.status.in_([s.value for s in _COMPLETED_STATUSES]),
-            Order.created_at >= period_start,
-            Order.created_at <= period_end,
-        ).group_by("day").order_by("day")
+        query = (
+            select(
+                func.date_trunc("day", Order.created_at).label("day"),
+                func.count(Order.id).label("order_count"),
+            )
+            .where(
+                Order.workspace_id == workspace_id,
+                Order.status.in_([s.value for s in _COMPLETED_STATUSES]),
+                Order.created_at >= period_start,
+                Order.created_at <= period_end,
+            )
+            .group_by("day")
+            .order_by("day")
+        )
 
         result = await self._session.execute(query)
         rows = result.all()
@@ -110,7 +113,9 @@ class CommerceAnalyticsService:
         for row in rows:
             day_str = row.day.strftime("%Y-%m-%d") if row.day else ""
             day_start = row.day
-            day_end = row.day.replace(hour=23, minute=59, second=59) if row.day else None
+            day_end = (
+                row.day.replace(hour=23, minute=59, second=59) if row.day else None
+            )
 
             day_amounts = await self._session.execute(
                 select(Order.total_amount).where(
@@ -120,9 +125,7 @@ class CommerceAnalyticsService:
                     Order.created_at <= day_end,
                 )
             )
-            day_revenue = sum(
-                float(a) for (a,) in day_amounts.all() if a
-            )
+            day_revenue = sum(float(a) for (a,) in day_amounts.all() if a)
 
             timeseries.append(
                 {
@@ -192,9 +195,7 @@ class CommerceAnalyticsService:
                     OrderLineItem.product_name == row.product_name,
                 )
             )
-            total_revenue = sum(
-                float(p) for (p,) in total_prices.all() if p
-            )
+            total_revenue = sum(float(p) for (p,) in total_prices.all() if p)
 
             top.append(
                 {
@@ -226,7 +227,9 @@ class CommerceAnalyticsService:
         total = sum(r.count for r in rows)
         return [
             {
-                "status": r.status.value if hasattr(r.status, "value") else str(r.status),
+                "status": (
+                    r.status.value if hasattr(r.status, "value") else str(r.status)
+                ),
                 "count": r.count,
                 "percentage": round(r.count / total * 100, 1) if total > 0 else 0.0,
             }

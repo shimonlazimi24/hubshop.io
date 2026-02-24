@@ -1,5 +1,6 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from backend.modules.advertising.services.business_center_service import (
     BusinessCenterService,
@@ -26,7 +27,10 @@ def mock_ad_account() -> MagicMock:
 class TestListBusinessCenters:
     @pytest.mark.asyncio
     async def test_returns_list(
-        self, mock_session: AsyncMock, mock_gateway: AsyncMock, mock_ad_account: MagicMock
+        self,
+        mock_session: AsyncMock,
+        mock_gateway: AsyncMock,
+        mock_ad_account: MagicMock,
     ) -> None:
         mock_gateway.get.return_value = {
             "data": {
@@ -50,7 +54,10 @@ class TestListBusinessCenters:
 
     @pytest.mark.asyncio
     async def test_empty_list(
-        self, mock_session: AsyncMock, mock_gateway: AsyncMock, mock_ad_account: MagicMock
+        self,
+        mock_session: AsyncMock,
+        mock_gateway: AsyncMock,
+        mock_ad_account: MagicMock,
     ) -> None:
         mock_gateway.get.return_value = {"data": {"list": []}}
         with patch.object(
@@ -62,7 +69,10 @@ class TestListBusinessCenters:
 
     @pytest.mark.asyncio
     async def test_missing_data_key(
-        self, mock_session: AsyncMock, mock_gateway: AsyncMock, mock_ad_account: MagicMock
+        self,
+        mock_session: AsyncMock,
+        mock_gateway: AsyncMock,
+        mock_ad_account: MagicMock,
     ) -> None:
         mock_gateway.get.return_value = {}
         with patch.object(
@@ -76,7 +86,10 @@ class TestListBusinessCenters:
 class TestGetActivityLog:
     @pytest.mark.asyncio
     async def test_returns_activity_log(
-        self, mock_session: AsyncMock, mock_gateway: AsyncMock, mock_ad_account: MagicMock
+        self,
+        mock_session: AsyncMock,
+        mock_gateway: AsyncMock,
+        mock_ad_account: MagicMock,
     ) -> None:
         mock_gateway.get.return_value = {
             "data": {
@@ -103,7 +116,10 @@ class TestGetActivityLog:
 class TestListMembers:
     @pytest.mark.asyncio
     async def test_returns_members(
-        self, mock_session: AsyncMock, mock_gateway: AsyncMock, mock_ad_account: MagicMock
+        self,
+        mock_session: AsyncMock,
+        mock_gateway: AsyncMock,
+        mock_ad_account: MagicMock,
     ) -> None:
         mock_gateway.get.return_value = {
             "data": {
@@ -129,7 +145,10 @@ class TestListMembers:
 
     @pytest.mark.asyncio
     async def test_custom_pagination(
-        self, mock_session: AsyncMock, mock_gateway: AsyncMock, mock_ad_account: MagicMock
+        self,
+        mock_session: AsyncMock,
+        mock_gateway: AsyncMock,
+        mock_ad_account: MagicMock,
     ) -> None:
         mock_gateway.get.return_value = {"data": {"list": []}}
         with patch.object(
@@ -148,7 +167,10 @@ class TestListMembers:
 class TestInviteMember:
     @pytest.mark.asyncio
     async def test_invite_single_email(
-        self, mock_session: AsyncMock, mock_gateway: AsyncMock, mock_ad_account: MagicMock
+        self,
+        mock_session: AsyncMock,
+        mock_gateway: AsyncMock,
+        mock_ad_account: MagicMock,
     ) -> None:
         mock_gateway.post.return_value = {"data": {"success": True}}
         with patch.object(
@@ -173,7 +195,10 @@ class TestInviteMember:
 
     @pytest.mark.asyncio
     async def test_invite_multiple_emails(
-        self, mock_session: AsyncMock, mock_gateway: AsyncMock, mock_ad_account: MagicMock
+        self,
+        mock_session: AsyncMock,
+        mock_gateway: AsyncMock,
+        mock_ad_account: MagicMock,
     ) -> None:
         mock_gateway.post.return_value = {"data": {"success": True}}
         with patch.object(
@@ -199,7 +224,10 @@ class TestInviteMember:
 class TestUpdateMember:
     @pytest.mark.asyncio
     async def test_update_member_role(
-        self, mock_session: AsyncMock, mock_gateway: AsyncMock, mock_ad_account: MagicMock
+        self,
+        mock_session: AsyncMock,
+        mock_gateway: AsyncMock,
+        mock_ad_account: MagicMock,
     ) -> None:
         mock_gateway.post.return_value = {"data": {"success": True}}
         with patch.object(
@@ -226,7 +254,10 @@ class TestUpdateMember:
 class TestDeleteMember:
     @pytest.mark.asyncio
     async def test_delete_member(
-        self, mock_session: AsyncMock, mock_gateway: AsyncMock, mock_ad_account: MagicMock
+        self,
+        mock_session: AsyncMock,
+        mock_gateway: AsyncMock,
+        mock_ad_account: MagicMock,
     ) -> None:
         mock_gateway.post.return_value = {"data": {"success": True}}
         with patch.object(
@@ -249,7 +280,10 @@ class TestDeleteMember:
 
     @pytest.mark.asyncio
     async def test_delete_member_missing_data(
-        self, mock_session: AsyncMock, mock_gateway: AsyncMock, mock_ad_account: MagicMock
+        self,
+        mock_session: AsyncMock,
+        mock_gateway: AsyncMock,
+        mock_ad_account: MagicMock,
     ) -> None:
         mock_gateway.post.return_value = {}
         with patch.object(

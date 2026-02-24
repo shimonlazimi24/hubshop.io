@@ -111,9 +111,7 @@ class SparkAdsService:
             auth.status = "REVOKED"
         return auth
 
-    async def get_authorization_code(
-        self, authorization_id: uuid.UUID
-    ) -> str | None:
+    async def get_authorization_code(self, authorization_id: uuid.UUID) -> str | None:
         """Get the Spark Ads authorization code for an approved auth."""
         result = await self._session.execute(
             select(ContentAuthorization).where(
@@ -139,9 +137,7 @@ class SparkAdsService:
         )
         return list(result.scalars().all())
 
-    async def _get_marketing_gateway(
-        self, workspace_id: uuid.UUID
-    ) -> PlatformGateway:
+    async def _get_marketing_gateway(self, workspace_id: uuid.UUID) -> PlatformGateway:
         """Build a PlatformGateway for a Marketing account."""
         result = await self._session.execute(
             select(ConnectedAccount).where(
@@ -155,9 +151,7 @@ class SparkAdsService:
             raise ValueError("No active Marketing account found")
 
         result = await self._session.execute(
-            select(TokenVault).where(
-                TokenVault.connected_account_id == account.id
-            )
+            select(TokenVault).where(TokenVault.connected_account_id == account.id)
         )
         vault = result.scalar_one_or_none()
         if not vault:

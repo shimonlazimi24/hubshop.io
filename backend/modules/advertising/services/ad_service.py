@@ -26,9 +26,7 @@ class AdService:
         page_size: int = 20,
     ) -> PaginatedResult[Ad]:
         query = select(Ad).where(Ad.workspace_id == workspace_id)
-        count_query = select(func.count(Ad.id)).where(
-            Ad.workspace_id == workspace_id
-        )
+        count_query = select(func.count(Ad.id)).where(Ad.workspace_id == workspace_id)
 
         if adgroup_id:
             query = query.where(Ad.adgroup_id == adgroup_id)
@@ -38,9 +36,7 @@ class AdService:
             count_query = count_query.where(Ad.ad_account_id == ad_account_id)
         if status_filter:
             query = query.where(Ad.operation_status == status_filter)
-            count_query = count_query.where(
-                Ad.operation_status == status_filter
-            )
+            count_query = count_query.where(Ad.operation_status == status_filter)
 
         total = (await self._session.execute(count_query)).scalar_one()
         offset = (page - 1) * page_size
@@ -49,14 +45,10 @@ class AdService:
         )
         items = list(result.scalars().all())
 
-        return PaginatedResult(
-            items=items, total=total, page=page, page_size=page_size
-        )
+        return PaginatedResult(items=items, total=total, page=page, page_size=page_size)
 
     async def get_ad(self, ad_id: uuid.UUID) -> Ad | None:
-        result = await self._session.execute(
-            select(Ad).where(Ad.id == ad_id)
-        )
+        result = await self._session.execute(select(Ad).where(Ad.id == ad_id))
         return result.scalar_one_or_none()
 
     async def create_ad(
@@ -238,9 +230,7 @@ class AdService:
         ad_text = ad_data.get("ad_text")
         cta = ad_data.get("call_to_action")
         landing_url = ad_data.get("landing_page_url")
-        image_url = ad_data.get("image_url") or ad_data.get(
-            "avatar_icon_web_uri"
-        )
+        image_url = ad_data.get("image_url") or ad_data.get("avatar_icon_web_uri")
         op_status = ad_data.get("operation_status", "ENABLE")
 
         if ad:

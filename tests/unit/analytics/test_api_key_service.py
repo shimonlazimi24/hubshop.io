@@ -1,9 +1,9 @@
 """Tests for ApiKeyService - create, list, revoke, validate API keys."""
 
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -40,9 +40,7 @@ class TestCreateKey:
         assert mock_session.add.called
 
     @pytest.mark.asyncio
-    async def test_create_key_hashes_key(
-        self, mock_session: AsyncMock
-    ) -> None:
+    async def test_create_key_hashes_key(self, mock_session: AsyncMock) -> None:
         workspace_id = uuid.uuid4()
         user_id = uuid.uuid4()
 
@@ -64,12 +62,8 @@ class TestListKeys:
     @pytest.mark.asyncio
     async def test_list_keys(self) -> None:
         session = AsyncMock()
-        key1 = SimpleNamespace(
-            id=uuid.uuid4(), name="Key 1", is_active=True
-        )
-        key2 = SimpleNamespace(
-            id=uuid.uuid4(), name="Key 2", is_active=False
-        )
+        key1 = SimpleNamespace(id=uuid.uuid4(), name="Key 1", is_active=True)
+        key2 = SimpleNamespace(id=uuid.uuid4(), name="Key 2", is_active=False)
         result_mock = MagicMock()
         result_mock.scalars.return_value.all.return_value = [key1, key2]
         session.execute.return_value = result_mock
@@ -86,9 +80,7 @@ class TestRevokeKey:
     @pytest.mark.asyncio
     async def test_revoke_key_found(self) -> None:
         session = AsyncMock()
-        key = SimpleNamespace(
-            id=uuid.uuid4(), is_active=True
-        )
+        key = SimpleNamespace(id=uuid.uuid4(), is_active=True)
         result_mock = MagicMock()
         result_mock.scalar_one_or_none.return_value = key
         session.execute.return_value = result_mock
@@ -158,7 +150,7 @@ class TestValidateKey:
             id=uuid.uuid4(),
             key_hash=key_hash,
             is_active=True,
-            expires_at=datetime(2025, 1, 1, tzinfo=timezone.utc),
+            expires_at=datetime(2025, 1, 1, tzinfo=UTC),
             last_used_at=None,
         )
 

@@ -43,9 +43,7 @@ class ReportService:
         )
         items = list(result.scalars().all())
 
-        return PaginatedResult(
-            items=items, total=total, page=page, page_size=page_size
-        )
+        return PaginatedResult(items=items, total=total, page=page, page_size=page_size)
 
     async def get_report(self, report_id: uuid.UUID) -> ScheduledReport | None:
         result = await self._session.execute(

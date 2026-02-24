@@ -448,9 +448,7 @@ async def get_catalog_overview(
             status_code=status.HTTP_404_NOT_FOUND, detail="Ad account not found"
         )
 
-    return await service.get_catalog_overview(
-        ad_account, catalog.platform_catalog_id
-    )
+    return await service.get_catalog_overview(ad_account, catalog.platform_catalog_id)
 
 
 @router.get("/catalogs/{catalog_id}/insights/trending-products")

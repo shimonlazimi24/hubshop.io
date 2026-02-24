@@ -59,7 +59,9 @@ class ConnectedAccount(Base, UUIDMixin, TimestampMixin):
         comment="Platform-specific metadata (e.g., shop_cipher list for Shop, scopes for Developer)",
     )
 
-    workspace: Mapped["Workspace"] = relationship(back_populates="connected_accounts")  # noqa: F821
+    workspace: Mapped["Workspace"] = relationship(
+        back_populates="connected_accounts"
+    )  # noqa: F821
     token_vault: Mapped["TokenVault | None"] = relationship(
         back_populates="connected_account",
         uselist=False,

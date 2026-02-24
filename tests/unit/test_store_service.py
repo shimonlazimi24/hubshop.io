@@ -1,5 +1,6 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from backend.modules.advertising.services.store_service import StoreService
 
@@ -25,9 +26,7 @@ class TestListStores:
                 "total": 2,
             }
         }
-        with patch.object(
-            StoreService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(StoreService, "_get_gateway", return_value=mock_gateway):
             service = StoreService(mock_session)
             result = await service.list_stores(
                 ad_account=MagicMock(advertiser_id="adv1")
@@ -48,9 +47,7 @@ class TestListStores:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.get.return_value = {}
-        with patch.object(
-            StoreService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(StoreService, "_get_gateway", return_value=mock_gateway):
             service = StoreService(mock_session)
             result = await service.list_stores(
                 ad_account=MagicMock(advertiser_id="adv1")
@@ -69,9 +66,7 @@ class TestGetStoreProducts:
                 "total": 2,
             }
         }
-        with patch.object(
-            StoreService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(StoreService, "_get_gateway", return_value=mock_gateway):
             service = StoreService(mock_session)
             result = await service.get_store_products(
                 ad_account=MagicMock(advertiser_id="adv1"),
@@ -95,9 +90,7 @@ class TestGetStoreProducts:
         mock_gateway.get.return_value = {
             "data": {"products": [{"product_id": "p5"}], "total": 1}
         }
-        with patch.object(
-            StoreService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(StoreService, "_get_gateway", return_value=mock_gateway):
             service = StoreService(mock_session)
             result = await service.get_store_products(
                 ad_account=MagicMock(advertiser_id="adv1"),
@@ -130,9 +123,7 @@ class TestGetShowcaseIdentities:
                 ]
             }
         }
-        with patch.object(
-            StoreService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(StoreService, "_get_gateway", return_value=mock_gateway):
             service = StoreService(mock_session)
             result = await service.get_showcase_identities(
                 ad_account=MagicMock(advertiser_id="adv1")
@@ -149,9 +140,7 @@ class TestGetShowcaseIdentities:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.get.return_value = {}
-        with patch.object(
-            StoreService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(StoreService, "_get_gateway", return_value=mock_gateway):
             service = StoreService(mock_session)
             result = await service.get_showcase_identities(
                 ad_account=MagicMock(advertiser_id="adv1")
@@ -170,9 +159,7 @@ class TestGetShowcaseProducts:
                 "total": 2,
             }
         }
-        with patch.object(
-            StoreService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(StoreService, "_get_gateway", return_value=mock_gateway):
             service = StoreService(mock_session)
             result = await service.get_showcase_products(
                 ad_account=MagicMock(advertiser_id="adv1"),
@@ -196,9 +183,7 @@ class TestGetShowcaseProducts:
         mock_gateway.get.return_value = {
             "data": {"products": [{"product_id": "sp10"}], "total": 1}
         }
-        with patch.object(
-            StoreService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(StoreService, "_get_gateway", return_value=mock_gateway):
             service = StoreService(mock_session)
             result = await service.get_showcase_products(
                 ad_account=MagicMock(advertiser_id="adv1"),

@@ -86,9 +86,7 @@ class StreamMonitorService:
         page_size: int = 20,
     ) -> PaginatedResult[LiveSession]:
         """List sessions with optional status filter, paginated."""
-        query = select(LiveSession).where(
-            LiveSession.workspace_id == workspace_id
-        )
+        query = select(LiveSession).where(LiveSession.workspace_id == workspace_id)
         count_query = select(func.count(LiveSession.id)).where(
             LiveSession.workspace_id == workspace_id
         )
@@ -106,9 +104,7 @@ class StreamMonitorService:
         )
         items = list(result.scalars().all())
 
-        return PaginatedResult(
-            items=items, total=total, page=page, page_size=page_size
-        )
+        return PaginatedResult(items=items, total=total, page=page, page_size=page_size)
 
     async def get_active_sessions(
         self,
@@ -116,9 +112,11 @@ class StreamMonitorService:
     ) -> list[LiveSession]:
         """List sessions currently in MONITORING status."""
         result = await self._session.execute(
-            select(LiveSession).where(
+            select(LiveSession)
+            .where(
                 LiveSession.workspace_id == workspace_id,
                 LiveSession.status == SessionStatus.MONITORING.value,
-            ).order_by(LiveSession.started_at.desc())
+            )
+            .order_by(LiveSession.started_at.desc())
         )
         return list(result.scalars().all())

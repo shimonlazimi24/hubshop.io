@@ -152,9 +152,7 @@ async def delete_member(
         )
 
     service = BusinessCenterService(db)
-    return await service.delete_member(
-        ad_account, bc_id=bc_id, member_id=member_id
-    )
+    return await service.delete_member(ad_account, bc_id=bc_id, member_id=member_id)
 
 
 # --- Partner Management ---

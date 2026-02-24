@@ -43,9 +43,7 @@ class TestCancelAsyncReport:
             mock_acct_cls.return_value = mock_acct
 
             service = ReportService(mock_session)
-            result = await service.cancel_async_report(
-                sample_ad_account, "task_abc"
-            )
+            result = await service.cancel_async_report(sample_ad_account, "task_abc")
 
         assert result["task_id"] == "task_abc"
         assert result["cancelled"] is True
@@ -74,9 +72,7 @@ class TestCancelAsyncReport:
             mock_acct_cls.return_value = mock_acct
 
             service = ReportService(mock_session)
-            result = await service.cancel_async_report(
-                sample_ad_account, "task_xyz"
-            )
+            result = await service.cancel_async_report(sample_ad_account, "task_xyz")
 
         assert result["data"] == {"message": "cancelled"}
 

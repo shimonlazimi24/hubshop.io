@@ -65,7 +65,9 @@ class TestShopRoutes:
 
 class TestProductRoutes:
     @pytest.mark.asyncio
-    @patch("backend.modules.commerce.services.product_service.ProductService.list_products")
+    @patch(
+        "backend.modules.commerce.services.product_service.ProductService.list_products"
+    )
     async def test_list_products_paginated(
         self,
         mock_list: AsyncMock,
@@ -89,7 +91,9 @@ class TestProductRoutes:
         assert data["page"] == 1
 
     @pytest.mark.asyncio
-    @patch("backend.modules.commerce.services.product_service.ProductService.get_product")
+    @patch(
+        "backend.modules.commerce.services.product_service.ProductService.get_product"
+    )
     async def test_get_product_not_found(
         self,
         mock_get: AsyncMock,
@@ -145,7 +149,9 @@ class TestOrderRoutes:
 
 class TestReturnRoutes:
     @pytest.mark.asyncio
-    @patch("backend.modules.commerce.services.return_service.ReturnService.list_returns")
+    @patch(
+        "backend.modules.commerce.services.return_service.ReturnService.list_returns"
+    )
     async def test_list_returns(
         self,
         mock_list: AsyncMock,
@@ -165,7 +171,9 @@ class TestReturnRoutes:
         assert response.status_code == 200
 
     @pytest.mark.asyncio
-    @patch("backend.modules.commerce.services.return_service.ReturnService.approve_return")
+    @patch(
+        "backend.modules.commerce.services.return_service.ReturnService.approve_return"
+    )
     async def test_approve_return_not_found(
         self,
         mock_approve: AsyncMock,

@@ -1,6 +1,6 @@
 # Frodo Frontend Codemap
 
-> Freshness: 2026-02-23 | Auto-generated
+> Freshness: 2026-02-24 | Auto-generated
 
 ## Directory Structure
 
@@ -74,7 +74,7 @@ frontend/src/
 
 | Module | File | Key Exports |
 |--------|------|-------------|
-| API Client | api.ts (1639 lines) | 100+ functions, `apiFetch<T>`, all type definitions |
+| API Client | api.ts (1638 lines) | 100+ functions, `apiFetch<T>`, all type definitions |
 | Auth | auth.ts | getAccessToken, setTokens, clearTokens, isAuthenticated |
 | Toast Store | toast-store.ts | `toast.success/error/info/warning`, useToasts |
 | Utils | utils.ts | `cn()` (clsx + twMerge) |

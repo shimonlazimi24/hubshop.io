@@ -71,9 +71,7 @@ class PlatformGateway:
     ) -> dict[str, Any]:
         """Execute a platform API request through the middleware chain."""
         if not self._circuit_breaker.allow_request():
-            raise CircuitBreakerOpen(
-                f"Circuit breaker open for {self._platform.value}"
-            )
+            raise CircuitBreakerOpen(f"Circuit breaker open for {self._platform.value}")
 
         allowed = await self._rate_limiter.acquire(self._account_id)
         if not allowed:
@@ -95,7 +93,9 @@ class PlatformGateway:
             self._circuit_breaker.record_failure()
             raise
 
-    async def get(self, path: str, params: dict[str, str] | None = None) -> dict[str, Any]:
+    async def get(
+        self, path: str, params: dict[str, str] | None = None
+    ) -> dict[str, Any]:
         return await self.request("GET", path, params=params)
 
     async def post(

@@ -1,5 +1,6 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from backend.modules.commerce.services.logistics_service import LogisticsService
 
@@ -27,26 +28,20 @@ class TestGetWarehouses:
                 ]
             }
         }
-        with patch.object(
-            LogisticsService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(LogisticsService, "_get_gateway", return_value=mock_gateway):
             service = LogisticsService(mock_session)
             result = await service.get_warehouses(shop_id=MagicMock())
             assert len(result) == 2
             assert result[0]["name"] == "Main Warehouse"
             assert result[1]["id"] == "wh_2"
-            mock_gateway.get.assert_called_once_with(
-                "/logistics/202309/warehouses"
-            )
+            mock_gateway.get.assert_called_once_with("/logistics/202309/warehouses")
 
     @pytest.mark.asyncio
     async def test_get_warehouses_empty(
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.get.return_value = {"data": {"warehouses": []}}
-        with patch.object(
-            LogisticsService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(LogisticsService, "_get_gateway", return_value=mock_gateway):
             service = LogisticsService(mock_session)
             result = await service.get_warehouses(shop_id=MagicMock())
             assert result == []
@@ -56,9 +51,7 @@ class TestGetWarehouses:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.get.return_value = {}
-        with patch.object(
-            LogisticsService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(LogisticsService, "_get_gateway", return_value=mock_gateway):
             service = LogisticsService(mock_session)
             result = await service.get_warehouses(shop_id=MagicMock())
             assert result == []
@@ -77,9 +70,7 @@ class TestGetDeliveryOptions:
                 ]
             }
         }
-        with patch.object(
-            LogisticsService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(LogisticsService, "_get_gateway", return_value=mock_gateway):
             service = LogisticsService(mock_session)
             result = await service.get_delivery_options(
                 shop_id=MagicMock(), warehouse_id="wh_1"
@@ -95,9 +86,7 @@ class TestGetDeliveryOptions:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.get.return_value = {"data": {"delivery_options": []}}
-        with patch.object(
-            LogisticsService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(LogisticsService, "_get_gateway", return_value=mock_gateway):
             service = LogisticsService(mock_session)
             result = await service.get_delivery_options(
                 shop_id=MagicMock(), warehouse_id="wh_1"
@@ -109,9 +98,7 @@ class TestGetDeliveryOptions:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.get.return_value = {}
-        with patch.object(
-            LogisticsService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(LogisticsService, "_get_gateway", return_value=mock_gateway):
             service = LogisticsService(mock_session)
             result = await service.get_delivery_options(
                 shop_id=MagicMock(), warehouse_id="wh_1"
@@ -132,9 +119,7 @@ class TestGetShippingProviders:
                 ]
             }
         }
-        with patch.object(
-            LogisticsService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(LogisticsService, "_get_gateway", return_value=mock_gateway):
             service = LogisticsService(mock_session)
             result = await service.get_shipping_providers(shop_id=MagicMock())
             assert len(result) == 2
@@ -149,9 +134,7 @@ class TestGetShippingProviders:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.get.return_value = {"data": {"shipping_providers": []}}
-        with patch.object(
-            LogisticsService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(LogisticsService, "_get_gateway", return_value=mock_gateway):
             service = LogisticsService(mock_session)
             result = await service.get_shipping_providers(shop_id=MagicMock())
             assert result == []
@@ -161,9 +144,7 @@ class TestGetShippingProviders:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.get.return_value = {}
-        with patch.object(
-            LogisticsService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(LogisticsService, "_get_gateway", return_value=mock_gateway):
             service = LogisticsService(mock_session)
             result = await service.get_shipping_providers(shop_id=MagicMock())
             assert result == []
@@ -182,9 +163,7 @@ class TestGetShippingTemplates:
                 ]
             }
         }
-        with patch.object(
-            LogisticsService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(LogisticsService, "_get_gateway", return_value=mock_gateway):
             service = LogisticsService(mock_session)
             result = await service.get_shipping_templates(shop_id=MagicMock())
             assert len(result) == 2
@@ -199,9 +178,7 @@ class TestGetShippingTemplates:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.get.return_value = {"data": {"shipping_templates": []}}
-        with patch.object(
-            LogisticsService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(LogisticsService, "_get_gateway", return_value=mock_gateway):
             service = LogisticsService(mock_session)
             result = await service.get_shipping_templates(shop_id=MagicMock())
             assert result == []
@@ -211,9 +188,7 @@ class TestGetShippingTemplates:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.get.return_value = {}
-        with patch.object(
-            LogisticsService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(LogisticsService, "_get_gateway", return_value=mock_gateway):
             service = LogisticsService(mock_session)
             result = await service.get_shipping_templates(shop_id=MagicMock())
             assert result == []
@@ -221,9 +196,7 @@ class TestGetShippingTemplates:
 
 class TestGetGateway:
     @pytest.mark.asyncio
-    async def test_get_gateway_shop_not_found(
-        self, mock_session: AsyncMock
-    ) -> None:
+    async def test_get_gateway_shop_not_found(self, mock_session: AsyncMock) -> None:
         with patch(
             "backend.modules.commerce.services.logistics_service.ShopService"
         ) as mock_shop_service_cls:
@@ -236,9 +209,7 @@ class TestGetGateway:
                 await service._get_gateway(MagicMock())
 
     @pytest.mark.asyncio
-    async def test_get_gateway_returns_gateway(
-        self, mock_session: AsyncMock
-    ) -> None:
+    async def test_get_gateway_returns_gateway(self, mock_session: AsyncMock) -> None:
         with patch(
             "backend.modules.commerce.services.logistics_service.ShopService"
         ) as mock_shop_service_cls:
@@ -246,9 +217,7 @@ class TestGetGateway:
             mock_gateway = AsyncMock()
             mock_shop_service = AsyncMock()
             mock_shop_service.get_shop.return_value = mock_shop
-            mock_shop_service.build_gateway_for_shop.return_value = (
-                mock_gateway
-            )
+            mock_shop_service.build_gateway_for_shop.return_value = mock_gateway
             mock_shop_service_cls.return_value = mock_shop_service
 
             service = LogisticsService(mock_session)

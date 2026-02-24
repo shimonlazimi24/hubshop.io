@@ -1,7 +1,7 @@
 import uuid
+from unittest.mock import AsyncMock, patch
 
 import pytest
-from unittest.mock import AsyncMock, patch
 
 from backend.modules.commerce.services.product_service import ProductService
 
@@ -22,9 +22,7 @@ class TestUpdatePrice:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.post.return_value = {"data": {}}
-        with patch.object(
-            ProductService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ProductService, "_get_gateway", return_value=mock_gateway):
             service = ProductService(mock_session)
             await service.update_price_api(
                 shop_id=uuid.uuid4(),
@@ -44,9 +42,7 @@ class TestUpdatePrice:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.post.return_value = {"data": {}}
-        with patch.object(
-            ProductService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ProductService, "_get_gateway", return_value=mock_gateway):
             service = ProductService(mock_session)
             await service.update_price_api(
                 shop_id=uuid.uuid4(),
@@ -64,9 +60,7 @@ class TestUpdatePrice:
         mock_gateway.post.return_value = {
             "data": {"product_id": "prod_1", "updated_skus": ["sku_1"]}
         }
-        with patch.object(
-            ProductService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ProductService, "_get_gateway", return_value=mock_gateway):
             service = ProductService(mock_session)
             result = await service.update_price_api(
                 shop_id=uuid.uuid4(),
@@ -82,9 +76,7 @@ class TestUpdateInventory:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.post.return_value = {"data": {}}
-        with patch.object(
-            ProductService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ProductService, "_get_gateway", return_value=mock_gateway):
             service = ProductService(mock_session)
             await service.update_inventory_api(
                 shop_id=uuid.uuid4(),
@@ -99,9 +91,7 @@ class TestUpdateInventory:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.post.return_value = {"data": {}}
-        with patch.object(
-            ProductService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ProductService, "_get_gateway", return_value=mock_gateway):
             service = ProductService(mock_session)
             await service.update_inventory_api(
                 shop_id=uuid.uuid4(),
@@ -118,9 +108,7 @@ class TestUpdateInventory:
         mock_gateway.post.return_value = {
             "data": {"product_id": "prod_1", "updated_skus": ["sku_1"]}
         }
-        with patch.object(
-            ProductService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ProductService, "_get_gateway", return_value=mock_gateway):
             service = ProductService(mock_session)
             result = await service.update_inventory_api(
                 shop_id=uuid.uuid4(),

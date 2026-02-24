@@ -83,10 +83,7 @@ async def list_publish_jobs(
         page_size=page_size,
     )
     return PaginatedResponse(
-        items=[
-            ContentPublishJobResponse.model_validate(j)
-            for j in result.items
-        ],
+        items=[ContentPublishJobResponse.model_validate(j) for j in result.items],
         total=result.total,
         page=result.page,
         page_size=result.page_size,
@@ -105,9 +102,7 @@ async def get_publish_status(
     db: DBSession,
 ) -> ContentPublishJobResponse:
     service = PublishService(db)
-    job = await service.check_and_update_publish_status(
-        workspace_id, publish_id
-    )
+    job = await service.check_and_update_publish_status(workspace_id, publish_id)
     if not job:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

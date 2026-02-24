@@ -148,9 +148,7 @@ async def get_video_info(
 
     ids_list = [vid.strip() for vid in video_ids.split(",") if vid.strip()]
     service = CreativeService(db)
-    return await service.get_video_info(
-        workspace_id, ad_account, video_ids=ids_list
-    )
+    return await service.get_video_info(workspace_id, ad_account, video_ids=ids_list)
 
 
 @router.post("/creatives/images/upload")
@@ -195,9 +193,7 @@ async def get_image_info(
 
     ids_list = [iid.strip() for iid in image_ids.split(",") if iid.strip()]
     service = CreativeService(db)
-    return await service.get_image_info(
-        workspace_id, ad_account, image_ids=ids_list
-    )
+    return await service.get_image_info(workspace_id, ad_account, image_ids=ids_list)
 
 
 @router.get("/creatives/music/search")

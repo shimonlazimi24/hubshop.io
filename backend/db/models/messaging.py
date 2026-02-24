@@ -8,7 +8,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.db.models.base import Base, TimestampMixin, UUIDMixin
 
-
 # --- Enums ---
 
 

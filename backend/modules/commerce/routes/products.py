@@ -174,9 +174,7 @@ async def delete_products(
     db: DBSession,
 ) -> dict:
     service = ProductService(db)
-    return await service.delete_products(
-        uuid.UUID(body.shop_id), body.product_ids
-    )
+    return await service.delete_products(uuid.UUID(body.shop_id), body.product_ids)
 
 
 @router.post("/products/activate")
@@ -186,9 +184,7 @@ async def activate_products(
     db: DBSession,
 ) -> dict:
     service = ProductService(db)
-    return await service.activate_products(
-        uuid.UUID(body.shop_id), body.product_ids
-    )
+    return await service.activate_products(uuid.UUID(body.shop_id), body.product_ids)
 
 
 @router.post("/products/deactivate")
@@ -198,9 +194,7 @@ async def deactivate_products(
     db: DBSession,
 ) -> dict:
     service = ProductService(db)
-    return await service.deactivate_products(
-        uuid.UUID(body.shop_id), body.product_ids
-    )
+    return await service.deactivate_products(uuid.UUID(body.shop_id), body.product_ids)
 
 
 @router.post("/products/recover")
@@ -210,9 +204,7 @@ async def recover_products(
     db: DBSession,
 ) -> dict:
     service = ProductService(db)
-    return await service.recover_products(
-        uuid.UUID(body.shop_id), body.product_ids
-    )
+    return await service.recover_products(uuid.UUID(body.shop_id), body.product_ids)
 
 
 # --- Task 5: Price & Inventory Update ---
@@ -252,9 +244,7 @@ async def upload_image(
     db: DBSession,
 ) -> dict:
     service = ProductService(db)
-    return await service.upload_product_image(
-        uuid.UUID(body.shop_id), body.image_url
-    )
+    return await service.upload_product_image(uuid.UUID(body.shop_id), body.image_url)
 
 
 @router.post("/products/files/upload")

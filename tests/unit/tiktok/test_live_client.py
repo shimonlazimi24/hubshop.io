@@ -1,5 +1,4 @@
-import asyncio
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -36,7 +35,15 @@ class TestLiveEventType:
 
     def test_all_event_types(self) -> None:
         values = {e.value for e in LiveEventType}
-        assert values == {"comment", "gift", "like", "follow", "share", "join", "live_end"}
+        assert values == {
+            "comment",
+            "gift",
+            "like",
+            "follow",
+            "share",
+            "join",
+            "live_end",
+        }
 
 
 @pytest.mark.unit
@@ -47,7 +54,7 @@ class TestLiveEventData:
             user_id="123",
             username="testuser",
             payload={"comment": "hello"},
-            timestamp=datetime(2026, 1, 1, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 1, 1, tzinfo=UTC),
         )
         assert event.event_type == LiveEventType.COMMENT
         assert event.user_id == "123"
@@ -97,7 +104,7 @@ class TestTikTokLiveClientWrapper:
             user_id="1",
             username="user",
             payload={"comment": "hi"},
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
         )
         await wrapper._dispatch(event)
         callback.assert_called_once_with(event)
@@ -112,7 +119,7 @@ class TestTikTokLiveClientWrapper:
             user_id="1",
             username="user",
             payload={},
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
         )
         await wrapper._dispatch(event)
         callback.assert_awaited_once_with(event)
@@ -125,7 +132,7 @@ class TestTikTokLiveClientWrapper:
             user_id="1",
             username="user",
             payload={},
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
         )
         # Should not raise
         await wrapper._dispatch(event)
@@ -142,7 +149,7 @@ class TestTikTokLiveClientWrapper:
             user_id="1",
             username="user",
             payload={},
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
         )
         # Should not raise, and the second callback should still be called
         await wrapper._dispatch(event)

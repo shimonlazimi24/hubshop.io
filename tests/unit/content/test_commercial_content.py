@@ -22,7 +22,9 @@ def mock_account() -> SimpleNamespace:
 
 
 @pytest.fixture
-def service(mock_account: SimpleNamespace, mock_gateway: AsyncMock) -> CommercialContentService:
+def service(
+    mock_account: SimpleNamespace, mock_gateway: AsyncMock
+) -> CommercialContentService:
     session = AsyncMock()
     svc = CommercialContentService(session)
     svc._get_developer_gateway = AsyncMock(return_value=(mock_account, mock_gateway))
@@ -115,9 +117,7 @@ class TestSearchAdvertisers:
             "data": {"advertisers": [{"business_id": "biz_1", "business_name": "Acme"}]}
         }
 
-        result = await service.search_advertisers(
-            workspace_id, search_term="Acme"
-        )
+        result = await service.search_advertisers(workspace_id, search_term="Acme")
 
         assert result == {
             "advertisers": [{"business_id": "biz_1", "business_name": "Acme"}]

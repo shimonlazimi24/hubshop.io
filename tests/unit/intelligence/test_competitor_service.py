@@ -1,7 +1,7 @@
 """Tests for CompetitorService - add, remove, list, sync, detail, compare."""
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
@@ -70,9 +70,7 @@ class TestRemoveCompetitor:
         return uuid.uuid4()
 
     @pytest.mark.asyncio
-    async def test_remove_existing_competitor(
-        self, workspace_id: uuid.UUID
-    ) -> None:
+    async def test_remove_existing_competitor(self, workspace_id: uuid.UUID) -> None:
         session = AsyncMock()
         session.delete = AsyncMock()
         session.flush = AsyncMock()
@@ -89,9 +87,7 @@ class TestRemoveCompetitor:
         session.delete.assert_called_once_with(tracker)
 
     @pytest.mark.asyncio
-    async def test_remove_nonexistent_competitor(
-        self, workspace_id: uuid.UUID
-    ) -> None:
+    async def test_remove_nonexistent_competitor(self, workspace_id: uuid.UUID) -> None:
         session = AsyncMock()
         result_mock = MagicMock()
         result_mock.scalar_one_or_none.return_value = None
@@ -109,16 +105,14 @@ class TestListCompetitors:
         return uuid.uuid4()
 
     @pytest.mark.asyncio
-    async def test_list_returns_all_trackers(
-        self, workspace_id: uuid.UUID
-    ) -> None:
+    async def test_list_returns_all_trackers(self, workspace_id: uuid.UUID) -> None:
         session = AsyncMock()
         t1 = SimpleNamespace(
             id=uuid.uuid4(),
             username="user1",
             display_name="User One",
             profile_data={"follower_count": 100},
-            last_synced_at=datetime(2026, 2, 19, tzinfo=timezone.utc),
+            last_synced_at=datetime(2026, 2, 19, tzinfo=UTC),
         )
         t2 = SimpleNamespace(
             id=uuid.uuid4(),
@@ -157,9 +151,7 @@ class TestSyncAllCompetitors:
         return uuid.uuid4()
 
     @pytest.mark.asyncio
-    async def test_sync_creates_new_content(
-        self, workspace_id: uuid.UUID
-    ) -> None:
+    async def test_sync_creates_new_content(self, workspace_id: uuid.UUID) -> None:
         session = AsyncMock()
         session.add = MagicMock()
         session.flush = AsyncMock()
@@ -218,9 +210,7 @@ class TestSyncAllCompetitors:
         assert session.add.call_count == 2
 
     @pytest.mark.asyncio
-    async def test_sync_updates_existing_content(
-        self, workspace_id: uuid.UUID
-    ) -> None:
+    async def test_sync_updates_existing_content(self, workspace_id: uuid.UUID) -> None:
         session = AsyncMock()
         session.add = MagicMock()
         session.flush = AsyncMock()
@@ -276,9 +266,7 @@ class TestSyncAllCompetitors:
         assert existing_content.metrics["like_count"] == 100
 
     @pytest.mark.asyncio
-    async def test_sync_no_competitors(
-        self, workspace_id: uuid.UUID
-    ) -> None:
+    async def test_sync_no_competitors(self, workspace_id: uuid.UUID) -> None:
         session = AsyncMock()
         session.flush = AsyncMock()
 
@@ -301,9 +289,7 @@ class TestGetCompetitorDetail:
         return uuid.uuid4()
 
     @pytest.mark.asyncio
-    async def test_returns_detail_with_content(
-        self, workspace_id: uuid.UUID
-    ) -> None:
+    async def test_returns_detail_with_content(self, workspace_id: uuid.UUID) -> None:
         session = AsyncMock()
         tracker_id = uuid.uuid4()
         tracker = SimpleNamespace(
@@ -311,7 +297,7 @@ class TestGetCompetitorDetail:
             username="creator1",
             display_name="Creator One",
             profile_data={"follower_count": 5000},
-            last_synced_at=datetime(2026, 2, 19, tzinfo=timezone.utc),
+            last_synced_at=datetime(2026, 2, 19, tzinfo=UTC),
         )
         content = SimpleNamespace(
             id=uuid.uuid4(),
@@ -319,7 +305,7 @@ class TestGetCompetitorDetail:
             description="A cool video",
             metrics={"like_count": 50},
             hashtags=["dance"],
-            published_at=datetime(2026, 2, 18, tzinfo=timezone.utc),
+            published_at=datetime(2026, 2, 18, tzinfo=UTC),
         )
 
         tracker_result = MagicMock()
@@ -327,9 +313,7 @@ class TestGetCompetitorDetail:
         content_result = MagicMock()
         content_result.scalars.return_value.all.return_value = [content]
 
-        session.execute = AsyncMock(
-            side_effect=[tracker_result, content_result]
-        )
+        session.execute = AsyncMock(side_effect=[tracker_result, content_result])
 
         service = CompetitorService(session)
         detail = await service.get_competitor_detail(workspace_id, tracker_id)
@@ -340,18 +324,14 @@ class TestGetCompetitorDetail:
         assert detail["content"][0]["video_id"] == "v1"
 
     @pytest.mark.asyncio
-    async def test_returns_none_for_missing(
-        self, workspace_id: uuid.UUID
-    ) -> None:
+    async def test_returns_none_for_missing(self, workspace_id: uuid.UUID) -> None:
         session = AsyncMock()
         result_mock = MagicMock()
         result_mock.scalar_one_or_none.return_value = None
         session.execute = AsyncMock(return_value=result_mock)
 
         service = CompetitorService(session)
-        detail = await service.get_competitor_detail(
-            workspace_id, uuid.uuid4()
-        )
+        detail = await service.get_competitor_detail(workspace_id, uuid.uuid4())
 
         assert detail is None
 
@@ -362,26 +342,30 @@ class TestCompareCompetitors:
         return uuid.uuid4()
 
     @pytest.mark.asyncio
-    async def test_compare_multiple_competitors(
-        self, workspace_id: uuid.UUID
-    ) -> None:
+    async def test_compare_multiple_competitors(self, workspace_id: uuid.UUID) -> None:
         session = AsyncMock()
 
         id1 = uuid.uuid4()
         id2 = uuid.uuid4()
 
-        tracker1 = SimpleNamespace(
-            id=id1, username="user1", display_name="User 1"
-        )
-        tracker2 = SimpleNamespace(
-            id=id2, username="user2", display_name="User 2"
-        )
+        tracker1 = SimpleNamespace(id=id1, username="user1", display_name="User 1")
+        tracker2 = SimpleNamespace(id=id2, username="user2", display_name="User 2")
 
         content1 = SimpleNamespace(
-            metrics={"like_count": 100, "comment_count": 10, "share_count": 5, "view_count": 500}
+            metrics={
+                "like_count": 100,
+                "comment_count": 10,
+                "share_count": 5,
+                "view_count": 500,
+            }
         )
         content2 = SimpleNamespace(
-            metrics={"like_count": 200, "comment_count": 20, "share_count": 10, "view_count": 1000}
+            metrics={
+                "like_count": 200,
+                "comment_count": 20,
+                "share_count": 10,
+                "view_count": 1000,
+            }
         )
 
         tracker1_result = MagicMock()
@@ -404,9 +388,7 @@ class TestCompareCompetitors:
         )
 
         service = CompetitorService(session)
-        comparisons = await service.compare_competitors(
-            workspace_id, [id1, id2]
-        )
+        comparisons = await service.compare_competitors(workspace_id, [id1, id2])
 
         assert len(comparisons) == 2
         assert comparisons[0]["username"] == "user1"
@@ -428,16 +410,12 @@ class TestCompareCompetitors:
         session.execute = AsyncMock(return_value=missing_result)
 
         service = CompetitorService(session)
-        comparisons = await service.compare_competitors(
-            workspace_id, [uuid.uuid4()]
-        )
+        comparisons = await service.compare_competitors(workspace_id, [uuid.uuid4()])
 
         assert comparisons == []
 
     @pytest.mark.asyncio
-    async def test_compare_empty_ids(
-        self, workspace_id: uuid.UUID
-    ) -> None:
+    async def test_compare_empty_ids(self, workspace_id: uuid.UUID) -> None:
         session = AsyncMock()
 
         service = CompetitorService(session)

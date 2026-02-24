@@ -35,9 +35,7 @@ async def _sync_all_ad_accounts() -> None:
         for workspace in workspaces:
             try:
                 service = AdAccountService(session)
-                synced = await service.sync_ad_accounts_from_connected(
-                    workspace.id
-                )
+                synced = await service.sync_ad_accounts_from_connected(workspace.id)
                 await session.commit()
                 logger.info(
                     "Synced %d ad accounts for workspace %s",

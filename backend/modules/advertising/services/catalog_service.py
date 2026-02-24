@@ -43,9 +43,7 @@ class CatalogService:
         )
         items = list(result.scalars().all())
 
-        return PaginatedResult(
-            items=items, total=total, page=page, page_size=page_size
-        )
+        return PaginatedResult(items=items, total=total, page=page, page_size=page_size)
 
     async def get_catalog(self, catalog_id: uuid.UUID) -> Catalog | None:
         result = await self._session.execute(
@@ -520,9 +518,7 @@ class CatalogService:
         )
         return resp.get("data", {})
 
-    async def _upsert_catalog(
-        self, ad_account: AdAccount, cat_data: dict
-    ) -> Catalog:
+    async def _upsert_catalog(self, ad_account: AdAccount, cat_data: dict) -> Catalog:
         platform_id = str(cat_data.get("catalog_id", ""))
         result = await self._session.execute(
             select(Catalog).where(Catalog.platform_catalog_id == platform_id)

@@ -112,7 +112,7 @@ docker compose up
 | `alembic upgrade head` | Run database migrations |
 | `alembic revision --autogenerate -m "description"` | Generate new migration |
 | `alembic downgrade -1` | Rollback last migration |
-| `pytest` | Run all tests (878 tests) |
+| `pytest` | Run all tests (879 tests) |
 | `pytest tests/unit` | Run unit tests only |
 | `pytest tests/integration` | Run integration tests only |
 | `pytest --cov=backend --cov-report=term-missing` | Run tests with coverage |
@@ -243,7 +243,7 @@ frodo/
 ### Running tests
 
 ```bash
-# All tests (878 passing)
+# All tests (879 passing)
 pytest
 
 # Unit tests only

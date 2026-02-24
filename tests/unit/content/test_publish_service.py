@@ -1,13 +1,12 @@
 """Tests for PublishService - list, get, update status, calendar entries."""
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from backend.db.models.content import ContentPublishJob
 from backend.modules.content.services.publish_service import PublishService
 
 
@@ -166,24 +165,24 @@ class TestGetCalendarEntries:
         video1 = SimpleNamespace(
             id=uuid.uuid4(),
             platform_video_id="v1",
-            create_time=datetime(2026, 2, 10, 12, 0, 0, tzinfo=timezone.utc),
+            create_time=datetime(2026, 2, 10, 12, 0, 0, tzinfo=UTC),
         )
         video2 = SimpleNamespace(
             id=uuid.uuid4(),
             platform_video_id="v2",
-            create_time=datetime(2026, 2, 10, 15, 0, 0, tzinfo=timezone.utc),
+            create_time=datetime(2026, 2, 10, 15, 0, 0, tzinfo=UTC),
         )
         video3 = SimpleNamespace(
             id=uuid.uuid4(),
             platform_video_id="v3",
-            create_time=datetime(2026, 2, 20, 8, 0, 0, tzinfo=timezone.utc),
+            create_time=datetime(2026, 2, 20, 8, 0, 0, tzinfo=UTC),
         )
 
         # One publish job on a different day
         job1 = SimpleNamespace(
             id=uuid.uuid4(),
             platform_video_id=None,
-            created_at=datetime(2026, 2, 15, 10, 0, 0, tzinfo=timezone.utc),
+            created_at=datetime(2026, 2, 15, 10, 0, 0, tzinfo=UTC),
         )
 
         video_result = MagicMock()

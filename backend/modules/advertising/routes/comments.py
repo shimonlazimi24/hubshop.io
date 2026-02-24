@@ -83,9 +83,7 @@ async def hide_comment(
         )
 
     service = CommentService(db)
-    return await service.hide_comment(
-        workspace_id, ad_account, comment_id=comment_id
-    )
+    return await service.hide_comment(workspace_id, ad_account, comment_id=comment_id)
 
 
 @router.delete("/comments/{comment_id}")
@@ -106,6 +104,4 @@ async def delete_comment(
         )
 
     service = CommentService(db)
-    return await service.delete_comment(
-        workspace_id, ad_account, comment_id=comment_id
-    )
+    return await service.delete_comment(workspace_id, ad_account, comment_id=comment_id)

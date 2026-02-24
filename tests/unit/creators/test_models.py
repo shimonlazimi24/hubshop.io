@@ -1,9 +1,7 @@
 """Tests for creators DB models - field assignment."""
 
 import uuid
-from datetime import datetime, timezone
-
-import pytest
+from datetime import UTC, datetime
 
 from backend.db.models.creators import (
     ContentAuthorization,
@@ -59,8 +57,8 @@ class TestCreatorProfile:
 class TestCreatorCampaign:
     def test_fields(self) -> None:
         ws_id = uuid.uuid4()
-        start = datetime(2026, 3, 1, tzinfo=timezone.utc)
-        end = datetime(2026, 3, 31, tzinfo=timezone.utc)
+        start = datetime(2026, 3, 1, tzinfo=UTC)
+        end = datetime(2026, 3, 31, tzinfo=UTC)
 
         campaign = CreatorCampaign()
         campaign.workspace_id = ws_id
@@ -88,7 +86,7 @@ class TestCreatorInvitation:
     def test_fields(self) -> None:
         campaign_id = uuid.uuid4()
         creator_id = uuid.uuid4()
-        responded = datetime(2026, 2, 15, 10, 30, tzinfo=timezone.utc)
+        responded = datetime(2026, 2, 15, 10, 30, tzinfo=UTC)
 
         invite = CreatorInvitation()
         invite.campaign_id = campaign_id
@@ -120,7 +118,7 @@ class TestContentAuthorization:
     def test_fields(self) -> None:
         ws_id = uuid.uuid4()
         creator_id = uuid.uuid4()
-        expires = datetime(2026, 6, 1, tzinfo=timezone.utc)
+        expires = datetime(2026, 6, 1, tzinfo=UTC)
 
         auth = ContentAuthorization()
         auth.workspace_id = ws_id

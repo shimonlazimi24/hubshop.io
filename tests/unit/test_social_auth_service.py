@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import uuid
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from backend.auth.social import SocialAuthService
-from backend.db.models.organization import Role
 from backend.db.models.social_identity import SocialIdentity, SocialProvider
 from backend.db.models.user import User
 
@@ -28,7 +27,9 @@ def _make_user(user_id: uuid.UUID | None = None, email: str = "u@example.com") -
     return user
 
 
-def _make_identity(user: User, provider: SocialProvider = SocialProvider.TIKTOK) -> SocialIdentity:
+def _make_identity(
+    user: User, provider: SocialProvider = SocialProvider.TIKTOK
+) -> SocialIdentity:
     identity = SocialIdentity(
         user_id=user.id,
         provider=provider.value,
@@ -43,6 +44,7 @@ def _make_identity(user: User, provider: SocialProvider = SocialProvider.TIKTOK)
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.unit
 class TestGetOrCreateUserNew:
@@ -68,7 +70,11 @@ class TestGetOrCreateUserNew:
         async def _flush_side_effect() -> None:
             for call in db.add.call_args_list:
                 obj = call[0][0]
-                if isinstance(obj, User) and not hasattr(obj, "id") or getattr(obj, "id", None) is None:
+                if (
+                    isinstance(obj, User)
+                    and not hasattr(obj, "id")
+                    or getattr(obj, "id", None) is None
+                ):
                     obj.id = user_id
 
         db.flush.side_effect = _flush_side_effect

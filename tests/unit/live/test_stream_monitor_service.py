@@ -23,16 +23,12 @@ class TestStartMonitoring:
     async def test_creates_session_in_monitoring_status(
         self, mock_session: AsyncMock
     ) -> None:
-        with patch(
-            "backend.workers.live_sync.monitor_live_stream"
-        ) as mock_task:
+        with patch("backend.workers.live_sync.monitor_live_stream") as mock_task:
             mock_task.delay = MagicMock()
             service = StreamMonitorService(mock_session)
             workspace_id = uuid.uuid4()
 
-            result = await service.start_monitoring(
-                workspace_id, unique_id="test_user"
-            )
+            result = await service.start_monitoring(workspace_id, unique_id="test_user")
 
             assert mock_session.add.called
             added = mock_session.add.call_args_list[0][0][0]
@@ -43,9 +39,7 @@ class TestStartMonitoring:
 
     @pytest.mark.asyncio
     async def test_dispatches_celery_task(self, mock_session: AsyncMock) -> None:
-        with patch(
-            "backend.workers.live_sync.monitor_live_stream"
-        ) as mock_task:
+        with patch("backend.workers.live_sync.monitor_live_stream") as mock_task:
             mock_task.delay = MagicMock()
             service = StreamMonitorService(mock_session)
 
@@ -59,9 +53,7 @@ class TestStartMonitoring:
 
     @pytest.mark.asyncio
     async def test_sets_started_at_timestamp(self, mock_session: AsyncMock) -> None:
-        with patch(
-            "backend.workers.live_sync.monitor_live_stream"
-        ) as mock_task:
+        with patch("backend.workers.live_sync.monitor_live_stream") as mock_task:
             mock_task.delay = MagicMock()
             service = StreamMonitorService(mock_session)
 
@@ -74,9 +66,7 @@ class TestStartMonitoring:
 
     @pytest.mark.asyncio
     async def test_flushes_session(self, mock_session: AsyncMock) -> None:
-        with patch(
-            "backend.workers.live_sync.monitor_live_stream"
-        ) as mock_task:
+        with patch("backend.workers.live_sync.monitor_live_stream") as mock_task:
             mock_task.delay = MagicMock()
             service = StreamMonitorService(mock_session)
 
@@ -231,9 +221,7 @@ class TestListSessions:
         mock_session.execute = AsyncMock(side_effect=[count_result, items_result])
 
         service = StreamMonitorService(mock_session)
-        result = await service.list_sessions(
-            uuid.uuid4(), page=2, page_size=10
-        )
+        result = await service.list_sessions(uuid.uuid4(), page=2, page_size=10)
 
         assert result.total == 25
         assert result.page == 2

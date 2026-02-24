@@ -5,7 +5,6 @@ import uuid
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from httpx import ASGITransport, AsyncClient
 
 from backend.main import app
 
@@ -25,9 +24,7 @@ class TestWebSocketAuth:
         workspace_id = uuid.uuid4()
 
         with pytest.raises(Exception):
-            with client.websocket_connect(
-                f"/api/commerce/ws/{workspace_id}"
-            ):
+            with client.websocket_connect(f"/api/commerce/ws/{workspace_id}"):
                 pass
 
     @pytest.mark.asyncio
@@ -38,11 +35,13 @@ class TestWebSocketAuth:
         client = TestClient(app)
         workspace_id = uuid.uuid4()
 
-        with pytest.raises(Exception):
-            with client.websocket_connect(
+        with (
+            pytest.raises(Exception),
+            client.websocket_connect(
                 f"/api/commerce/ws/{workspace_id}?token=invalid-token"
-            ):
-                pass
+            ),
+        ):
+            pass
 
 
 class TestWebSocketMessages:
@@ -53,8 +52,9 @@ class TestWebSocketMessages:
         mock_get_redis: AsyncMock,
     ) -> None:
         """Test that a message published to Redis is forwarded via WebSocket."""
-        from backend.auth.jwt import create_access_token
         from starlette.testclient import TestClient
+
+        from backend.auth.jwt import create_access_token
 
         # Create a valid token
         user_id = uuid.uuid4()
@@ -68,12 +68,14 @@ class TestWebSocketMessages:
         mock_redis.pubsub = MagicMock(return_value=mock_pubsub)
 
         # First call returns a message, second returns None (to break the loop)
-        test_message = json.dumps({
-            "type": "order_status_change",
-            "order_id": str(uuid.uuid4()),
-            "from_status": "awaiting_shipment",
-            "to_status": "in_transit",
-        })
+        test_message = json.dumps(
+            {
+                "type": "order_status_change",
+                "order_id": str(uuid.uuid4()),
+                "from_status": "awaiting_shipment",
+                "to_status": "in_transit",
+            }
+        )
 
         call_count = 0
 

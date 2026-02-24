@@ -51,9 +51,7 @@ class TestListCampaignsUnified:
             MockCampaignService.return_value = mock_svc
 
             service = UnifiedAdvertisingService(mock_session)
-            result = await service.list_campaigns(
-                workspace_id, platform="marketing"
-            )
+            result = await service.list_campaigns(workspace_id, platform="marketing")
 
         assert len(result.items) == 1
         assert result.items[0].source_platform == "marketing"

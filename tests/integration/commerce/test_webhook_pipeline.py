@@ -45,7 +45,9 @@ class TestShopWebhookPipeline:
         with patch("backend.workers.webhook_processor.process_webhook") as mock_task:
             mock_task.delay = AsyncMock()
 
-            async with AsyncClient(transport=transport, base_url="http://test") as client:
+            async with AsyncClient(
+                transport=transport, base_url="http://test"
+            ) as client:
                 response = await client.post(
                     "/webhooks/shop",
                     content=json.dumps(payload),
@@ -149,7 +151,9 @@ class TestShopWebhookPipeline:
         with patch("backend.workers.webhook_processor.process_webhook") as mock_task:
             mock_task.delay = AsyncMock()
 
-            async with AsyncClient(transport=transport, base_url="http://test") as client:
+            async with AsyncClient(
+                transport=transport, base_url="http://test"
+            ) as client:
                 response = await client.post(
                     "/webhooks/shop",
                     content=json.dumps(payload),

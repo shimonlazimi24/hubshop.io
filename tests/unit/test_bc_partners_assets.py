@@ -1,5 +1,6 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from backend.modules.advertising.services.business_center_service import (
     BusinessCenterService,
@@ -26,7 +27,10 @@ def mock_ad_account() -> MagicMock:
 class TestListPartners:
     @pytest.mark.asyncio
     async def test_returns_partners(
-        self, mock_session: AsyncMock, mock_gateway: AsyncMock, mock_ad_account: MagicMock
+        self,
+        mock_session: AsyncMock,
+        mock_gateway: AsyncMock,
+        mock_ad_account: MagicMock,
     ) -> None:
         mock_gateway.get.return_value = {
             "data": {
@@ -54,7 +58,10 @@ class TestListPartners:
 class TestAddPartner:
     @pytest.mark.asyncio
     async def test_add_partner_default_relationship(
-        self, mock_session: AsyncMock, mock_gateway: AsyncMock, mock_ad_account: MagicMock
+        self,
+        mock_session: AsyncMock,
+        mock_gateway: AsyncMock,
+        mock_ad_account: MagicMock,
     ) -> None:
         mock_gateway.post.return_value = {"data": {"success": True}}
         with patch.object(
@@ -80,7 +87,10 @@ class TestAddPartner:
 class TestDeletePartner:
     @pytest.mark.asyncio
     async def test_delete_partner(
-        self, mock_session: AsyncMock, mock_gateway: AsyncMock, mock_ad_account: MagicMock
+        self,
+        mock_session: AsyncMock,
+        mock_gateway: AsyncMock,
+        mock_ad_account: MagicMock,
     ) -> None:
         mock_gateway.post.return_value = {"data": {"success": True}}
         with patch.object(
@@ -105,7 +115,10 @@ class TestDeletePartner:
 class TestListAssets:
     @pytest.mark.asyncio
     async def test_returns_assets_no_filter(
-        self, mock_session: AsyncMock, mock_gateway: AsyncMock, mock_ad_account: MagicMock
+        self,
+        mock_session: AsyncMock,
+        mock_gateway: AsyncMock,
+        mock_ad_account: MagicMock,
     ) -> None:
         mock_gateway.get.return_value = {
             "data": {
@@ -129,7 +142,10 @@ class TestListAssets:
 
     @pytest.mark.asyncio
     async def test_returns_assets_with_type_filter(
-        self, mock_session: AsyncMock, mock_gateway: AsyncMock, mock_ad_account: MagicMock
+        self,
+        mock_session: AsyncMock,
+        mock_gateway: AsyncMock,
+        mock_ad_account: MagicMock,
     ) -> None:
         mock_gateway.get.return_value = {"data": {"list": []}}
         with patch.object(
@@ -155,7 +171,10 @@ class TestListAssets:
 class TestAssignAsset:
     @pytest.mark.asyncio
     async def test_assign_asset(
-        self, mock_session: AsyncMock, mock_gateway: AsyncMock, mock_ad_account: MagicMock
+        self,
+        mock_session: AsyncMock,
+        mock_gateway: AsyncMock,
+        mock_ad_account: MagicMock,
     ) -> None:
         mock_gateway.post.return_value = {"data": {"success": True}}
         with patch.object(
@@ -182,7 +201,10 @@ class TestAssignAsset:
 class TestUnassignAsset:
     @pytest.mark.asyncio
     async def test_unassign_asset(
-        self, mock_session: AsyncMock, mock_gateway: AsyncMock, mock_ad_account: MagicMock
+        self,
+        mock_session: AsyncMock,
+        mock_gateway: AsyncMock,
+        mock_ad_account: MagicMock,
     ) -> None:
         mock_gateway.post.return_value = {"data": {"success": True}}
         with patch.object(
@@ -209,11 +231,12 @@ class TestUnassignAsset:
 class TestCreateAdAccountInBC:
     @pytest.mark.asyncio
     async def test_create_without_industry(
-        self, mock_session: AsyncMock, mock_gateway: AsyncMock, mock_ad_account: MagicMock
+        self,
+        mock_session: AsyncMock,
+        mock_gateway: AsyncMock,
+        mock_ad_account: MagicMock,
     ) -> None:
-        mock_gateway.post.return_value = {
-            "data": {"advertiser_id": "new_adv_001"}
-        }
+        mock_gateway.post.return_value = {"data": {"advertiser_id": "new_adv_001"}}
         with patch.object(
             BusinessCenterService, "_get_gateway", return_value=mock_gateway
         ):
@@ -238,11 +261,12 @@ class TestCreateAdAccountInBC:
 
     @pytest.mark.asyncio
     async def test_create_with_industry(
-        self, mock_session: AsyncMock, mock_gateway: AsyncMock, mock_ad_account: MagicMock
+        self,
+        mock_session: AsyncMock,
+        mock_gateway: AsyncMock,
+        mock_ad_account: MagicMock,
     ) -> None:
-        mock_gateway.post.return_value = {
-            "data": {"advertiser_id": "new_adv_002"}
-        }
+        mock_gateway.post.return_value = {"data": {"advertiser_id": "new_adv_002"}}
         with patch.object(
             BusinessCenterService, "_get_gateway", return_value=mock_gateway
         ):
@@ -271,12 +295,13 @@ class TestCreateAdAccountInBC:
 class TestGetPartnerAssets:
     @pytest.mark.asyncio
     async def test_get_partner_assets(
-        self, mock_session: AsyncMock, mock_gateway: AsyncMock, mock_ad_account: MagicMock
+        self,
+        mock_session: AsyncMock,
+        mock_gateway: AsyncMock,
+        mock_ad_account: MagicMock,
     ) -> None:
         mock_gateway.get.return_value = {
-            "data": {
-                "list": [{"asset_id": "a1", "asset_type": "AD_ACCOUNT"}]
-            }
+            "data": {"list": [{"asset_id": "a1", "asset_type": "AD_ACCOUNT"}]}
         }
         with patch.object(
             BusinessCenterService, "_get_gateway", return_value=mock_gateway

@@ -6,7 +6,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.db.models.advertising import AdGroup, Campaign
 from backend.modules.advertising.services.ad_group_service import AdGroupService
 from backend.modules.advertising.services.ad_service import AdService
 from backend.modules.advertising.services.campaign_service import CampaignService
@@ -174,9 +173,7 @@ class TestAdGroupSync:
         upsert_result = MagicMock()
         upsert_result.scalar_one_or_none.return_value = None
 
-        mock_session.execute = AsyncMock(
-            side_effect=[campaign_result, upsert_result]
-        )
+        mock_session.execute = AsyncMock(side_effect=[campaign_result, upsert_result])
 
         service = AdGroupService(mock_session)
         synced = await service.sync_ad_groups(sample_ad_account)
@@ -270,9 +267,7 @@ class TestAdSync:
         upsert_result = MagicMock()
         upsert_result.scalar_one_or_none.return_value = None
 
-        mock_session.execute = AsyncMock(
-            side_effect=[adgroup_result, upsert_result]
-        )
+        mock_session.execute = AsyncMock(side_effect=[adgroup_result, upsert_result])
 
         gateway.get = AsyncMock(
             return_value={

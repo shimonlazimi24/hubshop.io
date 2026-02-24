@@ -17,7 +17,6 @@ import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.db.models.commerce import Shop
 from backend.modules.commerce.services.fulfillment_service import FulfillmentService
 from backend.modules.commerce.services.order_service import OrderService
 from backend.modules.commerce.services.product_service import ProductService
@@ -27,9 +26,7 @@ from backend.modules.commerce.services.shop_service import ShopService
 logger = logging.getLogger(__name__)
 
 
-async def handle_order_status_change(
-    payload: dict, session: AsyncSession
-) -> None:
+async def handle_order_status_change(payload: dict, session: AsyncSession) -> None:
     """Type 1: Order status changed."""
     data = payload.get("data", {})
     platform_order_id = str(data.get("order_id", ""))
@@ -40,14 +37,10 @@ async def handle_order_status_change(
         return
 
     service = OrderService(session)
-    await service.update_order_status(
-        platform_order_id, new_status, source="webhook"
-    )
+    await service.update_order_status(platform_order_id, new_status, source="webhook")
 
 
-async def handle_recipient_address_update(
-    payload: dict, session: AsyncSession
-) -> None:
+async def handle_recipient_address_update(payload: dict, session: AsyncSession) -> None:
     """Type 3: Recipient address updated on an order."""
     data = payload.get("data", {})
     platform_order_id = str(data.get("order_id", ""))
@@ -63,9 +56,7 @@ async def handle_recipient_address_update(
     )
 
 
-async def handle_package_update(
-    payload: dict, session: AsyncSession
-) -> None:
+async def handle_package_update(payload: dict, session: AsyncSession) -> None:
     """Type 4: Package status updated."""
     data = payload.get("data", {})
     platform_package_id = str(data.get("package_id", ""))
@@ -78,9 +69,7 @@ async def handle_package_update(
     await service.update_package_from_webhook(platform_package_id, new_status)
 
 
-async def handle_product_status_change(
-    payload: dict, session: AsyncSession
-) -> None:
+async def handle_product_status_change(payload: dict, session: AsyncSession) -> None:
     """Type 5: Product status changed."""
     data = payload.get("data", {})
     platform_product_id = str(data.get("product_id", ""))
@@ -104,14 +93,10 @@ async def handle_cancellation_status_change(
         return
 
     service = OrderService(session)
-    await service.update_order_status(
-        platform_order_id, "CANCELLED", source="webhook"
-    )
+    await service.update_order_status(platform_order_id, "CANCELLED", source="webhook")
 
 
-async def handle_return_status_change(
-    payload: dict, session: AsyncSession
-) -> None:
+async def handle_return_status_change(payload: dict, session: AsyncSession) -> None:
     """Type 12: Return/refund status changed."""
     data = payload.get("data", {})
     service = ReturnService(session)
@@ -137,9 +122,7 @@ async def handle_product_information_change(
         return
 
     gateway = await shop_service.build_gateway_for_shop(shop)
-    resp = await gateway.get(
-        f"/product/202309/products/{platform_product_id}"
-    )
+    resp = await gateway.get(f"/product/202309/products/{platform_product_id}")
     product_data = resp.get("data", {})
     if product_data:
         product_service = ProductService(session)
@@ -148,17 +131,13 @@ async def handle_product_information_change(
         )
 
 
-async def handle_product_creation(
-    payload: dict, session: AsyncSession
-) -> None:
+async def handle_product_creation(payload: dict, session: AsyncSession) -> None:
     """Type 16: New product created. Fetch full detail and insert."""
     # Same logic as product information change
     await handle_product_information_change(payload, session)
 
 
-async def handle_inventory_status_change(
-    payload: dict, session: AsyncSession
-) -> None:
+async def handle_inventory_status_change(payload: dict, session: AsyncSession) -> None:
     """Type 27: Inventory quantity changed."""
     data = payload.get("data", {})
     platform_product_id = str(data.get("product_id", ""))

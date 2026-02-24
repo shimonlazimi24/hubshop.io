@@ -43,12 +43,12 @@ def sample_pixel(sample_ad_account: SimpleNamespace) -> SimpleNamespace:
 class TestHashPii:
     def test_hash_pii_normalizes_and_hashes(self) -> None:
         result = PixelService._hash_pii("  TEST@Example.COM  ")
-        expected = hashlib.sha256("test@example.com".encode()).hexdigest()
+        expected = hashlib.sha256(b"test@example.com").hexdigest()
         assert result == expected
 
     def test_hash_pii_already_lowercase(self) -> None:
         result = PixelService._hash_pii("user@test.com")
-        expected = hashlib.sha256("user@test.com".encode()).hexdigest()
+        expected = hashlib.sha256(b"user@test.com").hexdigest()
         assert result == expected
 
 
@@ -61,21 +61,15 @@ class TestHashUserData:
         }
         result = PixelService._hash_user_data(user_data)
 
-        assert result["email"] == hashlib.sha256(
-            "user@test.com".encode()
-        ).hexdigest()
-        assert result["phone"] == hashlib.sha256(
-            "+1234567890".encode()
-        ).hexdigest()
+        assert result["email"] == hashlib.sha256(b"user@test.com").hexdigest()
+        assert result["phone"] == hashlib.sha256(b"+1234567890").hexdigest()
         # Non-PII fields should be untouched
         assert result["name"] == "John"
 
     def test_hashes_phone_number_field(self) -> None:
         user_data = {"phone_number": "+9876543210"}
         result = PixelService._hash_user_data(user_data)
-        assert result["phone_number"] == hashlib.sha256(
-            "+9876543210".encode()
-        ).hexdigest()
+        assert result["phone_number"] == hashlib.sha256(b"+9876543210").hexdigest()
 
     def test_skips_empty_pii(self) -> None:
         user_data = {"email": "", "phone": None, "name": "Jane"}
@@ -159,7 +153,7 @@ class TestTrackEvent:
         call_body = mock_gateway.post.call_args.kwargs["json_body"]
         event = call_body["data"][0]
         assert "context" in event
-        hashed_email = hashlib.sha256("test@example.com".encode()).hexdigest()
+        hashed_email = hashlib.sha256(b"test@example.com").hexdigest()
         assert event["context"]["user"]["email"] == hashed_email
         assert event["context"]["user"]["name"] == "Test"
 
@@ -225,7 +219,7 @@ class TestBatchTrackEvents:
         assert call_body["data"][0]["event"] == "Purchase"
         assert call_body["data"][1]["event"] == "AddToCart"
         # Second event should have hashed PII
-        hashed = hashlib.sha256("buyer@test.com".encode()).hexdigest()
+        hashed = hashlib.sha256(b"buyer@test.com").hexdigest()
         assert call_body["data"][1]["context"]["user"]["email"] == hashed
 
     @pytest.mark.asyncio
@@ -236,6 +230,4 @@ class TestBatchTrackEvents:
         with patch.object(PixelService, "get_pixel", return_value=None):
             service = PixelService(mock_session)
             with pytest.raises(ValueError, match="not found"):
-                await service.batch_track_events(
-                    uuid.uuid4(), uuid.uuid4(), []
-                )
+                await service.batch_track_events(uuid.uuid4(), uuid.uuid4(), [])

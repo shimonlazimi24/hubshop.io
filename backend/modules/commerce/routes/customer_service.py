@@ -62,9 +62,7 @@ async def send_message(
 ) -> dict:
     shop = await _get_shop(db, shop_id)
     service = CustomerServiceService(db)
-    return await service.send_message(
-        shop, conversation_id, content=body.content
-    )
+    return await service.send_message(shop, conversation_id, content=body.content)
 
 
 @router.post("/conversations/{conversation_id}/read")

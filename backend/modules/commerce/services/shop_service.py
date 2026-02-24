@@ -31,9 +31,7 @@ class ShopService:
         return list(result.scalars().all())
 
     async def get_shop(self, shop_id: uuid.UUID) -> Shop | None:
-        result = await self._session.execute(
-            select(Shop).where(Shop.id == shop_id)
-        )
+        result = await self._session.execute(select(Shop).where(Shop.id == shop_id))
         return result.scalar_one_or_none()
 
     async def get_shop_by_platform_id(self, platform_shop_id: str) -> Shop | None:
@@ -47,8 +45,7 @@ class ShopService:
     ) -> list[Shop]:
         """Discover shops from connected Shop accounts and create local mirrors."""
         result = await self._session.execute(
-            select(ConnectedAccount)
-            .where(
+            select(ConnectedAccount).where(
                 ConnectedAccount.workspace_id == workspace_id,
                 ConnectedAccount.platform == Platform.SHOP,
                 ConnectedAccount.status == AccountStatus.ACTIVE,
@@ -71,9 +68,7 @@ class ShopService:
                     )
                     synced.append(shop)
             except Exception:
-                logger.exception(
-                    "Failed to sync shops for account %s", account.id
-                )
+                logger.exception("Failed to sync shops for account %s", account.id)
 
         return synced
 
@@ -104,14 +99,10 @@ class ShopService:
         await self._session.flush()
         return shop
 
-    async def _build_gateway(
-        self, account: ConnectedAccount
-    ) -> PlatformGateway:
+    async def _build_gateway(self, account: ConnectedAccount) -> PlatformGateway:
         """Build a PlatformGateway for a connected Shop account."""
         result = await self._session.execute(
-            select(TokenVault).where(
-                TokenVault.connected_account_id == account.id
-            )
+            select(TokenVault).where(TokenVault.connected_account_id == account.id)
         )
         vault = result.scalar_one_or_none()
         if not vault:
@@ -137,9 +128,7 @@ class ShopService:
             raise ValueError(f"No connected account for shop {shop.id}")
 
         result = await self._session.execute(
-            select(TokenVault).where(
-                TokenVault.connected_account_id == account.id
-            )
+            select(TokenVault).where(TokenVault.connected_account_id == account.id)
         )
         vault = result.scalar_one_or_none()
         if not vault:

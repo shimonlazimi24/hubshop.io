@@ -1,6 +1,5 @@
 """Tests for commerce webhook handlers with sample TikTok payloads."""
 
-import uuid
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -30,9 +29,7 @@ class TestHandlerRegistry:
 class TestHandleOrderStatusChange:
     @pytest.mark.asyncio
     @patch("backend.modules.commerce.webhook_handlers.OrderService")
-    async def test_updates_order_status(
-        self, mock_service_cls: AsyncMock
-    ) -> None:
+    async def test_updates_order_status(self, mock_service_cls: AsyncMock) -> None:
         mock_service = AsyncMock()
         mock_service_cls.return_value = mock_service
         session = AsyncMock()
@@ -52,9 +49,7 @@ class TestHandleOrderStatusChange:
 
     @pytest.mark.asyncio
     @patch("backend.modules.commerce.webhook_handlers.OrderService")
-    async def test_skips_if_missing_data(
-        self, mock_service_cls: AsyncMock
-    ) -> None:
+    async def test_skips_if_missing_data(self, mock_service_cls: AsyncMock) -> None:
         session = AsyncMock()
         payload = {"type": 1, "data": {}}  # Missing order_id
 
@@ -91,9 +86,7 @@ class TestHandleRecipientAddressUpdate:
 class TestHandlePackageUpdate:
     @pytest.mark.asyncio
     @patch("backend.modules.commerce.webhook_handlers.FulfillmentService")
-    async def test_updates_package_status(
-        self, mock_service_cls: AsyncMock
-    ) -> None:
+    async def test_updates_package_status(self, mock_service_cls: AsyncMock) -> None:
         mock_service = AsyncMock()
         mock_service_cls.return_value = mock_service
         session = AsyncMock()
@@ -115,9 +108,7 @@ class TestHandlePackageUpdate:
 class TestHandleProductStatusChange:
     @pytest.mark.asyncio
     @patch("backend.modules.commerce.webhook_handlers.ProductService")
-    async def test_updates_product_status(
-        self, mock_service_cls: AsyncMock
-    ) -> None:
+    async def test_updates_product_status(self, mock_service_cls: AsyncMock) -> None:
         mock_service = AsyncMock()
         mock_service_cls.return_value = mock_service
         session = AsyncMock()
@@ -131,9 +122,7 @@ class TestHandleProductStatusChange:
         }
 
         await handle_product_status_change(payload, session)
-        mock_service.update_product_status.assert_called_once_with(
-            "prod_123", "LIVE"
-        )
+        mock_service.update_product_status.assert_called_once_with("prod_123", "LIVE")
 
 
 class TestHandleCancellationStatusChange:
@@ -158,9 +147,7 @@ class TestHandleCancellationStatusChange:
 class TestHandleReturnStatusChange:
     @pytest.mark.asyncio
     @patch("backend.modules.commerce.webhook_handlers.ReturnService")
-    async def test_upserts_return(
-        self, mock_service_cls: AsyncMock
-    ) -> None:
+    async def test_upserts_return(self, mock_service_cls: AsyncMock) -> None:
         mock_service = AsyncMock()
         mock_service_cls.return_value = mock_service
         session = AsyncMock()
@@ -184,9 +171,7 @@ class TestHandleReturnStatusChange:
 class TestHandleInventoryStatusChange:
     @pytest.mark.asyncio
     @patch("backend.modules.commerce.webhook_handlers.ProductService")
-    async def test_updates_inventory(
-        self, mock_service_cls: AsyncMock
-    ) -> None:
+    async def test_updates_inventory(self, mock_service_cls: AsyncMock) -> None:
         mock_service = AsyncMock()
         mock_service_cls.return_value = mock_service
         session = AsyncMock()
@@ -204,9 +189,7 @@ class TestHandleInventoryStatusChange:
 
     @pytest.mark.asyncio
     @patch("backend.modules.commerce.webhook_handlers.ProductService")
-    async def test_skips_if_no_inventory(
-        self, mock_service_cls: AsyncMock
-    ) -> None:
+    async def test_skips_if_no_inventory(self, mock_service_cls: AsyncMock) -> None:
         session = AsyncMock()
         payload = {
             "type": 27,

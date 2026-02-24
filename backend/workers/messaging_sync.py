@@ -6,7 +6,6 @@ import logging
 from sqlalchemy import select
 
 from backend.db.engine import async_session_factory
-from backend.db.models.organization import Workspace
 from backend.db.models.platform import ConnectedAccount, Platform, TokenVault
 from backend.tiktok.gateway import PlatformGateway
 from backend.tiktok.marketing.client import TikTokMarketingClient
@@ -71,9 +70,7 @@ async def _sync_conversations() -> None:
                 await session.commit()
             except Exception:
                 await session.rollback()
-                logger.exception(
-                    "Failed conversation sync for account %s", account.id
-                )
+                logger.exception("Failed conversation sync for account %s", account.id)
 
 
 async def _sync_mentions() -> None:
@@ -108,9 +105,7 @@ async def _sync_mentions() -> None:
                 await session.commit()
             except Exception:
                 await session.rollback()
-                logger.exception(
-                    "Failed mentions sync for account %s", account.id
-                )
+                logger.exception("Failed mentions sync for account %s", account.id)
 
 
 @celery_app.task(name="backend.workers.messaging_sync.sync_conversations")

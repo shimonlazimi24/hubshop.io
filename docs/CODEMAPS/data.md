@@ -1,8 +1,8 @@
 # Frodo Data Models Codemap
 
-> Freshness: 2026-02-23 | Auto-generated
+> Freshness: 2026-02-24 | Auto-generated
 
-## Model Files (17 files, 120+ classes)
+## Model Files (18 files, 120+ classes)
 
 ### Foundation
 
@@ -57,7 +57,7 @@
 
 **advertising.py** (9 models)
 - `AdAccount` - advertiser_id, advertiser_name, status, currency, timezone
-- `Campaign` - campaign_name, objective_type, budget, budget_mode, operation_status, source_platform
+- `Campaign` - campaign_name, objective_type, budget, budget_mode, operation_status
 - `AdGroup` - adgroup_name, bid_amount, bid_type, budget, optimization_goal, operation_status
 - `Ad` - ad_name, ad_format, ad_text, call_to_action, landing_page_url, operation_status
 - `AdSyncCursor` - ad_account_id, entity_type, cursor_value, last_synced_at
@@ -125,6 +125,11 @@
 
 Located in `backend/modules/{module}/schemas.py`:
 - analytics, advertising, commerce, content, creators, live
+
+Notable DTO fields not in DB models:
+- `source_platform` on `CampaignSummaryResponse`/`CampaignDetailResponse` (default: `"marketing"`)
+- `source_platform` on `OrderSummaryResponse`/`OrderDetailResponse` (default: `"shop"`)
+- `source_platform` on `ProductSummaryResponse` (default: `"shop"`)
 
 ## Relationship Map
 

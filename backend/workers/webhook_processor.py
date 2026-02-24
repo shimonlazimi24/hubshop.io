@@ -47,7 +47,12 @@ async def _process_webhook(event_id: str) -> None:
 
             event.status = WebhookStatus.PROCESSED
             await session.commit()
-            logger.info("Processed webhook %s (%s:%s)", event_id, event.platform.value, event.event_type)
+            logger.info(
+                "Processed webhook %s (%s:%s)",
+                event_id,
+                event.platform.value,
+                event.event_type,
+            )
 
         except Exception as exc:
             event.status = WebhookStatus.FAILED

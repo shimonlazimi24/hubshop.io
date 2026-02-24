@@ -101,9 +101,7 @@ class FulfillmentService:
         )
         return resp.get("data", {})
 
-    async def get_eligible_shipping_services(
-        self, order: Order
-    ) -> list[dict]:
+    async def get_eligible_shipping_services(self, order: Order) -> list[dict]:
         """Get eligible shipping services for an order from TikTok API."""
         result = await self._session.execute(
             select(Shop).where(Shop.id == order.shop_id)
@@ -120,10 +118,7 @@ class FulfillmentService:
             json_body={"order_id": order.platform_order_id},
         )
         services = resp.get("data", {}).get("shipping_services", [])
-        return [
-            {"id": s.get("id", ""), "name": s.get("name", "")}
-            for s in services
-        ]
+        return [{"id": s.get("id", ""), "name": s.get("name", "")} for s in services]
 
     async def ship_package(
         self,
@@ -195,9 +190,7 @@ class FulfillmentService:
 
         return package
 
-    async def get_package_detail(
-        self, package_id: uuid.UUID
-    ) -> Package | None:
+    async def get_package_detail(self, package_id: uuid.UUID) -> Package | None:
         result = await self._session.execute(
             select(Package).where(Package.id == package_id)
         )
@@ -224,9 +217,7 @@ class FulfillmentService:
         self, platform_package_id: str, new_status: str
     ) -> Package | None:
         result = await self._session.execute(
-            select(Package).where(
-                Package.platform_package_id == platform_package_id
-            )
+            select(Package).where(Package.platform_package_id == platform_package_id)
         )
         package = result.scalar_one_or_none()
         if not package:
@@ -246,9 +237,7 @@ class FulfillmentService:
 
         return package
 
-    async def _publish_package_update(
-        self, order: Order, package: Package
-    ) -> None:
+    async def _publish_package_update(self, order: Order, package: Package) -> None:
         try:
             r = await get_redis()
             message = json.dumps(
@@ -261,8 +250,6 @@ class FulfillmentService:
                     "tracking_number": package.tracking_number,
                 }
             )
-            await r.publish(
-                f"commerce:ws:{order.workspace_id}", message
-            )
+            await r.publish(f"commerce:ws:{order.workspace_id}", message)
         except Exception:
             logger.exception("Failed to publish package update to Redis")

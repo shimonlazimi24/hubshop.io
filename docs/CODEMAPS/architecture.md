@@ -1,6 +1,6 @@
 # Frodo Architecture Codemap
 
-> Freshness: 2026-02-23 | Auto-generated
+> Freshness: 2026-02-24 | Auto-generated
 
 ## System Overview
 
@@ -82,7 +82,7 @@
 | connect | `/api/connect` | 3 | OAuth flows, account management |
 | commerce | `/api/commerce` | 43+ | Shops, products, orders, fulfillment, returns, analytics, affiliate, promotions, finance |
 | advertising | `/api/ads` | 96+ | Campaigns, ad groups, ads, reports, audiences, pixels, catalogs, search, symphony, split tests |
-| content | `/api/content` | 9+ | Videos, publishing, calendar |
+| content | `/api/content` | 9+ | Videos, publishing, calendar, content-creator bridge (Spark Ads) |
 | creators | `/api/creators` | 14+ | Discovery, campaigns, invitations, Spark Ads |
 | analytics | `/api/analytics` | 24+ | KPIs, reports, notifications, API keys |
 | intelligence | `/api/intelligence` | 13+ | Trends, competitors, research |
@@ -104,10 +104,18 @@
 
 | Metric | Count |
 |--------|-------|
-| Backend Python files | ~203 |
-| Frontend pages | 74 |
+| Backend Python files | ~223 |
+| Frontend pages | 70 |
 | UI components | 20 |
-| DB models | 120+ |
+| DB model files | 18 (120+ classes) |
 | API endpoints | 220+ |
 | Celery tasks | 24 periodic |
-| Tests | 878 (841 unit + 37 integration) |
+| Tests | 879 (842 unit + 37 integration) |
+
+## Cross-Module Services
+
+| Service | Location | Purpose |
+|---------|----------|---------|
+| UnifiedCommerceService | `modules/commerce/services/unified_service.py` | Cross-platform order/product aggregation |
+| UnifiedAdvertisingService | `modules/advertising/services/unified_service.py` | Cross-platform campaign aggregation |
+| ContentCreatorBridge | `modules/content/services/content_creator_bridge.py` | Spark Ads bridge between content and creator modules |

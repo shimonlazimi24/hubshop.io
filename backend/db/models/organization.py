@@ -12,7 +12,9 @@ class Organization(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "organizations"
 
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    slug: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
+    slug: Mapped[str] = mapped_column(
+        String(255), unique=True, index=True, nullable=False
+    )
 
     workspaces: Mapped[list["Workspace"]] = relationship(
         back_populates="organization",
@@ -83,5 +85,7 @@ class Membership(Base, UUIDMixin, TimestampMixin):
     organization: Mapped["Organization"] = relationship(back_populates="memberships")
 
     __table_args__ = (
-        UniqueConstraint("user_id", "organization_id", "workspace_id", name="uq_membership"),
+        UniqueConstraint(
+            "user_id", "organization_id", "workspace_id", name="uq_membership"
+        ),
     )

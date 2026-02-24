@@ -29,9 +29,7 @@ async def get_calendar(
         video_responses: list[VideoSummaryResponse] = []
         for item in entry["videos"]:
             try:
-                video_responses.append(
-                    VideoSummaryResponse.model_validate(item)
-                )
+                video_responses.append(VideoSummaryResponse.model_validate(item))
             except Exception:
                 # Publish jobs don't conform to VideoSummaryResponse;
                 # create a minimal representation

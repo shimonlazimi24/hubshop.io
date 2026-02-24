@@ -11,16 +11,22 @@ from backend.db.models.commerce import (
     OrderLineItem,
     OrderStatus,
     OrderStatusEvent,
-    Shop,
 )
-from backend.modules.commerce.services.order_service import OrderService, _STATUS_MAP
+from backend.modules.commerce.services.order_service import _STATUS_MAP, OrderService
 
 
 class TestStatusMapping:
     def test_all_statuses_mapped(self) -> None:
         expected = {
-            "UNPAID", "ON_HOLD", "AWAITING_SHIPMENT", "AWAITING_COLLECTION",
-            "PARTIALLY_SHIPPING", "IN_TRANSIT", "DELIVERED", "COMPLETED", "CANCELLED",
+            "UNPAID",
+            "ON_HOLD",
+            "AWAITING_SHIPMENT",
+            "AWAITING_COLLECTION",
+            "PARTIALLY_SHIPPING",
+            "IN_TRANSIT",
+            "DELIVERED",
+            "COMPLETED",
+            "CANCELLED",
         }
         assert set(_STATUS_MAP.keys()) == expected
 
@@ -72,7 +78,10 @@ class TestUpsertOrderFromApi:
 
     @pytest.mark.asyncio
     async def test_creates_new_order(
-        self, mock_session: AsyncMock, sample_shop: SimpleNamespace, sample_order_data: dict
+        self,
+        mock_session: AsyncMock,
+        sample_shop: SimpleNamespace,
+        sample_order_data: dict,
     ) -> None:
         service = OrderService(mock_session)
         order = await service.upsert_order_from_api(
@@ -89,7 +98,10 @@ class TestUpsertOrderFromApi:
 
     @pytest.mark.asyncio
     async def test_creates_line_items(
-        self, mock_session: AsyncMock, sample_shop: SimpleNamespace, sample_order_data: dict
+        self,
+        mock_session: AsyncMock,
+        sample_shop: SimpleNamespace,
+        sample_order_data: dict,
     ) -> None:
         service = OrderService(mock_session)
         await service.upsert_order_from_api(
@@ -165,9 +177,7 @@ class TestUpdateOrderStatus:
 
     @pytest.mark.asyncio
     @patch("backend.modules.commerce.services.order_service.get_redis")
-    async def test_no_change_if_same_status(
-        self, mock_get_redis: AsyncMock
-    ) -> None:
+    async def test_no_change_if_same_status(self, mock_get_redis: AsyncMock) -> None:
         existing = SimpleNamespace(
             id=uuid.uuid4(),
             workspace_id=uuid.uuid4(),
@@ -197,9 +207,7 @@ class TestUpdateOrderStatus:
         session.execute.return_value = result
 
         service = OrderService(session)
-        order = await service.update_order_status(
-            "nonexistent", "IN_TRANSIT"
-        )
+        order = await service.update_order_status("nonexistent", "IN_TRANSIT")
         assert order is None
 
 

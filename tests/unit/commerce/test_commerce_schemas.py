@@ -1,6 +1,6 @@
 """Tests for commerce schemas with source_platform field."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from backend.modules.commerce.schemas import (
     OrderDetailResponse,
@@ -18,8 +18,8 @@ class TestOrderSummarySourcePlatform:
             "total_amount": "99.00",
             "currency": "USD",
             "item_count": 2,
-            "created_at": datetime.now(tz=timezone.utc),
-            "updated_at": datetime.now(tz=timezone.utc),
+            "created_at": datetime.now(tz=UTC),
+            "updated_at": datetime.now(tz=UTC),
         }
         response = OrderSummaryResponse(**data)
         assert response.source_platform == "shop"
@@ -33,8 +33,8 @@ class TestOrderSummarySourcePlatform:
             "currency": "USD",
             "item_count": 2,
             "source_platform": "affiliate",
-            "created_at": datetime.now(tz=timezone.utc),
-            "updated_at": datetime.now(tz=timezone.utc),
+            "created_at": datetime.now(tz=UTC),
+            "updated_at": datetime.now(tz=UTC),
         }
         response = OrderSummaryResponse(**data)
         assert response.source_platform == "affiliate"
@@ -49,8 +49,8 @@ class TestOrderDetailSourcePlatform:
             "total_amount": "99.00",
             "currency": "USD",
             "item_count": 2,
-            "created_at": datetime.now(tz=timezone.utc),
-            "updated_at": datetime.now(tz=timezone.utc),
+            "created_at": datetime.now(tz=UTC),
+            "updated_at": datetime.now(tz=UTC),
         }
         response = OrderDetailResponse(**data)
         assert response.source_platform == "shop"
@@ -64,8 +64,8 @@ class TestOrderDetailSourcePlatform:
             "currency": "USD",
             "item_count": 2,
             "source_platform": "affiliate",
-            "created_at": datetime.now(tz=timezone.utc),
-            "updated_at": datetime.now(tz=timezone.utc),
+            "created_at": datetime.now(tz=UTC),
+            "updated_at": datetime.now(tz=UTC),
         }
         response = OrderDetailResponse(**data)
         assert response.source_platform == "affiliate"
@@ -80,8 +80,8 @@ class TestProductSummarySourcePlatform:
             "status": "ACTIVE",
             "inventory_total": 100,
             "sku_count": 2,
-            "created_at": datetime.now(tz=timezone.utc),
-            "updated_at": datetime.now(tz=timezone.utc),
+            "created_at": datetime.now(tz=UTC),
+            "updated_at": datetime.now(tz=UTC),
         }
         response = ProductSummaryResponse(**data)
         assert response.source_platform == "shop"

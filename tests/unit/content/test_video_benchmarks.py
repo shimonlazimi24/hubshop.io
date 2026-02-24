@@ -13,7 +13,6 @@ from backend.dependencies import get_current_user
 from backend.main import app
 from backend.modules.content.services.video_service import VideoService
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -228,12 +227,18 @@ class TestCompareVideoPerformance:
         """Returns comparison dicts with engagement_rate for each video."""
         session = AsyncMock()
         vid1 = _make_video(
-            view_count=2000, like_count=200,
-            comment_count=100, share_count=50, title="Video A",
+            view_count=2000,
+            like_count=200,
+            comment_count=100,
+            share_count=50,
+            title="Video A",
         )
         vid2 = _make_video(
-            view_count=5000, like_count=300,
-            comment_count=150, share_count=75, title="Video B",
+            view_count=5000,
+            like_count=300,
+            comment_count=150,
+            share_count=75,
+            title="Video B",
         )
 
         result_mock = MagicMock()
@@ -241,9 +246,7 @@ class TestCompareVideoPerformance:
         session.execute.return_value = result_mock
 
         service = VideoService(session)
-        comparisons = await service.compare_video_performance(
-            [vid1.id, vid2.id]
-        )
+        comparisons = await service.compare_video_performance([vid1.id, vid2.id])
 
         assert len(comparisons) == 2
         assert comparisons[0]["title"] == "Video A"
@@ -256,8 +259,11 @@ class TestCompareVideoPerformance:
         """Verify engagement rate = (likes+comments+shares)/views*100."""
         session = AsyncMock()
         vid = _make_video(
-            view_count=4000, like_count=200,
-            comment_count=100, share_count=100, title="Rate Test",
+            view_count=4000,
+            like_count=200,
+            comment_count=100,
+            share_count=100,
+            title="Rate Test",
         )
 
         result_mock = MagicMock()
@@ -302,9 +308,7 @@ class TestTopVideosRoute:
 class TestPerformanceSummaryRoute:
     @pytest.mark.asyncio
     @patch(f"{VIDEO_SVC}.get_video_performance_summary")
-    async def test_performance_summary_route(
-        self, mock_summary: AsyncMock
-    ) -> None:
+    async def test_performance_summary_route(self, mock_summary: AsyncMock) -> None:
         mock_summary.return_value = {
             "total_videos": 10,
             "total_views": 50000,

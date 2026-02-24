@@ -5,24 +5,24 @@ from backend.modules.advertising.routes.ad_groups import router as ad_groups_rou
 from backend.modules.advertising.routes.ads import router as ads_router
 from backend.modules.advertising.routes.audiences import router as audiences_router
 from backend.modules.advertising.routes.automation import router as automation_router
+from backend.modules.advertising.routes.business_center import (
+    router as business_center_router,
+)
 from backend.modules.advertising.routes.campaigns import router as campaigns_router
 from backend.modules.advertising.routes.catalogs import router as catalogs_router
+from backend.modules.advertising.routes.change_log import router as change_log_router
 from backend.modules.advertising.routes.comments import router as comments_router
 from backend.modules.advertising.routes.creatives import router as creatives_router
-from backend.modules.advertising.routes.pixels import router as pixels_router
-from backend.modules.advertising.routes.reports import router as reports_router
-from backend.modules.advertising.routes.change_log import router as change_log_router
 from backend.modules.advertising.routes.custom_conversions import (
     router as custom_conversions_router,
 )
 from backend.modules.advertising.routes.identities import router as identities_router
 from backend.modules.advertising.routes.leads import router as leads_router
+from backend.modules.advertising.routes.pangle import router as pangle_router
+from backend.modules.advertising.routes.pixels import router as pixels_router
+from backend.modules.advertising.routes.reports import router as reports_router
 from backend.modules.advertising.routes.search import router as search_router
 from backend.modules.advertising.routes.split_tests import router as split_tests_router
-from backend.modules.advertising.routes.business_center import (
-    router as business_center_router,
-)
-from backend.modules.advertising.routes.pangle import router as pangle_router
 from backend.modules.advertising.routes.store import router as store_router
 from backend.modules.advertising.routes.symphony import router as symphony_router
 

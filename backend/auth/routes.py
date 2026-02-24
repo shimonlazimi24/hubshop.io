@@ -46,7 +46,9 @@ class UserResponse(BaseModel):
     is_active: bool
 
 
-@router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED
+)
 async def register(body: RegisterRequest, db: DBSession) -> TokenResponse:
     """Register a new user, create their organization and default workspace."""
     existing = await db.execute(select(User).where(User.email == body.email))
@@ -140,7 +142,9 @@ async def refresh_tokens(body: RefreshRequest, db: DBSession) -> TokenResponse:
             detail="Invalid or expired refresh token",
         ) from exc
 
-    result = await db.execute(select(User).where(User.id == user_id, User.is_active.is_(True)))
+    result = await db.execute(
+        select(User).where(User.id == user_id, User.is_active.is_(True))
+    )
     user = result.scalar_one_or_none()
     if not user:
         raise HTTPException(
@@ -218,7 +222,9 @@ async def tiktok_callback(
             )
 
         token_data = token_resp.json()
-        access_token = token_data.get("access_token") or token_data.get("data", {}).get("access_token")
+        access_token = token_data.get("access_token") or token_data.get("data", {}).get(
+            "access_token"
+        )
         open_id = token_data.get("open_id") or token_data.get("data", {}).get("open_id")
         if not access_token:
             raise HTTPException(

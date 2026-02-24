@@ -1,9 +1,7 @@
 """Tests for content DB models - field assignment."""
 
 import uuid
-from datetime import datetime, timezone
-
-import pytest
+from datetime import UTC, datetime
 
 from backend.db.models.content import (
     ContentPublishJob,
@@ -73,7 +71,7 @@ class TestContentPublishJob:
 class TestContentSyncCursor:
     def test_fields(self) -> None:
         account_id = uuid.uuid4()
-        last_sync = datetime(2026, 2, 19, 14, 0, tzinfo=timezone.utc)
+        last_sync = datetime(2026, 2, 19, 14, 0, tzinfo=UTC)
 
         cursor = ContentSyncCursor()
         cursor.connected_account_id = account_id

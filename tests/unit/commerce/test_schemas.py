@@ -1,17 +1,12 @@
 """Tests for commerce Pydantic schemas."""
 
-import pytest
-
 from backend.modules.commerce.schemas import (
     OrderDetailResponse,
-    OrderLineItemResponse,
     OrderStatusDistributionResponse,
     OrderSummaryResponse,
     OrderTimelineEventResponse,
-    PackageResponse,
     PaginatedResponse,
     ProductDetailResponse,
-    ProductSkuResponse,
     ProductSummaryResponse,
     ReturnResponse,
     RevenueSummaryResponse,

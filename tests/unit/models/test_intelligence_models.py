@@ -1,7 +1,5 @@
 """Tests for intelligence DB models."""
 
-import pytest
-
 from backend.db.models.intelligence import (
     CompetitorContent,
     CompetitorTracker,

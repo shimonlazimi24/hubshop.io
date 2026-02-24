@@ -6,7 +6,7 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.db.models.platform import ConnectedAccount, Platform, TokenVault
+from backend.db.models.platform import Platform, TokenVault
 from backend.tiktok.gateway import PlatformGateway
 from backend.tiktok.marketing.client import TikTokMarketingClient
 from backend.utils.crypto import decrypt_token
@@ -24,9 +24,7 @@ class MessagingService:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def _build_gateway(
-        self, connected_account_id: uuid.UUID
-    ) -> PlatformGateway:
+    async def _build_gateway(self, connected_account_id: uuid.UUID) -> PlatformGateway:
         """Build a PlatformGateway from a connected account's marketing token."""
         result = await self._session.execute(
             select(TokenVault).where(
@@ -115,9 +113,7 @@ class MessagingService:
     #  Capability & Comment-to-Message
     # ------------------------------------------------------------------ #
 
-    async def check_capability(
-        self, connected_account_id: uuid.UUID
-    ) -> dict:
+    async def check_capability(self, connected_account_id: uuid.UUID) -> dict:
         """Check business messaging capability for the account."""
         gateway = await self._build_gateway(connected_account_id)
         resp = await gateway.get(
@@ -171,9 +167,7 @@ class MessagingService:
         )
         return resp.get("data", {})
 
-    async def list_auto_messages(
-        self, connected_account_id: uuid.UUID
-    ) -> dict:
+    async def list_auto_messages(self, connected_account_id: uuid.UUID) -> dict:
         """List all auto-messages for the account."""
         gateway = await self._build_gateway(connected_account_id)
         resp = await gateway.get(

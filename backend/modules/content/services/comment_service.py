@@ -51,13 +51,9 @@ class CommentService:
         )
         items = list(result.scalars().all())
 
-        return PaginatedResult(
-            items=items, total=total, page=page, page_size=page_size
-        )
+        return PaginatedResult(items=items, total=total, page=page, page_size=page_size)
 
-    async def sync_comments(
-        self, workspace_id: uuid.UUID, video: Video
-    ) -> int:
+    async def sync_comments(self, workspace_id: uuid.UUID, video: Video) -> int:
         """Fetch comments from Developer API and upsert locally.
 
         Uses cursor pagination (has_more + cursor).
@@ -88,9 +84,7 @@ class CommentService:
             comments = data.get("comments", [])
 
             for comment_data in comments:
-                await self._upsert_comment(
-                    video.id, workspace_id, comment_data
-                )
+                await self._upsert_comment(video.id, workspace_id, comment_data)
                 synced += 1
 
             has_more = data.get("has_more", False)
@@ -147,9 +141,7 @@ class CommentService:
         """Upsert a comment from API data into the local database."""
         platform_comment_id = str(comment_data.get("id", ""))
         result = await self._session.execute(
-            select(Comment).where(
-                Comment.platform_comment_id == platform_comment_id
-            )
+            select(Comment).where(Comment.platform_comment_id == platform_comment_id)
         )
         comment = result.scalar_one_or_none()
 
@@ -211,14 +203,10 @@ class CommentService:
         gateway = await self._build_gateway(account)
         return account, gateway
 
-    async def _build_gateway(
-        self, account: ConnectedAccount
-    ) -> PlatformGateway:
+    async def _build_gateway(self, account: ConnectedAccount) -> PlatformGateway:
         """Build a PlatformGateway for a Developer account."""
         result = await self._session.execute(
-            select(TokenVault).where(
-                TokenVault.connected_account_id == account.id
-            )
+            select(TokenVault).where(TokenVault.connected_account_id == account.id)
         )
         vault = result.scalar_one_or_none()
         if not vault:

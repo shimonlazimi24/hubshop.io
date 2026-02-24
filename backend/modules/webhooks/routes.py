@@ -96,7 +96,9 @@ async def developer_webhook(
     if not is_new:
         return {"status": "duplicate"}
 
-    event_id = await _store_event(Platform.DEVELOPER, event_type, idempotency_key, payload)
+    event_id = await _store_event(
+        Platform.DEVELOPER, event_type, idempotency_key, payload
+    )
 
     from backend.workers.webhook_processor import process_webhook
 
@@ -118,7 +120,9 @@ async def marketing_webhook(request: Request) -> dict:
     if not is_new:
         return {"status": "duplicate"}
 
-    event_id = await _store_event(Platform.MARKETING, event_type, idempotency_key, payload)
+    event_id = await _store_event(
+        Platform.MARKETING, event_type, idempotency_key, payload
+    )
 
     from backend.workers.webhook_processor import process_webhook
 

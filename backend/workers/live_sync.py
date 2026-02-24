@@ -16,9 +16,9 @@ from backend.db.models.live import (
 )
 from backend.tiktok.live.client import (
     LiveEventData,
-    LiveEventType as ClientEventType,
     TikTokLiveClientWrapper,
 )
+from backend.tiktok.live.client import LiveEventType as ClientEventType
 from backend.workers.celery_app import celery_app
 
 logger = logging.getLogger(__name__)
@@ -196,9 +196,7 @@ async def _compute_live_analytics(session_id: str) -> None:
             logger.info("Computed analytics for LIVE session %s", session_id)
         except Exception:
             await session.rollback()
-            logger.exception(
-                "Failed to compute analytics for session %s", session_id
-            )
+            logger.exception("Failed to compute analytics for session %s", session_id)
 
 
 async def _cleanup_stale_sessions() -> None:

@@ -146,9 +146,7 @@ class TestUpdateConversion:
         mock_gateway: AsyncMock,
         patched_account_service,
     ) -> None:
-        mock_gateway.post.return_value = {
-            "data": {"custom_conversion_id": "cc1"}
-        }
+        mock_gateway.post.return_value = {"data": {"custom_conversion_id": "cc1"}}
 
         service = CustomConversionService(mock_session)
         result = await service.update_conversion(

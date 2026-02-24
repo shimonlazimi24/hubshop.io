@@ -1,8 +1,6 @@
 """Tests for CreatorInsightService - discover, get insight, save."""
 
 import uuid
-from datetime import datetime, timezone
-from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -66,19 +64,13 @@ class TestDiscoverCreators:
         assert creators[1]["video_count"] == 2
 
     @pytest.mark.asyncio
-    async def test_discover_empty_videos(
-        self, workspace_id: uuid.UUID
-    ) -> None:
+    async def test_discover_empty_videos(self, workspace_id: uuid.UUID) -> None:
         session = AsyncMock()
         research_client = AsyncMock()
-        research_client.query_videos = AsyncMock(
-            return_value={"data": {"videos": []}}
-        )
+        research_client.query_videos = AsyncMock(return_value={"data": {"videos": []}})
 
         service = CreatorInsightService(session)
-        creators = await service.discover_creators(
-            workspace_id, research_client
-        )
+        creators = await service.discover_creators(workspace_id, research_client)
 
         assert creators == []
 
@@ -111,16 +103,12 @@ class TestDiscoverCreators:
         )
 
         service = CreatorInsightService(session)
-        creators = await service.discover_creators(
-            workspace_id, research_client
-        )
+        creators = await service.discover_creators(workspace_id, research_client)
 
         assert creators == []
 
     @pytest.mark.asyncio
-    async def test_discover_with_hashtag_filter(
-        self, workspace_id: uuid.UUID
-    ) -> None:
+    async def test_discover_with_hashtag_filter(self, workspace_id: uuid.UUID) -> None:
         session = AsyncMock()
         research_client = AsyncMock()
         research_client.query_videos = AsyncMock(
@@ -158,9 +146,7 @@ class TestGetCreatorInsight:
         return uuid.uuid4()
 
     @pytest.mark.asyncio
-    async def test_returns_full_insight(
-        self, workspace_id: uuid.UUID
-    ) -> None:
+    async def test_returns_full_insight(self, workspace_id: uuid.UUID) -> None:
         session = AsyncMock()
         research_client = AsyncMock()
         research_client.query_user_info = AsyncMock(
@@ -207,17 +193,13 @@ class TestGetCreatorInsight:
         assert insight["avg_engagement"] == 460.0  # (800+80+40)/2
 
     @pytest.mark.asyncio
-    async def test_insight_no_videos(
-        self, workspace_id: uuid.UUID
-    ) -> None:
+    async def test_insight_no_videos(self, workspace_id: uuid.UUID) -> None:
         session = AsyncMock()
         research_client = AsyncMock()
         research_client.query_user_info = AsyncMock(
             return_value={"data": {"display_name": "New Creator"}}
         )
-        research_client.query_videos = AsyncMock(
-            return_value={"data": {"videos": []}}
-        )
+        research_client.query_videos = AsyncMock(return_value={"data": {"videos": []}})
 
         service = CreatorInsightService(session)
         insight = await service.get_creator_insight(
@@ -269,9 +251,7 @@ class TestSaveInsight:
         session.flush = AsyncMock()
 
         service = CreatorInsightService(session)
-        result = await service.save_insight(
-            workspace_id, {"total_likes": 100}, user_id
-        )
+        result = await service.save_insight(workspace_id, {"total_likes": 100}, user_id)
 
         added = session.add.call_args_list[0][0][0]
         assert added.name == "Creator Insight: unknown"

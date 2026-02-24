@@ -23,9 +23,7 @@ async def get_block_list(
     page_size: int = 20,
 ) -> dict:
     account_service = AdAccountService(db)
-    ad_account = await account_service.get_ad_account_by_advertiser_id(
-        ad_account_id
-    )
+    ad_account = await account_service.get_ad_account_by_advertiser_id(ad_account_id)
     if not ad_account:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -33,9 +31,7 @@ async def get_block_list(
         )
 
     service = PangleService(db)
-    return await service.get_block_list(
-        ad_account, page=page, page_size=page_size
-    )
+    return await service.get_block_list(ad_account, page=page, page_size=page_size)
 
 
 @router.post("/pangle/block-list")
@@ -69,9 +65,7 @@ async def get_audience_packages(
     page_size: int = 20,
 ) -> dict:
     account_service = AdAccountService(db)
-    ad_account = await account_service.get_ad_account_by_advertiser_id(
-        ad_account_id
-    )
+    ad_account = await account_service.get_ad_account_by_advertiser_id(ad_account_id)
     if not ad_account:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

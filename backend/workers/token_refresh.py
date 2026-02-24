@@ -91,7 +91,9 @@ async def _do_refresh_developer_tokens() -> None:
             if new_tokens:
                 vault.encrypted_access_token = encrypt_token(new_tokens["access_token"])
                 if new_tokens.get("refresh_token"):
-                    vault.encrypted_refresh_token = encrypt_token(new_tokens["refresh_token"])
+                    vault.encrypted_refresh_token = encrypt_token(
+                        new_tokens["refresh_token"]
+                    )
                 vault.access_token_expires_at = str(new_tokens.get("expires_in", ""))
                 logger.info("Refreshed Developer token for account %s", account.id)
             else:
@@ -120,7 +122,9 @@ async def _do_refresh_shop_tokens() -> None:
                 continue
 
             refresh_token = decrypt_token(vault.encrypted_refresh_token)
-            new_tokens = await _do_refresh_shop_token_single(account, vault, refresh_token, session)
+            new_tokens = await _do_refresh_shop_token_single(
+                account, vault, refresh_token, session
+            )
 
         await session.commit()
 
@@ -131,7 +135,9 @@ async def _do_refresh_shop_token_single(account, vault, refresh_token, session) 
         vault.encrypted_access_token = encrypt_token(new_tokens["access_token"])
         if new_tokens.get("refresh_token"):
             vault.encrypted_refresh_token = encrypt_token(new_tokens["refresh_token"])
-        vault.access_token_expires_at = str(new_tokens.get("access_token_expire_in", ""))
+        vault.access_token_expires_at = str(
+            new_tokens.get("access_token_expire_in", "")
+        )
         logger.info("Refreshed Shop token for account %s", account.id)
     else:
         account.status = AccountStatus.ERROR

@@ -14,7 +14,9 @@ class TenantMiddleware(BaseHTTPMiddleware):
     Sets request.state.workspace_id for downstream use.
     """
 
-    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+    async def dispatch(
+        self, request: Request, call_next: RequestResponseEndpoint
+    ) -> Response:
         workspace_id: str | None = request.headers.get("X-Workspace-Id")
         if workspace_id:
             try:

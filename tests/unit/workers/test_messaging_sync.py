@@ -22,9 +22,7 @@ class TestSyncConversations:
         mock_session.rollback = AsyncMock()
 
         mock_gateway = AsyncMock()
-        mock_gateway.get.return_value = {
-            "data": {"conversations": [{"id": "c1"}]}
-        }
+        mock_gateway.get.return_value = {"data": {"conversations": [{"id": "c1"}]}}
 
         with (
             patch(
@@ -35,9 +33,7 @@ class TestSyncConversations:
                 return_value=mock_gateway,
             ),
         ):
-            mock_factory.return_value.__aenter__ = AsyncMock(
-                return_value=mock_session
-            )
+            mock_factory.return_value.__aenter__ = AsyncMock(return_value=mock_session)
             mock_factory.return_value.__aexit__ = AsyncMock(return_value=False)
 
             from backend.workers.messaging_sync import _sync_conversations
@@ -67,9 +63,7 @@ class TestSyncConversations:
                 return_value=None,
             ),
         ):
-            mock_factory.return_value.__aenter__ = AsyncMock(
-                return_value=mock_session
-            )
+            mock_factory.return_value.__aenter__ = AsyncMock(return_value=mock_session)
             mock_factory.return_value.__aexit__ = AsyncMock(return_value=False)
 
             from backend.workers.messaging_sync import _sync_conversations
@@ -104,9 +98,7 @@ class TestSyncConversations:
                 return_value=mock_gateway,
             ),
         ):
-            mock_factory.return_value.__aenter__ = AsyncMock(
-                return_value=mock_session
-            )
+            mock_factory.return_value.__aenter__ = AsyncMock(return_value=mock_session)
             mock_factory.return_value.__aexit__ = AsyncMock(return_value=False)
 
             from backend.workers.messaging_sync import _sync_conversations
@@ -131,9 +123,7 @@ class TestSyncMentions:
         mock_session.rollback = AsyncMock()
 
         mock_gateway = AsyncMock()
-        mock_gateway.get.return_value = {
-            "data": {"posts": [{"id": "p1"}]}
-        }
+        mock_gateway.get.return_value = {"data": {"posts": [{"id": "p1"}]}}
 
         with (
             patch(
@@ -144,9 +134,7 @@ class TestSyncMentions:
                 return_value=mock_gateway,
             ),
         ):
-            mock_factory.return_value.__aenter__ = AsyncMock(
-                return_value=mock_session
-            )
+            mock_factory.return_value.__aenter__ = AsyncMock(return_value=mock_session)
             mock_factory.return_value.__aexit__ = AsyncMock(return_value=False)
 
             from backend.workers.messaging_sync import _sync_mentions
@@ -180,9 +168,7 @@ class TestSyncMentions:
                 return_value=mock_gateway,
             ),
         ):
-            mock_factory.return_value.__aenter__ = AsyncMock(
-                return_value=mock_session
-            )
+            mock_factory.return_value.__aenter__ = AsyncMock(return_value=mock_session)
             mock_factory.return_value.__aexit__ = AsyncMock(return_value=False)
 
             from backend.workers.messaging_sync import _sync_mentions
@@ -204,10 +190,7 @@ class TestCeleryTaskRegistration:
     def test_sync_mentions_task_exists(self) -> None:
         from backend.workers.messaging_sync import sync_mentions
 
-        assert (
-            sync_mentions.name
-            == "backend.workers.messaging_sync.sync_mentions"
-        )
+        assert sync_mentions.name == "backend.workers.messaging_sync.sync_mentions"
 
 
 class TestBeatSchedule:
@@ -222,16 +205,10 @@ class TestBeatSchedule:
         from backend.workers.celery_app import celery_app
 
         task = celery_app.conf.beat_schedule["sync-conversations"]
-        assert (
-            task["task"]
-            == "backend.workers.messaging_sync.sync_conversations"
-        )
+        assert task["task"] == "backend.workers.messaging_sync.sync_conversations"
 
     def test_sync_mentions_runs_every_2_hours(self) -> None:
         from backend.workers.celery_app import celery_app
 
         task = celery_app.conf.beat_schedule["sync-mentions"]
-        assert (
-            task["task"]
-            == "backend.workers.messaging_sync.sync_mentions"
-        )
+        assert task["task"] == "backend.workers.messaging_sync.sync_mentions"

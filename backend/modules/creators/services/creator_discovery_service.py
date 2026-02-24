@@ -79,9 +79,7 @@ class CreatorDiscoveryService:
         )
         return resp.get("data", {})
 
-    async def _get_marketing_gateway(
-        self, workspace_id: uuid.UUID
-    ) -> PlatformGateway:
+    async def _get_marketing_gateway(self, workspace_id: uuid.UUID) -> PlatformGateway:
         """Get the first active Marketing account and build a gateway."""
         result = await self._session.execute(
             select(ConnectedAccount).where(
@@ -95,9 +93,7 @@ class CreatorDiscoveryService:
             raise ValueError("No active Marketing account found")
 
         result = await self._session.execute(
-            select(TokenVault).where(
-                TokenVault.connected_account_id == account.id
-            )
+            select(TokenVault).where(TokenVault.connected_account_id == account.id)
         )
         vault = result.scalar_one_or_none()
         if not vault:

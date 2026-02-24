@@ -28,7 +28,9 @@ class UnifiedAnalyticsService:
         order_stats = await self._session.execute(
             select(
                 func.count(Order.id),
-                func.coalesce(func.sum(func.cast(Order.total_amount, func.numeric())), 0),
+                func.coalesce(
+                    func.sum(func.cast(Order.total_amount, func.numeric())), 0
+                ),
             ).where(
                 Order.workspace_id == workspace_id,
                 Order.created_at >= since,
@@ -89,7 +91,9 @@ class UnifiedAnalyticsService:
         return {
             "total_revenue": f"{total_revenue:.2f}",
             "total_orders": total_orders,
-            "average_order_value": f"{total_revenue / total_orders:.2f}" if total_orders > 0 else "0.00",
+            "average_order_value": (
+                f"{total_revenue / total_orders:.2f}" if total_orders > 0 else "0.00"
+            ),
             "product_count": product_count,
             "ad_account_count": ad_account_count,
             "active_campaigns": active_campaigns,
@@ -131,9 +135,7 @@ class UnifiedAnalyticsService:
             for row in rows
         ]
 
-    async def get_content_performance(
-        self, workspace_id: uuid.UUID
-    ) -> list[dict]:
+    async def get_content_performance(self, workspace_id: uuid.UUID) -> list[dict]:
         """Video performance: top videos by views."""
         result = await self._session.execute(
             select(Video)
@@ -152,16 +154,16 @@ class UnifiedAnalyticsService:
                 "comments": v.comment_count,
                 "shares": v.share_count,
                 "engagement_rate": round(
-                    (v.like_count + v.comment_count + v.share_count) / max(v.view_count, 1) * 100,
+                    (v.like_count + v.comment_count + v.share_count)
+                    / max(v.view_count, 1)
+                    * 100,
                     2,
                 ),
             }
             for v in videos
         ]
 
-    async def get_platform_health(
-        self, workspace_id: uuid.UUID
-    ) -> list[dict]:
+    async def get_platform_health(self, workspace_id: uuid.UUID) -> list[dict]:
         """Check status of all connected platform accounts."""
         result = await self._session.execute(
             select(ConnectedAccount)

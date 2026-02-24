@@ -53,9 +53,7 @@ class TestShareAudience:
         mock_gateway.post.return_value = {"data": {"shared": True}}
 
         with (
-            patch.object(
-                AudienceService, "get_audience", return_value=sample_audience
-            ),
+            patch.object(AudienceService, "get_audience", return_value=sample_audience),
             patch(
                 "backend.modules.advertising.services.audience_service.AdAccountService"
             ) as mock_acct_cls,
@@ -90,9 +88,7 @@ class TestShareAudience:
         with patch.object(AudienceService, "get_audience", return_value=None):
             service = AudienceService(mock_session)
             with pytest.raises(ValueError, match="not found"):
-                await service.share_audience(
-                    uuid.uuid4(), uuid.uuid4(), ["adv_456"]
-                )
+                await service.share_audience(uuid.uuid4(), uuid.uuid4(), ["adv_456"])
 
 
 class TestGetAudienceOverlap:
@@ -167,9 +163,7 @@ class TestUploadAudienceFile:
         mock_gateway.post.return_value = {"data": {"upload_id": "up_123"}}
 
         with (
-            patch.object(
-                AudienceService, "get_audience", return_value=sample_audience
-            ),
+            patch.object(AudienceService, "get_audience", return_value=sample_audience),
             patch(
                 "backend.modules.advertising.services.audience_service.AdAccountService"
             ) as mock_acct_cls,
@@ -190,12 +184,8 @@ class TestUploadAudienceFile:
 
         # Verify the data was SHA-256 hashed
         call_body = mock_gateway.post.call_args.kwargs["json_body"]
-        expected_hash_email = hashlib.sha256(
-            "test@example.com".encode()
-        ).hexdigest()
-        expected_hash_phone = hashlib.sha256(
-            "+1234567890".encode()
-        ).hexdigest()
+        expected_hash_email = hashlib.sha256(b"test@example.com").hexdigest()
+        expected_hash_phone = hashlib.sha256(b"+1234567890").hexdigest()
         assert call_body["file_signature"][0] == expected_hash_email
         assert call_body["file_signature"][1] == expected_hash_phone
 
@@ -210,9 +200,7 @@ class TestUploadAudienceFile:
         mock_gateway.post.return_value = {"data": {}}
 
         with (
-            patch.object(
-                AudienceService, "get_audience", return_value=sample_audience
-            ),
+            patch.object(AudienceService, "get_audience", return_value=sample_audience),
             patch(
                 "backend.modules.advertising.services.audience_service.AdAccountService"
             ) as mock_acct_cls,
@@ -230,7 +218,7 @@ class TestUploadAudienceFile:
             )
 
         call_body = mock_gateway.post.call_args.kwargs["json_body"]
-        expected = hashlib.sha256("test@example.com".encode()).hexdigest()
+        expected = hashlib.sha256(b"test@example.com").hexdigest()
         assert call_body["file_signature"][0] == expected
 
 

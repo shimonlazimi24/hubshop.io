@@ -22,9 +22,7 @@ class KpiService:
         """Get current KPI overview aggregated from all modules."""
         order_count = (
             await self._session.execute(
-                select(func.count(Order.id)).where(
-                    Order.workspace_id == workspace_id
-                )
+                select(func.count(Order.id)).where(Order.workspace_id == workspace_id)
             )
         ).scalar_one()
 
@@ -39,9 +37,7 @@ class KpiService:
 
         video_count = (
             await self._session.execute(
-                select(func.count(Video.id)).where(
-                    Video.workspace_id == workspace_id
-                )
+                select(func.count(Video.id)).where(Video.workspace_id == workspace_id)
             )
         ).scalar_one()
 
@@ -129,9 +125,7 @@ class KpiService:
 
         return snapshot
 
-    async def get_drill_down(
-        self, workspace_id: uuid.UUID, module: str
-    ) -> dict:
+    async def get_drill_down(self, workspace_id: uuid.UUID, module: str) -> dict:
         """Get detailed KPIs for a specific module."""
         if module == "commerce":
             order_count = (
@@ -150,7 +144,10 @@ class KpiService:
                     )
                 )
             ).scalar_one()
-            return {"module": "advertising", "stats": {"total_campaigns": campaign_count}}
+            return {
+                "module": "advertising",
+                "stats": {"total_campaigns": campaign_count},
+            }
         elif module == "content":
             video_count = (
                 await self._session.execute(

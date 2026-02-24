@@ -48,9 +48,7 @@ class AudienceService:
         )
         items = list(result.scalars().all())
 
-        return PaginatedResult(
-            items=items, total=total, page=page, page_size=page_size
-        )
+        return PaginatedResult(items=items, total=total, page=page, page_size=page_size)
 
     async def get_audience(self, audience_id: uuid.UUID) -> Audience | None:
         result = await self._session.execute(
@@ -111,7 +109,9 @@ class AudienceService:
             "lookalike_ratio": lookalike_ratio,
         }
 
-        resp = await gateway.post("/dmp/custom_audience/lookalike/create/", json_body=body)
+        resp = await gateway.post(
+            "/dmp/custom_audience/lookalike/create/", json_body=body
+        )
         data = resp.get("data", {})
         platform_id = str(data.get("custom_audience_id", ""))
 
@@ -127,9 +127,7 @@ class AudienceService:
         await self._session.flush()
         return audience
 
-    async def delete_audience(
-        self, audience: Audience, ad_account: AdAccount
-    ) -> None:
+    async def delete_audience(self, audience: Audience, ad_account: AdAccount) -> None:
         account_service = AdAccountService(self._session)
         gateway = await account_service.build_gateway_for_ad_account(ad_account)
 
@@ -171,9 +169,7 @@ class AudienceService:
 
         return synced
 
-    async def _upsert_audience(
-        self, ad_account: AdAccount, aud_data: dict
-    ) -> Audience:
+    async def _upsert_audience(self, ad_account: AdAccount, aud_data: dict) -> Audience:
         platform_id = str(aud_data.get("custom_audience_id", ""))
         result = await self._session.execute(
             select(Audience).where(Audience.platform_audience_id == platform_id)

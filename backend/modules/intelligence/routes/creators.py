@@ -66,8 +66,6 @@ async def get_creator_insight(
     )
     try:
         service = CreatorInsightService(db)
-        return await service.get_creator_insight(
-            workspace_id, creator_username, client
-        )
+        return await service.get_creator_insight(workspace_id, creator_username, client)
     finally:
         await client.close()

@@ -1,7 +1,7 @@
 import uuid
+from unittest.mock import AsyncMock, patch
 
 import pytest
-from unittest.mock import AsyncMock, patch
 
 from backend.modules.commerce.services.product_service import ProductService
 
@@ -27,9 +27,7 @@ class TestImageUpload:
                 "url": "https://cdn.tiktok.com/image.jpg",
             }
         }
-        with patch.object(
-            ProductService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ProductService, "_get_gateway", return_value=mock_gateway):
             service = ProductService(mock_session)
             result = await service.upload_product_image(
                 shop_id=uuid.uuid4(),
@@ -42,9 +40,7 @@ class TestImageUpload:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.post.return_value = {"data": {"uri": "x", "url": "y"}}
-        with patch.object(
-            ProductService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ProductService, "_get_gateway", return_value=mock_gateway):
             service = ProductService(mock_session)
             await service.upload_product_image(
                 shop_id=uuid.uuid4(),
@@ -58,9 +54,7 @@ class TestImageUpload:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.post.return_value = {"data": {}}
-        with patch.object(
-            ProductService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ProductService, "_get_gateway", return_value=mock_gateway):
             service = ProductService(mock_session)
             await service.upload_product_image(
                 shop_id=uuid.uuid4(),
@@ -81,9 +75,7 @@ class TestFileUpload:
                 "url": "https://cdn.tiktok.com/cert.pdf",
             }
         }
-        with patch.object(
-            ProductService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ProductService, "_get_gateway", return_value=mock_gateway):
             service = ProductService(mock_session)
             result = await service.upload_product_file(
                 shop_id=uuid.uuid4(),
@@ -97,9 +89,7 @@ class TestFileUpload:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.post.return_value = {"data": {"uri": "x", "url": "y"}}
-        with patch.object(
-            ProductService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ProductService, "_get_gateway", return_value=mock_gateway):
             service = ProductService(mock_session)
             await service.upload_product_file(
                 shop_id=uuid.uuid4(),
@@ -114,9 +104,7 @@ class TestFileUpload:
         self, mock_session: AsyncMock, mock_gateway: AsyncMock
     ) -> None:
         mock_gateway.post.return_value = {"data": {}}
-        with patch.object(
-            ProductService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ProductService, "_get_gateway", return_value=mock_gateway):
             service = ProductService(mock_session)
             await service.upload_product_file(
                 shop_id=uuid.uuid4(),

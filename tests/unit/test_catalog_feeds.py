@@ -1,4 +1,3 @@
-import uuid
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -44,9 +43,7 @@ class TestListFeeds:
                 ]
             }
         }
-        with patch.object(
-            service, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(service, "_get_gateway", return_value=mock_gateway):
             result = await service.list_feeds(
                 ad_account=mock_ad_account, catalog_id="cat1"
             )
@@ -70,9 +67,7 @@ class TestListFeeds:
         mock_ad_account: MagicMock,
     ) -> None:
         mock_gateway.get.return_value = {"data": {"list": []}}
-        with patch.object(
-            service, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(service, "_get_gateway", return_value=mock_gateway):
             result = await service.list_feeds(
                 ad_account=mock_ad_account,
                 catalog_id="cat1",
@@ -99,12 +94,8 @@ class TestCreateFeed:
         mock_gateway: AsyncMock,
         mock_ad_account: MagicMock,
     ) -> None:
-        mock_gateway.post.return_value = {
-            "data": {"feed_id": "f_new"}
-        }
-        with patch.object(
-            service, "_get_gateway", return_value=mock_gateway
-        ):
+        mock_gateway.post.return_value = {"data": {"feed_id": "f_new"}}
+        with patch.object(service, "_get_gateway", return_value=mock_gateway):
             result = await service.create_feed(
                 ad_account=mock_ad_account,
                 catalog_id="cat1",
@@ -131,12 +122,8 @@ class TestCreateFeed:
         mock_ad_account: MagicMock,
     ) -> None:
         schedule = {"interval": "DAILY", "time": "03:00"}
-        mock_gateway.post.return_value = {
-            "data": {"feed_id": "f_sched"}
-        }
-        with patch.object(
-            service, "_get_gateway", return_value=mock_gateway
-        ):
+        mock_gateway.post.return_value = {"data": {"feed_id": "f_sched"}}
+        with patch.object(service, "_get_gateway", return_value=mock_gateway):
             result = await service.create_feed(
                 ad_account=mock_ad_account,
                 catalog_id="cat1",
@@ -165,12 +152,8 @@ class TestCreateFeed:
         mock_gateway: AsyncMock,
         mock_ad_account: MagicMock,
     ) -> None:
-        mock_gateway.post.return_value = {
-            "data": {"feed_id": "f_manual"}
-        }
-        with patch.object(
-            service, "_get_gateway", return_value=mock_gateway
-        ):
+        mock_gateway.post.return_value = {"data": {"feed_id": "f_manual"}}
+        with patch.object(service, "_get_gateway", return_value=mock_gateway):
             result = await service.create_feed(
                 ad_account=mock_ad_account,
                 catalog_id="cat1",
@@ -200,9 +183,7 @@ class TestUpdateFeed:
         mock_ad_account: MagicMock,
     ) -> None:
         mock_gateway.post.return_value = {"data": {}}
-        with patch.object(
-            service, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(service, "_get_gateway", return_value=mock_gateway):
             result = await service.update_feed(
                 ad_account=mock_ad_account,
                 catalog_id="cat1",
@@ -228,9 +209,7 @@ class TestUpdateFeed:
         mock_ad_account: MagicMock,
     ) -> None:
         mock_gateway.post.return_value = {"data": {}}
-        with patch.object(
-            service, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(service, "_get_gateway", return_value=mock_gateway):
             result = await service.update_feed(
                 ad_account=mock_ad_account,
                 catalog_id="cat1",
@@ -258,9 +237,7 @@ class TestDeleteFeed:
         mock_ad_account: MagicMock,
     ) -> None:
         mock_gateway.post.return_value = {"data": {}}
-        with patch.object(
-            service, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(service, "_get_gateway", return_value=mock_gateway):
             result = await service.delete_feed(
                 ad_account=mock_ad_account,
                 catalog_id="cat1",
@@ -287,14 +264,10 @@ class TestGetFeedLog:
     ) -> None:
         mock_gateway.get.return_value = {
             "data": {
-                "list": [
-                    {"log_id": "log1", "status": "SUCCESS", "items_synced": 150}
-                ]
+                "list": [{"log_id": "log1", "status": "SUCCESS", "items_synced": 150}]
             }
         }
-        with patch.object(
-            service, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(service, "_get_gateway", return_value=mock_gateway):
             result = await service.get_feed_log(
                 ad_account=mock_ad_account,
                 catalog_id="cat1",
@@ -324,9 +297,7 @@ class TestUpdateFeedSchedule:
     ) -> None:
         schedule = {"interval": "WEEKLY", "time": "06:00"}
         mock_gateway.post.return_value = {"data": {}}
-        with patch.object(
-            service, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(service, "_get_gateway", return_value=mock_gateway):
             result = await service.update_feed_schedule(
                 ad_account=mock_ad_account,
                 catalog_id="cat1",

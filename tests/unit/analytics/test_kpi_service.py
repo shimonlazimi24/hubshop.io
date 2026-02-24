@@ -3,7 +3,7 @@
 import uuid
 from datetime import date
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -125,9 +125,7 @@ class TestTakeSnapshot:
         return uuid.uuid4()
 
     @pytest.mark.asyncio
-    async def test_take_snapshot_creates_new(
-        self, workspace_id: uuid.UUID
-    ) -> None:
+    async def test_take_snapshot_creates_new(self, workspace_id: uuid.UUID) -> None:
         session = AsyncMock()
         session.add = MagicMock()
         session.flush = AsyncMock()
@@ -247,9 +245,7 @@ class TestDrillDown:
         assert result["stats"]["total_orders"] == 55
 
     @pytest.mark.asyncio
-    async def test_drill_down_unknown_module(
-        self, workspace_id: uuid.UUID
-    ) -> None:
+    async def test_drill_down_unknown_module(self, workspace_id: uuid.UUID) -> None:
         session = AsyncMock()
 
         service = KpiService(session)

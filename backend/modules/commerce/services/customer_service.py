@@ -1,7 +1,5 @@
 import logging
-import uuid
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.db.models.commerce import Shop

@@ -1,6 +1,6 @@
 """Tests for advertising schemas with source_platform field."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from backend.modules.advertising.schemas import (
     CampaignDetailResponse,
@@ -15,8 +15,8 @@ class TestCampaignSummarySourcePlatform:
             "platform_campaign_id": "camp_1",
             "campaign_name": "Test",
             "operation_status": "ENABLE",
-            "created_at": datetime.now(tz=timezone.utc),
-            "updated_at": datetime.now(tz=timezone.utc),
+            "created_at": datetime.now(tz=UTC),
+            "updated_at": datetime.now(tz=UTC),
         }
         response = CampaignSummaryResponse(**data)
         assert response.source_platform == "marketing"
@@ -28,8 +28,8 @@ class TestCampaignSummarySourcePlatform:
             "campaign_name": "Test",
             "operation_status": "ENABLE",
             "source_platform": "shop",
-            "created_at": datetime.now(tz=timezone.utc),
-            "updated_at": datetime.now(tz=timezone.utc),
+            "created_at": datetime.now(tz=UTC),
+            "updated_at": datetime.now(tz=UTC),
         }
         response = CampaignSummaryResponse(**data)
         assert response.source_platform == "shop"
@@ -42,8 +42,8 @@ class TestCampaignDetailSourcePlatform:
             "platform_campaign_id": "camp_1",
             "campaign_name": "Test",
             "operation_status": "ENABLE",
-            "created_at": datetime.now(tz=timezone.utc),
-            "updated_at": datetime.now(tz=timezone.utc),
+            "created_at": datetime.now(tz=UTC),
+            "updated_at": datetime.now(tz=UTC),
         }
         response = CampaignDetailResponse(**data)
         assert response.source_platform == "marketing"
@@ -56,8 +56,8 @@ class TestCampaignDetailSourcePlatform:
             "operation_status": "ENABLE",
             "source_platform": "shop",
             "detail_json": {"some": "data"},
-            "created_at": datetime.now(tz=timezone.utc),
-            "updated_at": datetime.now(tz=timezone.utc),
+            "created_at": datetime.now(tz=UTC),
+            "updated_at": datetime.now(tz=UTC),
         }
         response = CampaignDetailResponse(**data)
         assert response.source_platform == "shop"

@@ -114,17 +114,13 @@ class TestGetBenchmarks:
         mock_gateway: AsyncMock,
         patched_build_gateway,
     ) -> None:
-        mock_gateway.get.return_value = {
-            "data": {"avg_views": 5000, "avg_likes": 200}
-        }
+        mock_gateway.get.return_value = {"data": {"avg_views": 5000, "avg_likes": 200}}
 
         service = OrganicAccountService(mock_session)
         result = await service.get_benchmarks(workspace_id, connected_account_id)
 
         assert result["avg_views"] == 5000
-        mock_gateway.get.assert_called_once_with(
-            "/accounts/benchmarks/", params=None
-        )
+        mock_gateway.get.assert_called_once_with("/accounts/benchmarks/", params=None)
 
     @pytest.mark.asyncio
     async def test_get_benchmarks_with_category(

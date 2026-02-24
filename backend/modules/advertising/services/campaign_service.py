@@ -1,6 +1,6 @@
 import logging
 import uuid
-from datetime import UTC, datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -40,27 +40,19 @@ class CampaignService:
             count_query = count_query.where(Campaign.objective_type == objective)
         if status_filter:
             query = query.where(Campaign.operation_status == status_filter)
-            count_query = count_query.where(
-                Campaign.operation_status == status_filter
-            )
+            count_query = count_query.where(Campaign.operation_status == status_filter)
         if search:
             query = query.where(Campaign.campaign_name.ilike(f"%{search}%"))
-            count_query = count_query.where(
-                Campaign.campaign_name.ilike(f"%{search}%")
-            )
+            count_query = count_query.where(Campaign.campaign_name.ilike(f"%{search}%"))
 
         total = (await self._session.execute(count_query)).scalar_one()
         offset = (page - 1) * page_size
         result = await self._session.execute(
-            query.order_by(Campaign.updated_at.desc())
-            .offset(offset)
-            .limit(page_size)
+            query.order_by(Campaign.updated_at.desc()).offset(offset).limit(page_size)
         )
         items = list(result.scalars().all())
 
-        return PaginatedResult(
-            items=items, total=total, page=page, page_size=page_size
-        )
+        return PaginatedResult(items=items, total=total, page=page, page_size=page_size)
 
     async def get_campaign(self, campaign_id: uuid.UUID) -> Campaign | None:
         result = await self._session.execute(

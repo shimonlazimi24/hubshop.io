@@ -119,9 +119,7 @@ async def batch_ship(
     db: DBSession,
 ) -> list[dict]:
     service = FulfillmentService(db)
-    return await service.batch_ship_packages(
-        uuid.UUID(body.shop_id), body.packages
-    )
+    return await service.batch_ship_packages(uuid.UUID(body.shop_id), body.packages)
 
 
 @router.post("/fulfillment/packages/search")
@@ -145,9 +143,7 @@ async def get_shipping_document(
     document_type: str = "SHIPPING_LABEL",
 ) -> dict:
     service = FulfillmentService(db)
-    return await service.get_shipping_document(
-        shop_id, package_id, document_type
-    )
+    return await service.get_shipping_document(shop_id, package_id, document_type)
 
 
 @router.post("/fulfillment/shipping-info/update")

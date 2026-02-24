@@ -27,9 +27,7 @@ async def list_returns(
     page_size: int = 20,
 ) -> PaginatedResponse[ReturnResponse]:
     service = ReturnService(db)
-    result = await service.list_returns(
-        workspace_id, page=page, page_size=page_size
-    )
+    result = await service.list_returns(workspace_id, page=page, page_size=page_size)
     return PaginatedResponse(
         items=[ReturnResponse.model_validate(r) for r in result.items],
         total=result.total,
@@ -50,9 +48,7 @@ async def approve_return(
     body: ReturnActionRequest | None = None,
 ) -> ReturnResponse:
     service = ReturnService(db)
-    ret = await service.approve_return(
-        return_id, reason=body.reason if body else None
-    )
+    ret = await service.approve_return(return_id, reason=body.reason if body else None)
     if not ret:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -72,9 +68,7 @@ async def reject_return(
     body: ReturnActionRequest | None = None,
 ) -> ReturnResponse:
     service = ReturnService(db)
-    ret = await service.reject_return(
-        return_id, reason=body.reason if body else None
-    )
+    ret = await service.reject_return(return_id, reason=body.reason if body else None)
     if not ret:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

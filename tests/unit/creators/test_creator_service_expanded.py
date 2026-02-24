@@ -2,16 +2,14 @@
 
 import os
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.db.models.creators import CreatorInvitation, CreatorProfile
 from backend.modules.creators.services.campaign_service import CreatorCampaignService
 from backend.modules.creators.services.creator_service import CreatorService
-
 
 # ---------------------------------------------------------------------------
 # update_invitation_status
@@ -71,7 +69,7 @@ class TestUpdateInvitationStatus:
         result.scalar_one_or_none.return_value = invitation
         session.execute.return_value = result
 
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
         service = CreatorCampaignService(session)
         updated = await service.update_invitation_status(
             invitation.id, status="ACCEPTED", responded_at=now
@@ -192,14 +190,10 @@ class TestSyncCreatorToWorkspace:
             "backend.modules.creators.services.creator_profile_service.CreatorProfileService"
         ) as mock_cls:
             mock_instance = MagicMock()
-            mock_instance.upsert_creator_from_api = AsyncMock(
-                return_value=mock_profile
-            )
+            mock_instance.upsert_creator_from_api = AsyncMock(return_value=mock_profile)
             mock_cls.return_value = mock_instance
 
-            result = await service.sync_creator_to_workspace(
-                workspace_id, creator_data
-            )
+            result = await service.sync_creator_to_workspace(workspace_id, creator_data)
 
         assert result is mock_profile
         mock_cls.assert_called_once_with(session)
@@ -225,14 +219,10 @@ class TestSyncCreatorToWorkspace:
             "backend.modules.creators.services.creator_profile_service.CreatorProfileService"
         ) as mock_cls:
             mock_instance = MagicMock()
-            mock_instance.upsert_creator_from_api = AsyncMock(
-                return_value=mock_profile
-            )
+            mock_instance.upsert_creator_from_api = AsyncMock(return_value=mock_profile)
             mock_cls.return_value = mock_instance
 
-            result = await service.sync_creator_to_workspace(
-                workspace_id, creator_data
-            )
+            result = await service.sync_creator_to_workspace(workspace_id, creator_data)
 
         mock_instance.upsert_creator_from_api.assert_called_once_with(
             workspace_id, creator_data
@@ -258,6 +248,6 @@ class TestPartnershipServiceRemoved:
             "services",
             "partnership_service.py",
         )
-        assert not os.path.exists(path), (
-            f"partnership_service.py should have been deleted but still exists at {path}"
-        )
+        assert not os.path.exists(
+            path
+        ), f"partnership_service.py should have been deleted but still exists at {path}"

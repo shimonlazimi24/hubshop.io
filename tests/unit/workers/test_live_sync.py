@@ -23,17 +23,13 @@ class TestMonitorLiveStream:
         mock_wrapper.on_event = MagicMock()
 
         with (
-            patch(
-                "backend.workers.live_sync.async_session_factory"
-            ) as mock_factory,
+            patch("backend.workers.live_sync.async_session_factory") as mock_factory,
             patch(
                 "backend.workers.live_sync.TikTokLiveClientWrapper",
                 return_value=mock_wrapper,
             ),
         ):
-            mock_factory.return_value.__aenter__ = AsyncMock(
-                return_value=mock_session
-            )
+            mock_factory.return_value.__aenter__ = AsyncMock(return_value=mock_session)
             mock_factory.return_value.__aexit__ = AsyncMock(return_value=False)
 
             from backend.workers.live_sync import _monitor_live_stream
@@ -59,17 +55,13 @@ class TestMonitorLiveStream:
         mock_wrapper.on_event = MagicMock()
 
         with (
-            patch(
-                "backend.workers.live_sync.async_session_factory"
-            ) as mock_factory,
+            patch("backend.workers.live_sync.async_session_factory") as mock_factory,
             patch(
                 "backend.workers.live_sync.TikTokLiveClientWrapper",
                 return_value=mock_wrapper,
             ),
         ):
-            mock_factory.return_value.__aenter__ = AsyncMock(
-                return_value=mock_session
-            )
+            mock_factory.return_value.__aenter__ = AsyncMock(return_value=mock_session)
             mock_factory.return_value.__aexit__ = AsyncMock(return_value=False)
 
             from backend.workers.live_sync import _monitor_live_stream
@@ -134,12 +126,8 @@ class TestComputeLiveAnalytics:
             + [viewer_result, commenters_result, gifters_result]
         )
 
-        with patch(
-            "backend.workers.live_sync.async_session_factory"
-        ) as mock_factory:
-            mock_factory.return_value.__aenter__ = AsyncMock(
-                return_value=mock_session
-            )
+        with patch("backend.workers.live_sync.async_session_factory") as mock_factory:
+            mock_factory.return_value.__aenter__ = AsyncMock(return_value=mock_session)
             mock_factory.return_value.__aexit__ = AsyncMock(return_value=False)
 
             from backend.workers.live_sync import _compute_live_analytics
@@ -156,12 +144,8 @@ class TestComputeLiveAnalytics:
         mock_session.execute = AsyncMock(side_effect=RuntimeError("DB error"))
         mock_session.rollback = AsyncMock()
 
-        with patch(
-            "backend.workers.live_sync.async_session_factory"
-        ) as mock_factory:
-            mock_factory.return_value.__aenter__ = AsyncMock(
-                return_value=mock_session
-            )
+        with patch("backend.workers.live_sync.async_session_factory") as mock_factory:
+            mock_factory.return_value.__aenter__ = AsyncMock(return_value=mock_session)
             mock_factory.return_value.__aexit__ = AsyncMock(return_value=False)
 
             from backend.workers.live_sync import _compute_live_analytics
@@ -180,12 +164,8 @@ class TestCleanupStaleSessions:
         mock_session.commit = AsyncMock()
         mock_session.rollback = AsyncMock()
 
-        with patch(
-            "backend.workers.live_sync.async_session_factory"
-        ) as mock_factory:
-            mock_factory.return_value.__aenter__ = AsyncMock(
-                return_value=mock_session
-            )
+        with patch("backend.workers.live_sync.async_session_factory") as mock_factory:
+            mock_factory.return_value.__aenter__ = AsyncMock(return_value=mock_session)
             mock_factory.return_value.__aexit__ = AsyncMock(return_value=False)
 
             from backend.workers.live_sync import _cleanup_stale_sessions
@@ -202,12 +182,8 @@ class TestCleanupStaleSessions:
         mock_session.execute = AsyncMock(side_effect=RuntimeError("DB error"))
         mock_session.rollback = AsyncMock()
 
-        with patch(
-            "backend.workers.live_sync.async_session_factory"
-        ) as mock_factory:
-            mock_factory.return_value.__aenter__ = AsyncMock(
-                return_value=mock_session
-            )
+        with patch("backend.workers.live_sync.async_session_factory") as mock_factory:
+            mock_factory.return_value.__aenter__ = AsyncMock(return_value=mock_session)
             mock_factory.return_value.__aexit__ = AsyncMock(return_value=False)
 
             from backend.workers.live_sync import _cleanup_stale_sessions
@@ -222,8 +198,7 @@ class TestCeleryTaskRegistration:
         from backend.workers.live_sync import monitor_live_stream
 
         assert (
-            monitor_live_stream.name
-            == "backend.workers.live_sync.monitor_live_stream"
+            monitor_live_stream.name == "backend.workers.live_sync.monitor_live_stream"
         )
 
     def test_compute_live_analytics_task_exists(self) -> None:
@@ -267,6 +242,4 @@ class TestBeatSchedule:
         from backend.workers.celery_app import celery_app
 
         task = celery_app.conf.beat_schedule["cleanup-stale-live-sessions"]
-        assert (
-            task["task"] == "backend.workers.live_sync.cleanup_stale_sessions"
-        )
+        assert task["task"] == "backend.workers.live_sync.cleanup_stale_sessions"

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import uuid
 from urllib.parse import urlencode
 
 from sqlalchemy import select
@@ -61,7 +60,9 @@ class SocialAuthService:
             self._db.add(org)
             await self._db.flush()
 
-            workspace = Workspace(name="Default", slug="default", organization_id=org.id)
+            workspace = Workspace(
+                name="Default", slug="default", organization_id=org.id
+            )
             self._db.add(workspace)
             await self._db.flush()
 

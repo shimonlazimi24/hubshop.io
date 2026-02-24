@@ -7,7 +7,9 @@ from backend.tiktok.gateway import _circuit_breakers, _rate_limiters
 class TestGatewayPlatformRegistration:
     def test_all_platforms_have_circuit_breakers(self) -> None:
         for platform in Platform:
-            assert platform in _circuit_breakers, f"Missing circuit breaker for {platform}"
+            assert (
+                platform in _circuit_breakers
+            ), f"Missing circuit breaker for {platform}"
 
     def test_all_platforms_have_rate_limiters(self) -> None:
         for platform in Platform:

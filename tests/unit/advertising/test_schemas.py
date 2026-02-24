@@ -1,8 +1,6 @@
 """Tests for advertising Pydantic schemas - validation and serialization."""
 
-from datetime import datetime, timezone
-
-import pytest
+from datetime import UTC, datetime
 
 from backend.modules.advertising.schemas import (
     AdAccountResponse,
@@ -29,7 +27,7 @@ from backend.modules.advertising.schemas import (
 
 class TestAdAccountResponse:
     def test_from_attributes(self) -> None:
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
         resp = AdAccountResponse.model_validate(
             {
                 "id": "abc-123",
@@ -45,7 +43,7 @@ class TestAdAccountResponse:
         assert resp.currency == "USD"
 
     def test_nullable_fields(self) -> None:
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
         resp = AdAccountResponse.model_validate(
             {
                 "id": "abc-123",
@@ -64,7 +62,7 @@ class TestAdAccountResponse:
 
 class TestCampaignSchemas:
     def test_summary_response(self) -> None:
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
         resp = CampaignSummaryResponse.model_validate(
             {
                 "id": "camp-1",
@@ -83,7 +81,7 @@ class TestCampaignSchemas:
         assert resp.budget == "100.00"
 
     def test_detail_includes_json(self) -> None:
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
         resp = CampaignDetailResponse.model_validate(
             {
                 "id": "camp-1",
@@ -125,7 +123,7 @@ class TestCampaignSchemas:
 
 class TestAdGroupSchemas:
     def test_summary_response(self) -> None:
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
         resp = AdGroupSummaryResponse.model_validate(
             {
                 "id": "ag-1",
@@ -145,7 +143,7 @@ class TestAdGroupSchemas:
         assert resp.optimization_goal == "CLICK"
 
     def test_detail_includes_targeting(self) -> None:
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
         targeting = {"location_ids": [123], "age_groups": ["AGE_25_34"]}
         resp = AdGroupDetailResponse.model_validate(
             {
@@ -179,7 +177,7 @@ class TestAdGroupSchemas:
 
 class TestAdSchemas:
     def test_summary_response(self) -> None:
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
         resp = AdSummaryResponse.model_validate(
             {
                 "id": "ad-1",
@@ -199,7 +197,7 @@ class TestAdSchemas:
         assert resp.call_to_action == "SHOP_NOW"
 
     def test_detail_includes_json(self) -> None:
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
         resp = AdDetailResponse.model_validate(
             {
                 "id": "ad-1",

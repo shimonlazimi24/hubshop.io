@@ -75,9 +75,7 @@ class TestListConversations:
         mock_gateway.get.return_value = {"data": {"list": []}}
 
         service = MessagingService(mock_session)
-        await service.list_conversations(
-            connected_account_id, page=3, page_size=10
-        )
+        await service.list_conversations(connected_account_id, page=3, page_size=10)
 
         call_params = mock_gateway.get.call_args.kwargs["params"]
         assert call_params["page"] == "3"
@@ -103,9 +101,7 @@ class TestListMessages:
         }
 
         service = MessagingService(mock_session)
-        result = await service.list_messages(
-            connected_account_id, "conv_001"
-        )
+        result = await service.list_messages(connected_account_id, "conv_001")
 
         assert len(result["list"]) == 2
         call_params = mock_gateway.get.call_args.kwargs["params"]
@@ -140,9 +136,7 @@ class TestSendMessage:
         connected_account_id: uuid.UUID,
         patched_build_gateway,
     ) -> None:
-        mock_gateway.post.return_value = {
-            "data": {"message_id": "m_new"}
-        }
+        mock_gateway.post.return_value = {"data": {"message_id": "m_new"}}
 
         service = MessagingService(mock_session)
         result = await service.send_message(
@@ -163,9 +157,7 @@ class TestSendMessage:
         connected_account_id: uuid.UUID,
         patched_build_gateway,
     ) -> None:
-        mock_gateway.post.return_value = {
-            "data": {"message_id": "m_media"}
-        }
+        mock_gateway.post.return_value = {"data": {"message_id": "m_media"}}
 
         service = MessagingService(mock_session)
         result = await service.send_message(
@@ -194,9 +186,7 @@ class TestCheckCapability:
         connected_account_id: uuid.UUID,
         patched_build_gateway,
     ) -> None:
-        mock_gateway.get.return_value = {
-            "data": {"is_capable": True, "reasons": []}
-        }
+        mock_gateway.get.return_value = {"data": {"is_capable": True, "reasons": []}}
 
         service = MessagingService(mock_session)
         result = await service.check_capability(connected_account_id)
@@ -216,9 +206,7 @@ class TestToggleCommentToMessage:
         connected_account_id: uuid.UUID,
         patched_build_gateway,
     ) -> None:
-        mock_gateway.post.return_value = {
-            "data": {"enabled": True}
-        }
+        mock_gateway.post.return_value = {"data": {"enabled": True}}
 
         service = MessagingService(mock_session)
         result = await service.toggle_comment_to_message(
@@ -237,9 +225,7 @@ class TestToggleCommentToMessage:
         connected_account_id: uuid.UUID,
         patched_build_gateway,
     ) -> None:
-        mock_gateway.post.return_value = {
-            "data": {"enabled": False}
-        }
+        mock_gateway.post.return_value = {"data": {"enabled": False}}
 
         service = MessagingService(mock_session)
         result = await service.toggle_comment_to_message(
@@ -265,9 +251,7 @@ class TestGetCommentToMessageSetting:
         }
 
         service = MessagingService(mock_session)
-        result = await service.get_comment_to_message_setting(
-            connected_account_id
-        )
+        result = await service.get_comment_to_message_setting(connected_account_id)
 
         assert result["enabled"] is True
         mock_gateway.get.assert_called_once_with(
@@ -342,9 +326,7 @@ class TestUpdateAutoMessage:
         connected_account_id: uuid.UUID,
         patched_build_gateway,
     ) -> None:
-        mock_gateway.post.return_value = {
-            "data": {"auto_message_id": "am1"}
-        }
+        mock_gateway.post.return_value = {"data": {"auto_message_id": "am1"}}
 
         service = MessagingService(mock_session)
         result = await service.update_auto_message(

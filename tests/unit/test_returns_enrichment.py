@@ -1,7 +1,7 @@
 import uuid
+from unittest.mock import AsyncMock, patch
 
 import pytest
-from unittest.mock import AsyncMock, patch
 
 from backend.modules.commerce.services.return_service import ReturnService
 
@@ -27,9 +27,7 @@ class TestCreateReturn:
             "data": {"return_id": "ret-001", "status": "PENDING"}
         }
 
-        with patch.object(
-            ReturnService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ReturnService, "_get_gateway", return_value=mock_gateway):
             service = ReturnService(mock_session)
             shop_id = uuid.uuid4()
             result = await service.create_return(
@@ -57,9 +55,7 @@ class TestCreateReturn:
     ) -> None:
         mock_gateway.post.return_value = {"data": {}}
 
-        with patch.object(
-            ReturnService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ReturnService, "_get_gateway", return_value=mock_gateway):
             service = ReturnService(mock_session)
             result = await service.create_return(
                 uuid.uuid4(),
@@ -87,9 +83,7 @@ class TestSearchReturns:
             }
         }
 
-        with patch.object(
-            ReturnService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ReturnService, "_get_gateway", return_value=mock_gateway):
             service = ReturnService(mock_session)
             shop_id = uuid.uuid4()
             result = await service.search_returns(shop_id)
@@ -111,9 +105,7 @@ class TestSearchReturns:
             "data": {"returns": [{"return_id": "ret-003"}]}
         }
 
-        with patch.object(
-            ReturnService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ReturnService, "_get_gateway", return_value=mock_gateway):
             service = ReturnService(mock_session)
             result = await service.search_returns(
                 uuid.uuid4(), status="PENDING", order_id="order-789"
@@ -133,9 +125,7 @@ class TestSearchReturns:
     ) -> None:
         mock_gateway.post.return_value = {"data": {"returns": []}}
 
-        with patch.object(
-            ReturnService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ReturnService, "_get_gateway", return_value=mock_gateway):
             service = ReturnService(mock_session)
             result = await service.search_returns(uuid.uuid4())
 
@@ -158,9 +148,7 @@ class TestGetReturnRecords:
             }
         }
 
-        with patch.object(
-            ReturnService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ReturnService, "_get_gateway", return_value=mock_gateway):
             service = ReturnService(mock_session)
             shop_id = uuid.uuid4()
             result = await service.get_return_records(shop_id, "ret-001")
@@ -185,9 +173,7 @@ class TestGetRejectReasons:
         ]
         mock_gateway.get.return_value = {"data": {"reasons": reasons}}
 
-        with patch.object(
-            ReturnService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ReturnService, "_get_gateway", return_value=mock_gateway):
             service = ReturnService(mock_session)
             shop_id = uuid.uuid4()
             result = await service.get_reject_reasons(shop_id)
@@ -217,9 +203,7 @@ class TestCalculateRefund:
             {"item_id": "item-2", "quantity": 2},
         ]
 
-        with patch.object(
-            ReturnService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ReturnService, "_get_gateway", return_value=mock_gateway):
             service = ReturnService(mock_session)
             shop_id = uuid.uuid4()
             result = await service.calculate_refund(
@@ -241,9 +225,7 @@ class TestCalculateRefund:
     ) -> None:
         mock_gateway.post.return_value = {"data": {"refund_amount": "0.00"}}
 
-        with patch.object(
-            ReturnService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(ReturnService, "_get_gateway", return_value=mock_gateway):
             service = ReturnService(mock_session)
             result = await service.calculate_refund(
                 uuid.uuid4(), order_id="order-456", items=[]

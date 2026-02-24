@@ -48,7 +48,9 @@ class AuthorizeResponse(BaseModel):
 
 
 @router.get("/shop/authorize", response_model=AuthorizeResponse)
-async def shop_authorize(workspace_id: uuid.UUID, current_user: CurrentUser) -> AuthorizeResponse:
+async def shop_authorize(
+    workspace_id: uuid.UUID, current_user: CurrentUser
+) -> AuthorizeResponse:
     """Generate TikTok Shop OAuth authorization URL."""
     state = f"{workspace_id}:{current_user.id}"
     params = {
@@ -68,7 +70,9 @@ async def shop_callback(
     """Handle TikTok Shop OAuth callback. Exchange code for tokens."""
     parts = state.split(":")
     if len(parts) != 2:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid state")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid state"
+        )
     workspace_id = uuid.UUID(parts[0])
 
     # Exchange authorization code for access token
@@ -154,7 +158,9 @@ async def developer_callback(
     """Handle TikTok Developer OAuth callback."""
     parts = state.split(":")
     if len(parts) != 2:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid state")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid state"
+        )
     workspace_id = uuid.UUID(parts[0])
 
     async with httpx.AsyncClient() as client:
@@ -237,7 +243,9 @@ async def marketing_callback(
     """Handle TikTok Marketing OAuth callback."""
     parts = state.split(":")
     if len(parts) != 2:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid state")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid state"
+        )
     workspace_id = uuid.UUID(parts[0])
 
     async with httpx.AsyncClient() as client:

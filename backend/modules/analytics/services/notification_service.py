@@ -50,9 +50,7 @@ class NotificationService:
         )
         items = list(result.scalars().all())
 
-        return PaginatedResult(
-            items=items, total=total, page=page, page_size=page_size
-        )
+        return PaginatedResult(items=items, total=total, page=page, page_size=page_size)
 
     async def create_notification(
         self,
@@ -93,9 +91,7 @@ class NotificationService:
             notification.read_at = datetime.now(tz=UTC)
         return notification
 
-    async def mark_all_read(
-        self, user_id: uuid.UUID, workspace_id: uuid.UUID
-    ) -> int:
+    async def mark_all_read(self, user_id: uuid.UUID, workspace_id: uuid.UUID) -> int:
         result = await self._session.execute(
             update(Notification)
             .where(
@@ -119,9 +115,7 @@ class NotificationService:
         )
         return result.scalar_one()
 
-    async def get_preferences(
-        self, user_id: uuid.UUID
-    ) -> list[NotificationPreference]:
+    async def get_preferences(self, user_id: uuid.UUID) -> list[NotificationPreference]:
         result = await self._session.execute(
             select(NotificationPreference).where(
                 NotificationPreference.user_id == user_id

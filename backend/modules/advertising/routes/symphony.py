@@ -42,9 +42,7 @@ async def get_smart_creative_materials(
         )
 
     service = SymphonyService(db)
-    return await service.get_smart_creative_materials(
-        workspace_id, ad_account, ad_id
-    )
+    return await service.get_smart_creative_materials(workspace_id, ad_account, ad_id)
 
 
 @router.post("/symphony/smart-creative/ads")

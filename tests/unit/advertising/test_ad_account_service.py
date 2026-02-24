@@ -135,9 +135,7 @@ class TestBuildGateway:
     @patch(
         "backend.modules.advertising.services.ad_account_service.TikTokMarketingClient"
     )
-    @patch(
-        "backend.modules.advertising.services.ad_account_service.PlatformGateway"
-    )
+    @patch("backend.modules.advertising.services.ad_account_service.PlatformGateway")
     async def test_builds_gateway(
         self,
         mock_gateway_cls: MagicMock,

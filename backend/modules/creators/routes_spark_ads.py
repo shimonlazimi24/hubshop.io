@@ -49,9 +49,7 @@ async def list_authorizations(
         creator_id=creator_id,
         status_filter=status_filter,
     )
-    return [
-        ContentAuthorizationResponse.model_validate(a) for a in authorizations
-    ]
+    return [ContentAuthorizationResponse.model_validate(a) for a in authorizations]
 
 
 @router.post(

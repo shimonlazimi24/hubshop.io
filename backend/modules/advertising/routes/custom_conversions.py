@@ -42,9 +42,7 @@ async def list_conversions(
         )
 
     service = CustomConversionService(db)
-    return await service.list_conversions(
-        workspace_id, ad_account, pixel_id=pixel_id
-    )
+    return await service.list_conversions(workspace_id, ad_account, pixel_id=pixel_id)
 
 
 @router.post("/custom-conversions")

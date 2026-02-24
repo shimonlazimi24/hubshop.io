@@ -1,7 +1,7 @@
 import uuid
+from unittest.mock import AsyncMock, patch
 
 import pytest
-from unittest.mock import AsyncMock, patch
 
 from backend.modules.commerce.services.finance_service import FinanceService
 
@@ -32,9 +32,7 @@ class TestGetWithdrawals:
             }
         }
 
-        with patch.object(
-            FinanceService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(FinanceService, "_get_gateway", return_value=mock_gateway):
             service = FinanceService(mock_session)
             shop_id = uuid.uuid4()
             result = await service.get_withdrawals(shop_id)
@@ -42,9 +40,7 @@ class TestGetWithdrawals:
             assert len(result) == 2
             assert result[0]["withdrawal_id"] == "wd-001"
             assert result[1]["amount"] == "250.00"
-            mock_gateway.get.assert_called_once_with(
-                "/finance/202309/withdrawals"
-            )
+            mock_gateway.get.assert_called_once_with("/finance/202309/withdrawals")
 
     @pytest.mark.asyncio
     async def test_get_withdrawals_empty(
@@ -54,9 +50,7 @@ class TestGetWithdrawals:
     ) -> None:
         mock_gateway.get.return_value = {"data": {"withdrawals": []}}
 
-        with patch.object(
-            FinanceService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(FinanceService, "_get_gateway", return_value=mock_gateway):
             service = FinanceService(mock_session)
             result = await service.get_withdrawals(uuid.uuid4())
 
@@ -79,14 +73,10 @@ class TestGetTransactionsByOrder:
             }
         }
 
-        with patch.object(
-            FinanceService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(FinanceService, "_get_gateway", return_value=mock_gateway):
             service = FinanceService(mock_session)
             shop_id = uuid.uuid4()
-            result = await service.get_transactions_by_order(
-                shop_id, "order-123"
-            )
+            result = await service.get_transactions_by_order(shop_id, "order-123")
 
             assert len(result) == 2
             assert result[0]["transaction_id"] == "txn-001"
@@ -102,13 +92,9 @@ class TestGetTransactionsByOrder:
     ) -> None:
         mock_gateway.get.return_value = {"data": {"transactions": []}}
 
-        with patch.object(
-            FinanceService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(FinanceService, "_get_gateway", return_value=mock_gateway):
             service = FinanceService(mock_session)
-            result = await service.get_transactions_by_order(
-                uuid.uuid4(), "order-456"
-            )
+            result = await service.get_transactions_by_order(uuid.uuid4(), "order-456")
 
             assert result == []
 
@@ -129,14 +115,10 @@ class TestGetTransactionsByStatement:
             }
         }
 
-        with patch.object(
-            FinanceService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(FinanceService, "_get_gateway", return_value=mock_gateway):
             service = FinanceService(mock_session)
             shop_id = uuid.uuid4()
-            result = await service.get_transactions_by_statement(
-                shop_id, "stmt-789"
-            )
+            result = await service.get_transactions_by_statement(shop_id, "stmt-789")
 
             assert len(result) == 2
             assert result[1]["type"] == "REFUND"
@@ -152,9 +134,7 @@ class TestGetTransactionsByStatement:
     ) -> None:
         mock_gateway.get.return_value = {"data": {"transactions": []}}
 
-        with patch.object(
-            FinanceService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(FinanceService, "_get_gateway", return_value=mock_gateway):
             service = FinanceService(mock_session)
             result = await service.get_transactions_by_statement(
                 uuid.uuid4(), "stmt-000"
@@ -180,9 +160,7 @@ class TestGetUnsettledTransactions:
             }
         }
 
-        with patch.object(
-            FinanceService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(FinanceService, "_get_gateway", return_value=mock_gateway):
             service = FinanceService(mock_session)
             shop_id = uuid.uuid4()
             result = await service.get_unsettled_transactions(shop_id)
@@ -201,9 +179,7 @@ class TestGetUnsettledTransactions:
     ) -> None:
         mock_gateway.get.return_value = {"data": {"transactions": []}}
 
-        with patch.object(
-            FinanceService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(FinanceService, "_get_gateway", return_value=mock_gateway):
             service = FinanceService(mock_session)
             result = await service.get_unsettled_transactions(uuid.uuid4())
 
@@ -251,9 +227,7 @@ class TestGetGateway:
 
             assert result is mock_gw
             mock_shop_svc.get_shop.assert_called_once_with(shop_id)
-            mock_shop_svc.build_gateway_for_shop.assert_called_once_with(
-                mock_shop
-            )
+            mock_shop_svc.build_gateway_for_shop.assert_called_once_with(mock_shop)
 
 
 class TestMissingDataKey:
@@ -267,9 +241,7 @@ class TestMissingDataKey:
     ) -> None:
         mock_gateway.get.return_value = {}
 
-        with patch.object(
-            FinanceService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(FinanceService, "_get_gateway", return_value=mock_gateway):
             service = FinanceService(mock_session)
             result = await service.get_withdrawals(uuid.uuid4())
 
@@ -283,12 +255,8 @@ class TestMissingDataKey:
     ) -> None:
         mock_gateway.get.return_value = {"data": {}}
 
-        with patch.object(
-            FinanceService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(FinanceService, "_get_gateway", return_value=mock_gateway):
             service = FinanceService(mock_session)
-            result = await service.get_transactions_by_order(
-                uuid.uuid4(), "order-999"
-            )
+            result = await service.get_transactions_by_order(uuid.uuid4(), "order-999")
 
             assert result == []

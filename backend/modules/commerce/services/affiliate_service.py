@@ -50,9 +50,7 @@ class AffiliateService:
             .limit(page_size)
         )
         items = list(result.scalars().all())
-        return PaginatedResult(
-            items=items, total=total, page=page, page_size=page_size
-        )
+        return PaginatedResult(items=items, total=total, page=page, page_size=page_size)
 
     async def add_to_marketplace(
         self,
@@ -122,9 +120,7 @@ class AffiliateService:
             .limit(page_size)
         )
         items = list(result.scalars().all())
-        return PaginatedResult(
-            items=items, total=total, page=page, page_size=page_size
-        )
+        return PaginatedResult(items=items, total=total, page=page, page_size=page_size)
 
     async def create_open_collaboration(
         self,
@@ -180,9 +176,7 @@ class AffiliateService:
             .limit(page_size)
         )
         items = list(result.scalars().all())
-        return PaginatedResult(
-            items=items, total=total, page=page, page_size=page_size
-        )
+        return PaginatedResult(items=items, total=total, page=page, page_size=page_size)
 
     async def create_target_collaboration(
         self,
@@ -227,9 +221,7 @@ class AffiliateService:
         approved: bool,
     ) -> CreatorApplication:
         result = await self._session.execute(
-            select(CreatorApplication).where(
-                CreatorApplication.id == application_id
-            )
+            select(CreatorApplication).where(CreatorApplication.id == application_id)
         )
         application = result.scalar_one_or_none()
         if not application:

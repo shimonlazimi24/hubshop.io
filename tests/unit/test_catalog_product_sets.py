@@ -1,5 +1,6 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from backend.modules.advertising.services.catalog_service import CatalogService
 
@@ -37,9 +38,7 @@ class TestListProductSets:
                 ]
             }
         }
-        with patch.object(
-            CatalogService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(CatalogService, "_get_gateway", return_value=mock_gateway):
             service = CatalogService(mock_session)
             result = await service.list_product_sets(
                 ad_account=mock_ad_account, catalog_id="cat_001"
@@ -64,9 +63,7 @@ class TestListProductSets:
         mock_ad_account: MagicMock,
     ) -> None:
         mock_gateway.get.return_value = {"data": {"list": []}}
-        with patch.object(
-            CatalogService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(CatalogService, "_get_gateway", return_value=mock_gateway):
             service = CatalogService(mock_session)
             await service.list_product_sets(
                 ad_account=mock_ad_account,
@@ -100,9 +97,7 @@ class TestGetProductSetProducts:
                 ]
             }
         }
-        with patch.object(
-            CatalogService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(CatalogService, "_get_gateway", return_value=mock_gateway):
             service = CatalogService(mock_session)
             result = await service.get_product_set_products(
                 ad_account=mock_ad_account,
@@ -131,15 +126,9 @@ class TestCreateProductSetByConditions:
         mock_gateway: AsyncMock,
         mock_ad_account: MagicMock,
     ) -> None:
-        conditions = [
-            {"field": "price", "operator": "GREATER_THAN", "value": "10"}
-        ]
-        mock_gateway.post.return_value = {
-            "data": {"product_set_id": "ps_new"}
-        }
-        with patch.object(
-            CatalogService, "_get_gateway", return_value=mock_gateway
-        ):
+        conditions = [{"field": "price", "operator": "GREATER_THAN", "value": "10"}]
+        mock_gateway.post.return_value = {"data": {"product_set_id": "ps_new"}}
+        with patch.object(CatalogService, "_get_gateway", return_value=mock_gateway):
             service = CatalogService(mock_session)
             result = await service.create_product_set_by_conditions(
                 ad_account=mock_ad_account,
@@ -167,12 +156,8 @@ class TestCreateProductSetByFile:
         mock_gateway: AsyncMock,
         mock_ad_account: MagicMock,
     ) -> None:
-        mock_gateway.post.return_value = {
-            "data": {"product_set_id": "ps_file"}
-        }
-        with patch.object(
-            CatalogService, "_get_gateway", return_value=mock_gateway
-        ):
+        mock_gateway.post.return_value = {"data": {"product_set_id": "ps_file"}}
+        with patch.object(CatalogService, "_get_gateway", return_value=mock_gateway):
             service = CatalogService(mock_session)
             result = await service.create_product_set_by_file(
                 ad_account=mock_ad_account,
@@ -201,9 +186,7 @@ class TestUpdateProductSet:
         mock_ad_account: MagicMock,
     ) -> None:
         mock_gateway.post.return_value = {"data": {"success": True}}
-        with patch.object(
-            CatalogService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(CatalogService, "_get_gateway", return_value=mock_gateway):
             service = CatalogService(mock_session)
             result = await service.update_product_set(
                 ad_account=mock_ad_account,
@@ -229,13 +212,9 @@ class TestUpdateProductSet:
         mock_gateway: AsyncMock,
         mock_ad_account: MagicMock,
     ) -> None:
-        new_conditions = [
-            {"field": "category", "operator": "EQUALS", "value": "shoes"}
-        ]
+        new_conditions = [{"field": "category", "operator": "EQUALS", "value": "shoes"}]
         mock_gateway.post.return_value = {"data": {"success": True}}
-        with patch.object(
-            CatalogService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(CatalogService, "_get_gateway", return_value=mock_gateway):
             service = CatalogService(mock_session)
             result = await service.update_product_set(
                 ad_account=mock_ad_account,
@@ -263,9 +242,7 @@ class TestUpdateProductSet:
     ) -> None:
         conditions = [{"field": "brand", "operator": "EQUALS", "value": "Nike"}]
         mock_gateway.post.return_value = {"data": {"success": True}}
-        with patch.object(
-            CatalogService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(CatalogService, "_get_gateway", return_value=mock_gateway):
             service = CatalogService(mock_session)
             result = await service.update_product_set(
                 ad_account=mock_ad_account,
@@ -296,9 +273,7 @@ class TestDeleteProductSets:
         mock_ad_account: MagicMock,
     ) -> None:
         mock_gateway.post.return_value = {"data": {"success": True}}
-        with patch.object(
-            CatalogService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(CatalogService, "_get_gateway", return_value=mock_gateway):
             service = CatalogService(mock_session)
             result = await service.delete_product_sets(
                 ad_account=mock_ad_account,
@@ -323,9 +298,7 @@ class TestDeleteProductSets:
         mock_ad_account: MagicMock,
     ) -> None:
         mock_gateway.post.return_value = {"data": {"success": True}}
-        with patch.object(
-            CatalogService, "_get_gateway", return_value=mock_gateway
-        ):
+        with patch.object(CatalogService, "_get_gateway", return_value=mock_gateway):
             service = CatalogService(mock_session)
             result = await service.delete_product_sets(
                 ad_account=mock_ad_account,
