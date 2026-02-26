@@ -61,6 +61,7 @@ export interface UserResponse {
   email: string;
   full_name: string;
   is_active: boolean;
+  workspace_id: string;
 }
 
 export function getMe(token: string): Promise<UserResponse> {
@@ -109,6 +110,46 @@ export function listConnectedAccounts(
   token: string
 ): Promise<ConnectedAccount[]> {
   return apiFetch(`/connect/accounts?workspace_id=${workspaceId}`, { token });
+}
+
+// Connect - Sync Status
+export interface SyncJob {
+  id: string;
+  platform: string;
+  sync_type: string;
+  status: "pending" | "running" | "completed" | "failed";
+  items_synced: number;
+  items_total: number | null;
+  error_message: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  created_at: string | null;
+}
+
+export function listSyncJobs(
+  workspaceId: string,
+  token: string,
+  limit = 20,
+): Promise<SyncJob[]> {
+  return apiFetch(`/connect/sync/jobs?workspace_id=${workspaceId}&limit=${limit}`, { token });
+}
+
+export function getActiveSyncJobs(
+  workspaceId: string,
+  token: string,
+): Promise<SyncJob[]> {
+  return apiFetch(`/connect/sync/active?workspace_id=${workspaceId}`, { token });
+}
+
+export function triggerManualSync(
+  workspaceId: string,
+  platform: string,
+  token: string,
+): Promise<{ status: string; job_ids: string[] }> {
+  return apiFetch(`/connect/sync/trigger?workspace_id=${workspaceId}&platform=${platform}`, {
+    method: "POST",
+    token,
+  });
 }
 
 // Commerce - Types

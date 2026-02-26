@@ -52,7 +52,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     if (!isAuthenticated()) {
       if (isDev) {
-        setUser({ id: "dev", email: "admin@frodo.dev", full_name: "Amit Kolton", is_active: true });
+        setUser({ id: "dev", email: "admin@frodo.dev", full_name: "Amit Kolton", is_active: true, workspace_id: "dev-workspace" });
         setLoading(false);
         return;
       }
@@ -65,7 +65,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         .then(setUser)
         .catch(() => {
           if (isDev) {
-            setUser({ id: "dev", email: "admin@frodo.dev", full_name: "Amit Kolton", is_active: true });
+            setUser({ id: "dev", email: "admin@frodo.dev", full_name: "Amit Kolton", is_active: true, workspace_id: "dev-workspace" });
             setLoading(false);
             return;
           }
