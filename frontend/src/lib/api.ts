@@ -61,7 +61,7 @@ export interface UserResponse {
   email: string;
   full_name: string;
   is_active: boolean;
-  workspace_id: string;
+  workspace_id: string | null;
 }
 
 export function getMe(token: string): Promise<UserResponse> {

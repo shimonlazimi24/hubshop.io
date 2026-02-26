@@ -44,6 +44,7 @@ class UserResponse(BaseModel):
     email: str
     full_name: str
     is_active: bool
+    workspace_id: uuid.UUID | None = None
 
 
 @router.post(
@@ -170,11 +171,15 @@ async def refresh_tokens(body: RefreshRequest, db: DBSession) -> TokenResponse:
 @router.get("/me", response_model=UserResponse)
 async def get_me(current_user: CurrentUser) -> UserResponse:
     """Get the current authenticated user."""
+    workspace_id = None
+    if current_user.memberships:
+        workspace_id = current_user.memberships[0].workspace_id
     return UserResponse(
         id=current_user.id,
         email=current_user.email,
         full_name=current_user.full_name,
         is_active=current_user.is_active,
+        workspace_id=workspace_id,
     )
 
 

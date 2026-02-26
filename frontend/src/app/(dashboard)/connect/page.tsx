@@ -68,6 +68,7 @@ export default function ConnectPage() {
     try {
       const user = await getMe(token);
       const wsId = user.workspace_id;
+      if (!wsId) return;
       setWorkspaceId(wsId);
       const accts = await listConnectedAccounts(wsId, token);
       setAccounts(accts);

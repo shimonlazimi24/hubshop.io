@@ -34,6 +34,7 @@ export default function SyncStatusPage() {
 
     try {
       const user = await getMe(token);
+      if (!user.workspace_id) return;
       setWorkspaceId(user.workspace_id);
       const data = await listSyncJobs(user.workspace_id, token, 50);
       setJobs(data);

@@ -26,6 +26,7 @@ export default function SyncProgressPage() {
   useEffect(() => {
     if (!token) return;
     getMe(token).then((user) => {
+      if (!user.workspace_id) return;
       setWorkspaceId(user.workspace_id);
       getActiveSyncJobs(user.workspace_id, token).then((jobs: SyncJob[]) => {
         const initial = new Map<string, SyncProgress>();
