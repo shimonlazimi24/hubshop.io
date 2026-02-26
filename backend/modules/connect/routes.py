@@ -3,6 +3,7 @@ from urllib.parse import urlencode
 
 import httpx
 from fastapi import APIRouter, HTTPException, Query, status
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 from sqlalchemy import select
 
@@ -66,7 +67,7 @@ async def shop_callback(
     code: str = Query(...),
     state: str = Query(...),
     db: DBSession = ...,  # type: ignore[assignment]
-) -> ConnectedAccountResponse:
+) -> RedirectResponse:
     """Handle TikTok Shop OAuth callback. Exchange code for tokens."""
     parts = state.split(":")
     if len(parts) != 2:
@@ -118,13 +119,9 @@ async def shop_callback(
     )
     db.add(token_vault)
 
-    return ConnectedAccountResponse(
-        id=account.id,
-        platform=account.platform.value,
-        platform_account_id=account.platform_account_id,
-        platform_account_name=account.platform_account_name,
-        status=account.status.value,
-        identity_group_id=account.identity_group_id,
+    return RedirectResponse(
+        url=f"{settings.frontend_url}/connect/sync?platform=shop&account_id={account.id}",
+        status_code=303,
     )
 
 
@@ -154,7 +151,7 @@ async def developer_callback(
     code: str = Query(...),
     state: str = Query(...),
     db: DBSession = ...,  # type: ignore[assignment]
-) -> ConnectedAccountResponse:
+) -> RedirectResponse:
     """Handle TikTok Developer OAuth callback."""
     parts = state.split(":")
     if len(parts) != 2:
@@ -205,13 +202,9 @@ async def developer_callback(
     )
     db.add(token_vault)
 
-    return ConnectedAccountResponse(
-        id=account.id,
-        platform=account.platform.value,
-        platform_account_id=account.platform_account_id,
-        platform_account_name=account.platform_account_name,
-        status=account.status.value,
-        identity_group_id=account.identity_group_id,
+    return RedirectResponse(
+        url=f"{settings.frontend_url}/connect/sync?platform=developer&account_id={account.id}",
+        status_code=303,
     )
 
 
@@ -239,7 +232,7 @@ async def marketing_callback(
     auth_code: str = Query(...),
     state: str = Query(...),
     db: DBSession = ...,  # type: ignore[assignment]
-) -> ConnectedAccountResponse:
+) -> RedirectResponse:
     """Handle TikTok Marketing OAuth callback."""
     parts = state.split(":")
     if len(parts) != 2:
@@ -286,13 +279,9 @@ async def marketing_callback(
     )
     db.add(token_vault)
 
-    return ConnectedAccountResponse(
-        id=account.id,
-        platform=account.platform.value,
-        platform_account_id=account.platform_account_id,
-        platform_account_name=account.platform_account_name,
-        status=account.status.value,
-        identity_group_id=account.identity_group_id,
+    return RedirectResponse(
+        url=f"{settings.frontend_url}/connect/sync?platform=marketing&account_id={account.id}",
+        status_code=303,
     )
 
 
