@@ -11,6 +11,8 @@ from backend.modules.advertising.routes import router as ads_router
 from backend.modules.analytics.routes import router as analytics_router
 from backend.modules.commerce.routes import router as commerce_router
 from backend.modules.connect.routes import router as connect_router
+from backend.modules.connect.sync_routes import router as sync_router
+from backend.modules.connect.ws import router as connect_ws_router
 from backend.modules.content.routes import router as content_router
 from backend.modules.creators.routes import router as creators_router
 from backend.modules.intelligence.routes import router as intelligence_router
@@ -49,6 +51,8 @@ def create_app() -> FastAPI:
     api_prefix = "/api"
     app.include_router(auth_router, prefix=api_prefix)
     app.include_router(connect_router, prefix=api_prefix)
+    app.include_router(sync_router, prefix=api_prefix)
+    app.include_router(connect_ws_router, prefix=api_prefix)
     app.include_router(commerce_router, prefix=api_prefix)
     app.include_router(ads_router, prefix=api_prefix)
     app.include_router(content_router, prefix=api_prefix)
