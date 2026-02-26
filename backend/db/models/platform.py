@@ -1,7 +1,8 @@
 import enum
 import uuid
+from datetime import datetime
 
-from sqlalchemy import Enum, ForeignKey, String, Text
+from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -21,6 +22,13 @@ class AccountStatus(str, enum.Enum):
     ERROR = "error"
     DISCONNECTED = "disconnected"
     REFRESHING = "refreshing"
+
+
+class SyncJobStatus(str, enum.Enum):
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
 
 
 class ConnectedAccount(Base, UUIDMixin, TimestampMixin):
@@ -113,3 +121,45 @@ class PlatformAppCredential(Base, UUIDMixin, TimestampMixin):
     encrypted_app_secret: Mapped[str] = mapped_column(Text, nullable=False)
     redirect_uri: Mapped[str] = mapped_column(String(512), nullable=False)
     extra_config: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+
+
+class SyncJob(Base, UUIDMixin, TimestampMixin):
+    __tablename__ = "sync_jobs"
+
+    workspace_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("workspaces.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    connected_account_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("connected_accounts.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    platform: Mapped[str] = mapped_column(String(50), nullable=False)
+    sync_type: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+        comment="Type of sync: orders, products, campaigns, videos, etc.",
+    )
+    status: Mapped[SyncJobStatus] = mapped_column(
+        Enum(SyncJobStatus, name="sync_job_status_enum"),
+        nullable=False,
+        default=SyncJobStatus.PENDING,
+    )
+    items_synced: Mapped[int] = mapped_column(Integer, default=0)
+    items_total: Mapped[int | None] = mapped_column(nullable=True)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    started_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    completed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    def __init__(self, **kwargs: object) -> None:
+        if "items_synced" not in kwargs:
+            kwargs["items_synced"] = 0
+        super().__init__(**kwargs)
