@@ -62,7 +62,11 @@ class TestGetOrCreateUserNew:
         user_result = MagicMock()
         user_result.scalar_one_or_none.return_value = None
 
-        db.execute.side_effect = [identity_result, user_result]
+        # Third query (membership lookup in _ensure_membership) -> None (new user)
+        membership_result = MagicMock()
+        membership_result.scalar_one_or_none.return_value = None
+
+        db.execute.side_effect = [identity_result, user_result, membership_result]
 
         # Make flush assign a UUID to the user
         user_id = uuid.uuid4()
@@ -112,9 +116,15 @@ class TestGetOrCreateUserExisting:
         user = _make_user(email="existing@acme.com")
         identity = _make_identity(user)
 
-        result_mock = MagicMock()
-        result_mock.scalar_one_or_none.return_value = identity
-        db.execute.return_value = result_mock
+        # First query (identity lookup) -> found
+        identity_mock = MagicMock()
+        identity_mock.scalar_one_or_none.return_value = identity
+
+        # Second query (membership lookup in _ensure_membership) -> has membership
+        membership_mock = MagicMock()
+        membership_mock.scalar_one_or_none.return_value = MagicMock()  # existing membership
+
+        db.execute.side_effect = [identity_mock, membership_mock]
 
         svc = SocialAuthService(db)
         returned_user, is_new = await svc.get_or_create_user(
@@ -125,8 +135,7 @@ class TestGetOrCreateUserExisting:
 
         assert is_new is False
         assert returned_user is user
-        # Only one execute call (identity lookup), no user lookup needed
-        db.execute.assert_awaited_once()
+        assert db.execute.await_count == 2  # identity lookup + membership check
 
 
 @pytest.mark.unit
@@ -134,7 +143,8 @@ class TestGetOrCreateUserLinkExisting:
     """When no identity but user with same email exists -> link, not create."""
 
     @pytest.mark.asyncio
-    async def test_links_identity_to_existing_user(self) -> None:
+    async def test_links_identity_to_existing_user_with_membership(self) -> None:
+        """Existing user with email match who already has a membership."""
         db = _make_mock_db()
 
         existing_user = _make_user(email="link@acme.com")
@@ -145,7 +155,11 @@ class TestGetOrCreateUserLinkExisting:
         user_result = MagicMock()
         user_result.scalar_one_or_none.return_value = existing_user
 
-        db.execute.side_effect = [identity_result, user_result]
+        # Membership lookup -> has membership
+        membership_result = MagicMock()
+        membership_result.scalar_one_or_none.return_value = MagicMock()
+
+        db.execute.side_effect = [identity_result, user_result, membership_result]
 
         svc = SocialAuthService(db)
         user, is_new = await svc.get_or_create_user(
@@ -156,9 +170,43 @@ class TestGetOrCreateUserLinkExisting:
 
         assert is_new is False
         assert user is existing_user
-        # Only SocialIdentity should be added (no User, Org, etc.)
+        # Only SocialIdentity should be added (user already has org/workspace)
         added_types = [type(call[0][0]).__name__ for call in db.add.call_args_list]
         assert added_types == ["SocialIdentity"]
+
+    @pytest.mark.asyncio
+    async def test_links_identity_and_creates_workspace_for_orphan_user(self) -> None:
+        """Existing user with email match but NO membership gets org/workspace created."""
+        db = _make_mock_db()
+
+        existing_user = _make_user(email="orphan@acme.com")
+
+        identity_result = MagicMock()
+        identity_result.scalar_one_or_none.return_value = None
+
+        user_result = MagicMock()
+        user_result.scalar_one_or_none.return_value = existing_user
+
+        # Membership lookup -> None (orphan user)
+        membership_result = MagicMock()
+        membership_result.scalar_one_or_none.return_value = None
+
+        db.execute.side_effect = [identity_result, user_result, membership_result]
+
+        svc = SocialAuthService(db)
+        user, is_new = await svc.get_or_create_user(
+            provider=SocialProvider.GOOGLE,
+            provider_user_id="google_789",
+            email="orphan@acme.com",
+        )
+
+        assert is_new is False
+        assert user is existing_user
+        added_types = [type(call[0][0]).__name__ for call in db.add.call_args_list]
+        assert "Organization" in added_types
+        assert "Workspace" in added_types
+        assert "Membership" in added_types
+        assert "SocialIdentity" in added_types
 
 
 @pytest.mark.unit

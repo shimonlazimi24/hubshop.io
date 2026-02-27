@@ -16,6 +16,31 @@ class SocialAuthService:
     def __init__(self, db: AsyncSession) -> None:
         self._db = db
 
+    async def _ensure_membership(self, user: User, email: str | None = None) -> None:
+        """Create org + workspace + membership for a user that has none."""
+        mem_result = await self._db.execute(
+            select(Membership).where(Membership.user_id == user.id).limit(1)
+        )
+        if mem_result.scalar_one_or_none():
+            return
+
+        org_name = self._org_name_from_email(email) if email else "My Organization"
+        slug = org_name.lower().replace(" ", "-")[:50]
+        org = Organization(name=org_name, slug=f"{slug}-{str(user.id)[:8]}")
+        self._db.add(org)
+        await self._db.flush()
+
+        workspace = Workspace(name="Default", slug="default", organization_id=org.id)
+        self._db.add(workspace)
+        await self._db.flush()
+
+        self._db.add(Membership(
+            user_id=user.id,
+            organization_id=org.id,
+            workspace_id=workspace.id,
+            role=Role.OWNER,
+        ))
+
     async def get_or_create_user(
         self,
         *,
@@ -36,6 +61,7 @@ class SocialAuthService:
         )
         existing = result.scalar_one_or_none()
         if existing:
+            await self._ensure_membership(existing.user, existing.email)
             return existing.user, False
 
         # Check if user with this email exists (link identity)
@@ -46,7 +72,6 @@ class SocialAuthService:
 
         is_new = user is None
         if is_new:
-            org_name = self._org_name_from_email(email) if email else "My Organization"
             user = User(
                 email=email or f"{provider.value}_{provider_user_id}@frodo.local",
                 full_name=display_name or "Frodo User",
@@ -55,24 +80,7 @@ class SocialAuthService:
             self._db.add(user)
             await self._db.flush()
 
-            slug = org_name.lower().replace(" ", "-")[:50]
-            org = Organization(name=org_name, slug=f"{slug}-{str(user.id)[:8]}")
-            self._db.add(org)
-            await self._db.flush()
-
-            workspace = Workspace(
-                name="Default", slug="default", organization_id=org.id
-            )
-            self._db.add(workspace)
-            await self._db.flush()
-
-            membership = Membership(
-                user_id=user.id,
-                organization_id=org.id,
-                workspace_id=workspace.id,
-                role=Role.OWNER,
-            )
-            self._db.add(membership)
+        await self._ensure_membership(user, email)
 
         identity = SocialIdentity(
             user_id=user.id,
