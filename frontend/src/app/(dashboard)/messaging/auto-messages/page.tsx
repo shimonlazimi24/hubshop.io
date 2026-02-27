@@ -1,182 +1,246 @@
 "use client";
 
-import { useState } from "react";
-import { Bot, MessageCircle, HelpCircle, Megaphone, Play, Pause } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Bot, MessageCircle, HelpCircle, Megaphone, RefreshCw } from "lucide-react";
 import { PageShell } from "@/components/ui/page-shell";
 import { MetricBar } from "@/components/ui/metric-bar";
 import { MetricCard } from "@/components/ui/metric-card";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusBadge, type StatusVariant } from "@/components/ui/status-badge";
 import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Modal } from "@/components/ui/modal";
 import { toast } from "@/lib/toast-store";
+import { listAutoMessages, createAutoMessage, toggleAutoMessage, deleteAutoMessage, listConnectedAccounts } from "@/lib/api";
+import { getAccessToken } from "@/lib/auth";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import { cn } from "@/lib/utils";
 
-type AutoMessageType = "welcome" | "suggested_questions" | "chat_prompts";
+type TabType = "WELCOME" | "SUGGESTED_QUESTION" | "CHAT_PROMPT";
 
-interface WelcomeMessage { id: string; message: string; triggerCondition: string; status: "active" | "paused"; sentCount: number; }
-interface SuggestedQuestion { id: string; question: string; answer: string; clickCount: number; status: "active" | "paused"; }
-interface ChatPrompt { id: string; title: string; message: string; schedule: string; targetAudience: string; status: "active" | "paused"; sentCount: number; }
+interface AutoMessageItem {
+  id: string;
+  messageType: string;
+  content: string;
+  isActive: boolean;
+}
 
-const MOCK_WELCOME: WelcomeMessage[] = [
-  { id: "wm-1", message: "Hi there! Thanks for visiting our store. How can we help you today?", triggerCondition: "First-time visitor", status: "active", sentCount: 4_560 },
-  { id: "wm-2", message: "Welcome back! We have new arrivals since your last visit. Check them out!", triggerCondition: "Returning customer", status: "active", sentCount: 2_340 },
-  { id: "wm-3", message: "Hey! Looks like you left something in your cart. Need help completing your purchase?", triggerCondition: "Abandoned cart (24h)", status: "active", sentCount: 890 },
-  { id: "wm-4", message: "Thank you for your recent purchase! How are you enjoying your new product?", triggerCondition: "Post-purchase (7 days)", status: "paused", sentCount: 567 },
-];
+const STATUS_VARIANT: Record<string, StatusVariant> = { true: "active", false: "paused" };
 
-const MOCK_QUESTIONS: SuggestedQuestion[] = [
-  { id: "sq-1", question: "What are your shipping options?", answer: "We offer Standard (5-7 days), Express (2-3 days), and Next Day delivery.", clickCount: 1_230, status: "active" },
-  { id: "sq-2", question: "How do I track my order?", answer: "You can track your order using the tracking link sent to your email or in your account dashboard.", clickCount: 980, status: "active" },
-  { id: "sq-3", question: "What is your return policy?", answer: "We accept returns within 30 days of purchase. Items must be in original condition.", clickCount: 870, status: "active" },
-  { id: "sq-4", question: "Do you ship internationally?", answer: "Yes! We ship to over 50 countries. Shipping times vary by destination.", clickCount: 650, status: "active" },
-  { id: "sq-5", question: "How can I contact customer support?", answer: "You can reach us via this chat, email at support@store.com, or call us at 1-800-XXX.", clickCount: 420, status: "paused" },
-];
-
-const MOCK_PROMPTS: ChatPrompt[] = [
-  { id: "cp-1", title: "Weekend Sale Reminder", message: "Don't miss our weekend flash sale! Up to 50% off selected items.", schedule: "Every Friday 10:00 AM", targetAudience: "All subscribers", status: "active", sentCount: 3_200 },
-  { id: "cp-2", title: "New Product Alert", message: "We just launched something you're going to love! Check out our latest collection.", schedule: "On new product publish", targetAudience: "Engaged customers", status: "active", sentCount: 1_800 },
-  { id: "cp-3", title: "Review Request", message: "How was your recent order? We'd love to hear your feedback!", schedule: "14 days post-purchase", targetAudience: "Recent buyers", status: "active", sentCount: 950 },
-  { id: "cp-4", title: "Re-engagement", message: "We miss you! Come back and enjoy 10% off your next order.", schedule: "30 days inactive", targetAudience: "Lapsed customers", status: "paused", sentCount: 450 },
-];
-
-const STATUS_VARIANT: Record<string, StatusVariant> = { active: "active", paused: "paused" };
+function mapAutoMessage(raw: Record<string, unknown>): AutoMessageItem {
+  return {
+    id: String(raw.id || raw.tiktok_auto_message_id || ""),
+    messageType: String(raw.message_type || "WELCOME"),
+    content: String(raw.content || ""),
+    isActive: Boolean(raw.is_active ?? raw.enabled ?? true),
+  };
+}
 
 export default function AutoMessagesPage() {
-  const [tab, setTab] = useState<AutoMessageType>("welcome");
+  const { workspaceId } = useWorkspace();
+  const [tab, setTab] = useState<TabType>("WELCOME");
+  const [autoMessages, setAutoMessages] = useState<AutoMessageItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
+  const [createContent, setCreateContent] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [connectedAccountId, setConnectedAccountId] = useState<string | null>(null);
 
-  const totalSent = MOCK_WELCOME.reduce((s, w) => s + w.sentCount, 0) + MOCK_PROMPTS.reduce((s, p) => s + p.sentCount, 0);
-  const activeWelcome = MOCK_WELCOME.filter((w) => w.status === "active").length;
-  const totalClicks = MOCK_QUESTIONS.reduce((s, q) => s + q.clickCount, 0);
+  const token = getAccessToken();
 
-  const welcomeColumns: Column<WelcomeMessage>[] = [
-    {
-      key: "message",
-      header: "Message",
-      render: (row) => (
-        <div>
-          <p className="text-xs font-medium text-gray-500 mb-1">Trigger: {row.triggerCondition}</p>
-          <p className="text-sm text-gray-900 bg-gray-50 rounded-lg px-3 py-2">{row.message}</p>
-        </div>
-      ),
-    },
-    { key: "sent", header: "Sent", render: (row) => <span className="text-sm tabular-nums">{row.sentCount.toLocaleString()}</span> },
-    { key: "status", header: "Status", render: (row) => <StatusBadge variant={STATUS_VARIANT[row.status] || "draft"} label={row.status} /> },
-  ];
+  useEffect(() => {
+    if (!token || !workspaceId) return;
+    listConnectedAccounts(workspaceId, token)
+      .then((accounts) => {
+        const marketingAccount = accounts.find((a) => a.platform === "marketing");
+        if (marketingAccount) setConnectedAccountId(marketingAccount.id);
+      })
+      .catch(console.error);
+  }, [token, workspaceId]);
 
-  const questionColumns: Column<SuggestedQuestion>[] = [
-    {
-      key: "question",
-      header: "Question",
-      render: (row) => (
-        <div>
-          <p className="text-sm font-medium text-gray-900">{row.question}</p>
-          <p className="text-xs text-gray-500 mt-0.5">{row.answer}</p>
-        </div>
-      ),
-    },
-    { key: "clicks", header: "Clicks", render: (row) => <span className="text-sm tabular-nums">{row.clickCount.toLocaleString()}</span> },
-    { key: "status", header: "Status", render: (row) => <StatusBadge variant={STATUS_VARIANT[row.status] || "draft"} label={row.status} /> },
-  ];
+  useEffect(() => {
+    loadAutoMessages();
+  }, [connectedAccountId]);
 
-  const promptColumns: Column<ChatPrompt>[] = [
-    {
-      key: "prompt",
-      header: "Prompt",
-      render: (row) => (
-        <div>
-          <p className="text-sm font-medium text-gray-900">{row.title}</p>
-          <p className="text-xs text-gray-500 mt-0.5">{row.message}</p>
-          <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
-            <span>Schedule: {row.schedule}</span>
-            <span>Audience: {row.targetAudience}</span>
-          </div>
-        </div>
-      ),
-    },
-    { key: "sent", header: "Sent", render: (row) => <span className="text-sm tabular-nums">{row.sentCount.toLocaleString()}</span> },
-    { key: "status", header: "Status", render: (row) => <StatusBadge variant={STATUS_VARIANT[row.status] || "draft"} label={row.status} /> },
-  ];
-
-  function handleCreate() {
-    toast.success("Auto-message created successfully");
-    setShowCreate(false);
+  function loadAutoMessages() {
+    if (!token || !connectedAccountId) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    listAutoMessages(connectedAccountId, token)
+      .then((data) => {
+        setAutoMessages((data.auto_messages || []).map(mapAutoMessage));
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Failed to load auto-messages");
+      })
+      .finally(() => setLoading(false));
   }
+
+  const filtered = autoMessages.filter((m) => m.messageType === tab);
+
+  async function handleCreate() {
+    if (!token || !connectedAccountId || !createContent.trim()) return;
+    setCreating(true);
+    try {
+      await createAutoMessage(connectedAccountId, tab, createContent.trim(), token);
+      toast.success("Auto-message created");
+      setShowCreate(false);
+      setCreateContent("");
+      loadAutoMessages();
+    } catch {
+      toast.error("Failed to create auto-message");
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  async function handleToggle(item: AutoMessageItem) {
+    if (!token || !connectedAccountId) return;
+    try {
+      await toggleAutoMessage(item.id, connectedAccountId, !item.isActive, token);
+      toast.success(item.isActive ? "Auto-message paused" : "Auto-message activated");
+      loadAutoMessages();
+    } catch {
+      toast.error("Failed to toggle auto-message");
+    }
+  }
+
+  async function handleDelete(item: AutoMessageItem) {
+    if (!token || !connectedAccountId) return;
+    try {
+      await deleteAutoMessage(item.id, connectedAccountId, token);
+      toast.success("Auto-message deleted");
+      loadAutoMessages();
+    } catch {
+      toast.error("Failed to delete auto-message");
+    }
+  }
+
+  const columns: Column<AutoMessageItem>[] = [
+    {
+      key: "content",
+      header: "Content",
+      render: (row) => (
+        <div>
+          <p className="text-sm text-gray-900 bg-gray-50 rounded-lg px-3 py-2">{row.content}</p>
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (row) => <StatusBadge variant={STATUS_VARIANT[String(row.isActive)] || "draft"} label={row.isActive ? "Active" : "Paused"} />,
+    },
+    {
+      key: "actions",
+      header: "",
+      className: "w-32",
+      render: (row) => (
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => handleToggle(row)}
+            className="px-2.5 py-1 text-xs font-medium rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+          >
+            {row.isActive ? "Pause" : "Activate"}
+          </button>
+          <button
+            onClick={() => handleDelete(row)}
+            className="px-2.5 py-1 text-xs font-medium rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+          >
+            Delete
+          </button>
+        </div>
+      ),
+    },
+  ];
+
+  const tabConfig = [
+    { key: "WELCOME" as const, label: "Welcome Messages", icon: MessageCircle },
+    { key: "SUGGESTED_QUESTION" as const, label: "Suggested Questions", icon: HelpCircle },
+    { key: "CHAT_PROMPT" as const, label: "Chat Prompts", icon: Megaphone },
+  ];
 
   return (
     <PageShell
       header={
         <MetricBar>
-          <MetricCard label="Total Sent" value={totalSent.toLocaleString()} icon={Bot} />
-          <MetricCard label="Active Welcome" value={activeWelcome} icon={MessageCircle} />
-          <MetricCard label="FAQ Clicks" value={totalClicks.toLocaleString()} icon={HelpCircle} />
-          <MetricCard label="Active Prompts" value={MOCK_PROMPTS.filter((p) => p.status === "active").length} icon={Megaphone} />
+          <MetricCard label="Total Auto-Messages" value={autoMessages.length} icon={Bot} />
+          <MetricCard label="Active" value={autoMessages.filter((m) => m.isActive).length} icon={MessageCircle} />
+          <MetricCard label="Welcome" value={autoMessages.filter((m) => m.messageType === "WELCOME").length} icon={MessageCircle} />
+          <MetricCard label="Prompts" value={autoMessages.filter((m) => m.messageType === "CHAT_PROMPT").length} icon={Megaphone} />
         </MetricBar>
       }
       aside={
         <InsightPanel>
-          <InsightItem title="Best performer" description="'First-time visitor' welcome message has highest send count (4,560). Consider A/B testing variations." variant="success" />
-          <InsightItem title="Paused messages" description="1 welcome message and 1 prompt are paused. Review and reactivate if relevant." variant="warning" />
+          <InsightItem title="Auto-messages" description="Auto-messages are managed via the TikTok Business Messaging API. Changes sync in real-time." variant="default" />
         </InsightPanel>
       }
     >
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex gap-2">
-          {([
-            { key: "welcome" as const, label: "Welcome Messages", icon: MessageCircle },
-            { key: "suggested_questions" as const, label: "Suggested Questions", icon: HelpCircle },
-            { key: "chat_prompts" as const, label: "Chat Prompts", icon: Megaphone },
-          ]).map((t) => (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors",
-                tab === t.key ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              )}
-            >
-              <t.icon className="h-3.5 w-3.5" />
-              {t.label}
-            </button>
-          ))}
-        </div>
-        <button onClick={() => setShowCreate(true)} className="px-4 py-2 bg-coral text-white rounded-lg text-sm font-medium hover:bg-coral/90 transition-colors">
-          Add New
-        </button>
-      </div>
+      {!connectedAccountId && !loading ? (
+        <EmptyState
+          icon={Bot}
+          title="No Marketing Account Connected"
+          description="Connect your TikTok Marketing account to manage auto-messages."
+        />
+      ) : (
+        <>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex gap-2">
+              {tabConfig.map((t) => (
+                <button
+                  key={t.key}
+                  onClick={() => setTab(t.key)}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors",
+                    tab === t.key ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  )}
+                >
+                  <t.icon className="h-3.5 w-3.5" />
+                  {t.label}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={loadAutoMessages} disabled={loading} className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50">
+                <RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} />
+              </button>
+              <button onClick={() => setShowCreate(true)} className="px-4 py-2 bg-coral text-white rounded-lg text-sm font-medium hover:bg-coral/90 transition-colors">
+                Add New
+              </button>
+            </div>
+          </div>
 
-      {tab === "welcome" && (
-        <DataTable columns={welcomeColumns} data={MOCK_WELCOME} keyExtractor={(row) => row.id} emptyTitle="No welcome messages" emptyDescription="Create a welcome message to greet customers" />
-      )}
-      {tab === "suggested_questions" && (
-        <DataTable columns={questionColumns} data={MOCK_QUESTIONS} keyExtractor={(row) => row.id} emptyTitle="No suggested questions" emptyDescription="Add FAQ questions for quick customer help" />
-      )}
-      {tab === "chat_prompts" && (
-        <DataTable columns={promptColumns} data={MOCK_PROMPTS} keyExtractor={(row) => row.id} emptyTitle="No chat prompts" emptyDescription="Create chat prompts to engage customers" />
+          <DataTable
+            columns={columns}
+            data={filtered}
+            keyExtractor={(row) => row.id}
+            loading={loading}
+            emptyTitle={`No ${tab.toLowerCase().replace("_", " ")}s`}
+            emptyDescription={`Create a ${tab.toLowerCase().replace("_", " ")} to get started`}
+          />
+        </>
       )}
 
-      <Modal open={showCreate} onClose={() => setShowCreate(false)} title={`New ${tab === "welcome" ? "Welcome Message" : tab === "suggested_questions" ? "Suggested Question" : "Chat Prompt"}`}>
+      <Modal open={showCreate} onClose={() => setShowCreate(false)} title={`New ${tab === "WELCOME" ? "Welcome Message" : tab === "SUGGESTED_QUESTION" ? "Suggested Question" : "Chat Prompt"}`}>
         <div className="space-y-4">
-          {tab === "suggested_questions" && (
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Question *</label>
-              <input type="text" placeholder="Question text" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-coral/30 focus:border-coral outline-none" />
-            </div>
-          )}
-          {tab === "chat_prompts" && (
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Title *</label>
-              <input type="text" placeholder="Prompt title" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-coral/30 focus:border-coral outline-none" />
-            </div>
-          )}
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">{tab === "suggested_questions" ? "Answer" : "Message"} *</label>
-            <textarea placeholder={tab === "suggested_questions" ? "Answer text" : "Message content"} rows={3} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-coral/30 focus:border-coral outline-none resize-none" />
+            <label className="block text-xs font-medium text-gray-600 mb-1">Content *</label>
+            <textarea
+              value={createContent}
+              onChange={(e) => setCreateContent(e.target.value)}
+              placeholder="Message content..."
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-coral/30 focus:border-coral outline-none resize-none"
+            />
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button onClick={() => setShowCreate(false)} className="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50">Cancel</button>
-            <button onClick={handleCreate} className="px-4 py-2 bg-coral text-white rounded-lg text-sm font-medium hover:bg-coral/90">Create</button>
+            <button onClick={handleCreate} disabled={!createContent.trim() || creating} className="px-4 py-2 bg-coral text-white rounded-lg text-sm font-medium hover:bg-coral/90 disabled:opacity-50">
+              {creating ? "Creating..." : "Create"}
+            </button>
           </div>
         </div>
       </Modal>

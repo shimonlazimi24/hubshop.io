@@ -1677,3 +1677,87 @@ export function createApiKey(
 export function revokeApiKey(keyId: string, token: string): Promise<ApiKeyItem> {
   return apiFetch(`/analytics/api-keys/${keyId}`, { method: "DELETE", token });
 }
+
+// Messaging - Business Conversations
+export function listMessagingConversations(
+  connectedAccountId: string,
+  token: string,
+  page: number = 1,
+  pageSize: number = 20
+): Promise<{ conversations: Record<string, unknown>[]; total: number }> {
+  return apiFetch(
+    `/messaging/conversations?connected_account_id=${connectedAccountId}&page=${page}&page_size=${pageSize}`,
+    { token }
+  );
+}
+
+export function getMessagingMessages(
+  conversationId: string,
+  connectedAccountId: string,
+  token: string,
+  page: number = 1,
+  pageSize: number = 50
+): Promise<{ messages: Record<string, unknown>[]; total: number }> {
+  return apiFetch(
+    `/messaging/conversations/${conversationId}/messages?connected_account_id=${connectedAccountId}&page=${page}&page_size=${pageSize}`,
+    { token }
+  );
+}
+
+export function sendMessagingMessage(
+  conversationId: string,
+  connectedAccountId: string,
+  content: string,
+  token: string,
+  mediaUrl?: string
+): Promise<Record<string, unknown>> {
+  return apiFetch(
+    `/messaging/conversations/${conversationId}/messages?connected_account_id=${connectedAccountId}`,
+    { method: "POST", body: JSON.stringify({ content, media_url: mediaUrl }), token }
+  );
+}
+
+export function listAutoMessages(
+  connectedAccountId: string,
+  token: string
+): Promise<{ auto_messages: Record<string, unknown>[] }> {
+  return apiFetch(`/messaging/auto-messages?connected_account_id=${connectedAccountId}`, { token });
+}
+
+export function createAutoMessage(
+  connectedAccountId: string,
+  messageType: string,
+  content: string,
+  token: string
+): Promise<Record<string, unknown>> {
+  return apiFetch(`/messaging/auto-messages`, {
+    method: "POST",
+    body: JSON.stringify({ connected_account_id: connectedAccountId, message_type: messageType, content }),
+    token,
+  });
+}
+
+export function toggleAutoMessage(
+  autoMessageId: string,
+  connectedAccountId: string,
+  enabled: boolean,
+  token: string
+): Promise<Record<string, unknown>> {
+  return apiFetch(`/messaging/auto-messages/${autoMessageId}/toggle`, {
+    method: "POST",
+    body: JSON.stringify({ connected_account_id: connectedAccountId, enabled }),
+    token,
+  });
+}
+
+export function deleteAutoMessage(
+  autoMessageId: string,
+  connectedAccountId: string,
+  token: string
+): Promise<Record<string, unknown>> {
+  return apiFetch(`/messaging/auto-messages/${autoMessageId}`, {
+    method: "DELETE",
+    body: JSON.stringify({ connected_account_id: connectedAccountId }),
+    token,
+  });
+}
