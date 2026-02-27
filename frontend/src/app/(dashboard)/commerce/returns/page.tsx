@@ -19,8 +19,8 @@ import { StatusBadge, type StatusVariant } from "@/components/ui/status-badge";
 import { ActionMenu } from "@/components/ui/action-menu";
 import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
 import { toast } from "@/lib/toast-store";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
-const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 const STATUS_MAP: Record<string, StatusVariant> = {
   pending: "warning",
@@ -33,6 +33,7 @@ const STATUS_MAP: Record<string, StatusVariant> = {
 };
 
 export default function ReturnsPage() {
+  const { workspaceId: WORKSPACE_ID } = useWorkspace();
   const [returns, setReturns] = useState<PaginatedResponse<ReturnRequest> | null>(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -46,7 +47,7 @@ export default function ReturnsPage() {
   }, [platform, page]);
 
   function loadReturns() {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     setLoading(true);
     listReturns(WORKSPACE_ID, token, { platform: platformParam, page })
       .then(setReturns)
@@ -55,7 +56,7 @@ export default function ReturnsPage() {
   }
 
   async function handleApprove(returnId: string) {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     try {
       await approveReturn(returnId, token);
       toast.success("Return approved");
@@ -66,7 +67,7 @@ export default function ReturnsPage() {
   }
 
   async function handleReject(returnId: string) {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     try {
       await rejectReturn(returnId, token);
       toast.success("Return rejected");

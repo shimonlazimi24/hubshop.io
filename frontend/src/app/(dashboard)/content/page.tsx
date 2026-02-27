@@ -13,8 +13,8 @@ import { FilterBar, FilterDropdown } from "@/components/ui/filter-bar";
 import { EmptyState } from "@/components/ui/empty-state";
 import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
 import { toast } from "@/lib/toast-store";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
-const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 function formatNumber(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
@@ -23,6 +23,7 @@ function formatNumber(n: number): string {
 }
 
 export default function VideosPage() {
+  const { workspaceId: WORKSPACE_ID } = useWorkspace();
   const [data, setData] = useState<PaginatedResponse<VideoSummary> | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -37,7 +38,7 @@ export default function VideosPage() {
   }, [search, statusFilter, page]);
 
   function loadVideos() {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     setLoading(true);
     listVideos(WORKSPACE_ID, token, {
       search: search || undefined,
@@ -50,7 +51,7 @@ export default function VideosPage() {
   }
 
   async function handleSync() {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     setSyncing(true);
     try {
       await syncVideos(WORKSPACE_ID, token);

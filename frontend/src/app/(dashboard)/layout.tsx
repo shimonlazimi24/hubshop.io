@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { getMe, type UserResponse } from "@/lib/api";
 import { clearTokens, getAccessToken, isAuthenticated } from "@/lib/auth";
 import { useSidebarState } from "@/hooks/useSidebarState";
+import { WorkspaceContext } from "@/hooks/useWorkspace";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { TopBar } from "@/components/dashboard/top-bar";
 import { CommandPalette } from "@/components/dashboard/command-palette";
@@ -97,49 +98,53 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (loading) return <DashboardSkeleton />;
 
+  const workspaceId = user?.workspace_id ?? null;
+
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
-      {/* Gradient accent line */}
-      <div className="fixed inset-x-0 top-0 z-50 h-0.5 gradient-bg-horizontal" />
+    <WorkspaceContext value={{ user, workspaceId }}>
+      <div className="flex h-screen overflow-hidden bg-gray-50">
+        {/* Gradient accent line */}
+        <div className="fixed inset-x-0 top-0 z-50 h-0.5 gradient-bg-horizontal" />
 
-      {/* Sidebar */}
-      <Sidebar
-        collapsed={collapsed}
-        onToggle={toggle}
-        user={user}
-        onLogout={handleLogout}
-      />
-
-      {/* Main area */}
-      <div className="flex flex-1 flex-col overflow-hidden pt-0.5">
-        <TopBar
-          onOpenCommandPalette={() => setCommandPaletteOpen(true)}
+        {/* Sidebar */}
+        <Sidebar
+          collapsed={collapsed}
+          onToggle={toggle}
           user={user}
           onLogout={handleLogout}
         />
 
-        {/* Page content with subtle fade transition */}
-        <main className="flex-1 overflow-y-auto">
-          <motion.div
-            key={pathname}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
-            className="p-4 md:p-6 lg:p-8"
-          >
-            {children}
-          </motion.div>
-        </main>
+        {/* Main area */}
+        <div className="flex flex-1 flex-col overflow-hidden pt-0.5">
+          <TopBar
+            onOpenCommandPalette={() => setCommandPaletteOpen(true)}
+            user={user}
+            onLogout={handleLogout}
+          />
+
+          {/* Page content with subtle fade transition */}
+          <main className="flex-1 overflow-y-auto">
+            <motion.div
+              key={pathname}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
+              className="p-4 md:p-6 lg:p-8"
+            >
+              {children}
+            </motion.div>
+          </main>
+        </div>
+
+        {/* Command Palette overlay */}
+        <CommandPalette
+          open={commandPaletteOpen}
+          onClose={() => setCommandPaletteOpen(false)}
+        />
+
+        {/* Toast notifications */}
+        <ToastContainer />
       </div>
-
-      {/* Command Palette overlay */}
-      <CommandPalette
-        open={commandPaletteOpen}
-        onClose={() => setCommandPaletteOpen(false)}
-      />
-
-      {/* Toast notifications */}
-      <ToastContainer />
-    </div>
+    </WorkspaceContext>
   );
 }

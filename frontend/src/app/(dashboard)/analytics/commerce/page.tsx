@@ -12,8 +12,8 @@ import { DataTable, type Column } from "@/components/ui/data-table";
 import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
 import { toast } from "@/lib/toast-store";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
-const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 interface RevenueRow {
   date: string;
@@ -28,6 +28,7 @@ interface ProductRow {
 }
 
 export default function CommerceAnalyticsPage() {
+  const { workspaceId: WORKSPACE_ID } = useWorkspace();
   const [revenueData, setRevenueData] = useState<RevenueRow[]>([]);
   const [topProducts, setTopProducts] = useState<ProductRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,7 +37,7 @@ export default function CommerceAnalyticsPage() {
   const token = getAccessToken();
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     setLoading(true);
     Promise.all([
       getRevenueVsSpend(WORKSPACE_ID, token, Number(days)),

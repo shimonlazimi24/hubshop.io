@@ -13,10 +13,11 @@ import { DataTable, type Column } from "@/components/ui/data-table";
 import { ActionMenu } from "@/components/ui/action-menu";
 import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
-const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 export default function PixelsPage() {
+  const { workspaceId: WORKSPACE_ID } = useWorkspace();
   const [data, setData] = useState<PaginatedResponse<Pixel> | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedPixel, setSelectedPixel] = useState<string | null>(null);
@@ -27,7 +28,7 @@ export default function PixelsPage() {
   const token = getAccessToken();
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     listPixels(WORKSPACE_ID, token, { platform: platformParam })
       .then(setData)
       .catch(console.error)
@@ -35,7 +36,7 @@ export default function PixelsPage() {
   }, [platform]);
 
   async function handleGetCode(pixelId: string) {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     setSelectedPixel(pixelId);
     try {
       const result = await getPixelCode(pixelId, token);

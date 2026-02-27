@@ -6,10 +6,11 @@ import { createCreatorCampaign } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
 import { toast } from "@/lib/toast-store";
 import { PageShell } from "@/components/ui/page-shell";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
-const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 export default function NewCreatorCampaignPage() {
+  const { workspaceId: WORKSPACE_ID } = useWorkspace();
   const router = useRouter();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -23,7 +24,7 @@ export default function NewCreatorCampaignPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!token || !name) return;
+    if (!token || !WORKSPACE_ID || !name) return;
     setSubmitting(true);
     setError("");
     try {

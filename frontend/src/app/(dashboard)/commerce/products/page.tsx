@@ -21,8 +21,8 @@ import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusBadge, type StatusVariant } from "@/components/ui/status-badge";
 import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
 import { toast } from "@/lib/toast-store";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
-const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 const STATUS_MAP: Record<string, StatusVariant> = {
   live: "active",
@@ -35,6 +35,7 @@ const STATUS_MAP: Record<string, StatusVariant> = {
 };
 
 export default function ProductsPage() {
+  const { workspaceId: WORKSPACE_ID } = useWorkspace();
   const [products, setProducts] = useState<PaginatedResponse<ProductSummary> | null>(null);
   const [shops, setShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,7 +51,7 @@ export default function ProductsPage() {
   const token = getAccessToken();
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     listShops(WORKSPACE_ID, token).then(setShops).catch(console.error);
   }, []);
 
@@ -59,7 +60,7 @@ export default function ProductsPage() {
   }, [search, statusFilter, shopFilter, platform, page]);
 
   function loadProducts() {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     setLoading(true);
     listProducts(WORKSPACE_ID, token, {
       platform: platformParam,
@@ -74,7 +75,7 @@ export default function ProductsPage() {
   }
 
   async function handleSync() {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     setSyncing(true);
     try {
       const result = await syncProducts(WORKSPACE_ID, token);

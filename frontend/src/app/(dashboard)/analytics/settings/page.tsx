@@ -29,8 +29,8 @@ import { Modal } from "@/components/ui/modal";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { toast } from "@/lib/toast-store";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
-const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 const SCOPE_OPTIONS = [
   "commerce:read",
@@ -59,6 +59,7 @@ function formatScopes(scopes: Record<string, unknown>): string {
 }
 
 export default function SettingsPage() {
+  const { workspaceId: WORKSPACE_ID } = useWorkspace();
   const [apiKeys, setApiKeys] = useState<ApiKeyItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -72,7 +73,7 @@ export default function SettingsPage() {
 
   const fetchKeys = useCallback(async () => {
     const token = getAccessToken();
-    if (!token) {
+    if (!token || !WORKSPACE_ID) {
       setLoading(false);
       return;
     }
@@ -92,7 +93,7 @@ export default function SettingsPage() {
 
   async function handleCreate() {
     const token = getAccessToken();
-    if (!token || !formName.trim()) return;
+    if (!token || !WORKSPACE_ID || !formName.trim()) return;
     setCreating(true);
     try {
       const result: ApiKeyCreateResponse = await createApiKey(
@@ -122,7 +123,7 @@ export default function SettingsPage() {
 
   async function handleRevoke(keyId: string) {
     const token = getAccessToken();
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     try {
       await revokeApiKey(keyId, token);
       fetchKeys();

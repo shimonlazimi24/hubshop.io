@@ -30,8 +30,8 @@ import { Modal } from "@/components/ui/modal";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { toast } from "@/lib/toast-store";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
-const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 const FREQUENCY_OPTIONS = ["DAILY", "WEEKLY", "MONTHLY"];
 const FORMAT_OPTIONS = ["CSV", "XLSX", "JSON"];
@@ -49,6 +49,7 @@ function formatDate(dateStr: string | null): string {
 }
 
 export default function ReportsPage() {
+  const { workspaceId: WORKSPACE_ID } = useWorkspace();
   const [reports, setReports] = useState<ScheduledReportSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -65,7 +66,7 @@ export default function ReportsPage() {
 
   const fetchReports = useCallback(async () => {
     const token = getAccessToken();
-    if (!token) {
+    if (!token || !WORKSPACE_ID) {
       setLoading(false);
       return;
     }
@@ -86,7 +87,7 @@ export default function ReportsPage() {
 
   async function handleCreate() {
     const token = getAccessToken();
-    if (!token || !formName.trim()) return;
+    if (!token || !WORKSPACE_ID || !formName.trim()) return;
     setCreating(true);
     try {
       await createScheduledReport(
@@ -121,7 +122,7 @@ export default function ReportsPage() {
 
   async function handleGenerate(reportId: string) {
     const token = getAccessToken();
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     try {
       await generateReport(reportId, token);
       toast.success("Report generation started");
@@ -133,7 +134,7 @@ export default function ReportsPage() {
 
   async function handleDelete(reportId: string) {
     const token = getAccessToken();
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     try {
       await deleteScheduledReport(reportId, token);
       toast.success("Report deleted");

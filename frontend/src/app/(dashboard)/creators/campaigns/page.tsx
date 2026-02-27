@@ -14,8 +14,8 @@ import { StatusBadge, type StatusVariant } from "@/components/ui/status-badge";
 import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
 import { Modal } from "@/components/ui/modal";
 import { ActionMenu } from "@/components/ui/action-menu";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
-const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 const STATUS_MAP: Record<string, StatusVariant> = {
   DRAFT: "draft",
@@ -26,6 +26,7 @@ const STATUS_MAP: Record<string, StatusVariant> = {
 };
 
 export default function CreatorCampaignsPage() {
+  const { workspaceId: WORKSPACE_ID } = useWorkspace();
   const [data, setData] = useState<PaginatedResponse<CreatorCampaign> | null>(null);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -47,7 +48,7 @@ export default function CreatorCampaignsPage() {
   }, [statusFilter, page]);
 
   function loadCampaigns() {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     setLoading(true);
     listCreatorCampaigns(WORKSPACE_ID, token, {
       status_filter: statusFilter || undefined,
@@ -59,7 +60,7 @@ export default function CreatorCampaignsPage() {
   }
 
   async function handleCreate() {
-    if (!token || !formName.trim()) return;
+    if (!token || !WORKSPACE_ID || !formName.trim()) return;
     setCreating(true);
     try {
       await createCreatorCampaign(WORKSPACE_ID, {
@@ -81,7 +82,7 @@ export default function CreatorCampaignsPage() {
   }
 
   async function handleViewInvitations(campaignId: string) {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     setSelectedCampaign(campaignId);
     try {
       const result = await listInvitations(campaignId, token);

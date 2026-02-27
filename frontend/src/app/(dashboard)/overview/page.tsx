@@ -31,8 +31,8 @@ import { MetricCard } from "@/components/ui/metric-card";
 import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
 import { getAccessToken } from "@/lib/auth";
 import { getKpiOverview, type KpiOverview } from "@/lib/api";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
-const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 const ACTION_ITEMS = [
   {
@@ -119,12 +119,13 @@ const RECENT_ACTIVITY = [
 ];
 
 export default function OverviewPage() {
+  const { workspaceId: WORKSPACE_ID } = useWorkspace();
   const [kpi, setKpi] = useState<KpiOverview | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const token = getAccessToken();
-    if (!token) {
+    if (!token || !WORKSPACE_ID) {
       setLoading(false);
       return;
     }

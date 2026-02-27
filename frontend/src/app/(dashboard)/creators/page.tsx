@@ -13,8 +13,8 @@ import { DataTable, type Column } from "@/components/ui/data-table";
 import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge, type StatusVariant } from "@/components/ui/status-badge";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
-const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 const TIER_VARIANT: Record<string, StatusVariant> = {
   NANO: "draft",
@@ -27,6 +27,7 @@ const TIER_VARIANT: Record<string, StatusVariant> = {
 type Tab = "discover" | "saved";
 
 export default function CreatorsDiscoverPage() {
+  const { workspaceId: WORKSPACE_ID } = useWorkspace();
   const [tab, setTab] = useState<Tab>("discover");
   const [profiles, setProfiles] = useState<PaginatedResponse<CreatorSummary> | null>(null);
   const [discoveryResults, setDiscoveryResults] = useState<Record<string, unknown>[]>([]);
@@ -43,7 +44,7 @@ export default function CreatorsDiscoverPage() {
   }, [tab, page]);
 
   function loadProfiles() {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     setLoading(true);
     listCreatorProfiles(WORKSPACE_ID, token, { is_saved: tab === "saved" ? true : undefined, page })
       .then(setProfiles)
@@ -52,7 +53,7 @@ export default function CreatorsDiscoverPage() {
   }
 
   async function handleSearch() {
-    if (!token || !query.trim()) return;
+    if (!token || !WORKSPACE_ID || !query.trim()) return;
     setSearching(true);
     try {
       const result = await discoverCreators(WORKSPACE_ID, { query: query.trim() }, token);
@@ -66,7 +67,7 @@ export default function CreatorsDiscoverPage() {
   }
 
   async function handleSave(creatorId: string, isSaved: boolean) {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     try {
       await saveCreator(creatorId, !isSaved, token);
       toast.success(isSaved ? "Creator removed from saved" : "Creator saved");

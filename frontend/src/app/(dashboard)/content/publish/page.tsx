@@ -18,8 +18,8 @@ import { MetricCard } from "@/components/ui/metric-card";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusBadge, type StatusVariant } from "@/components/ui/status-badge";
 import { toast } from "@/lib/toast-store";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
-const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 const STATUS_MAP: Record<string, StatusVariant> = {
   PENDING: "warning",
@@ -60,6 +60,7 @@ const columns: Column<PublishJob>[] = [
 ];
 
 export default function PublishPage() {
+  const { workspaceId: WORKSPACE_ID } = useWorkspace();
   const [creatorInfo, setCreatorInfo] = useState<CreatorInfo | null>(null);
   const [jobs, setJobs] = useState<PaginatedResponse<PublishJob> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -71,7 +72,7 @@ export default function PublishPage() {
   const token = getAccessToken();
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     Promise.all([
       getCreatorInfo(WORKSPACE_ID, token).catch(() => null),
       listPublishJobs(WORKSPACE_ID, token).catch(() => null),
@@ -84,7 +85,7 @@ export default function PublishPage() {
   }, []);
 
   async function handlePublish() {
-    if (!token || !videoUrl) return;
+    if (!token || !WORKSPACE_ID || !videoUrl) return;
     setPublishing(true);
     try {
       await publishVideo(WORKSPACE_ID, { video_url: videoUrl, title: title || undefined, privacy_level: privacyLevel }, token);

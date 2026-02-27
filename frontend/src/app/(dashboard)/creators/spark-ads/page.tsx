@@ -13,8 +13,8 @@ import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusBadge, type StatusVariant } from "@/components/ui/status-badge";
 import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
 import { Modal } from "@/components/ui/modal";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
-const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 const STATUS_MAP: Record<string, StatusVariant> = {
   PENDING: "warning",
@@ -24,6 +24,7 @@ const STATUS_MAP: Record<string, StatusVariant> = {
 };
 
 export default function SparkAdsPage() {
+  const { workspaceId: WORKSPACE_ID } = useWorkspace();
   const [authorizations, setAuthorizations] = useState<ContentAuthorization[]>([]);
   const [loading, setLoading] = useState(true);
   const [showRequest, setShowRequest] = useState(false);
@@ -41,7 +42,7 @@ export default function SparkAdsPage() {
   }, [statusFilter]);
 
   function loadAuthorizations() {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     setLoading(true);
     listSparkAds(WORKSPACE_ID, token, {
       status_filter: statusFilter || undefined,
@@ -52,7 +53,7 @@ export default function SparkAdsPage() {
   }
 
   async function handleRequest() {
-    if (!token || !formCreatorId.trim() || !formVideoId.trim()) return;
+    if (!token || !WORKSPACE_ID || !formCreatorId.trim() || !formVideoId.trim()) return;
     setRequesting(true);
     try {
       await requestSparkAdAuthorization(WORKSPACE_ID, {

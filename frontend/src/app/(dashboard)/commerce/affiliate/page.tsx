@@ -16,8 +16,8 @@ import { MetricBar } from "@/components/ui/metric-bar";
 import { MetricCard } from "@/components/ui/metric-card";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
-const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 const affiliateColumns: Column<AffiliateProduct>[] = [
   {
@@ -75,6 +75,7 @@ const collabColumns: Column<OpenCollaboration>[] = [
 ];
 
 export default function AffiliatePage() {
+  const { workspaceId: WORKSPACE_ID } = useWorkspace();
   const [products, setProducts] = useState<PaginatedResponse<AffiliateProduct> | null>(null);
   const [collabs, setCollabs] = useState<PaginatedResponse<OpenCollaboration> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -85,7 +86,7 @@ export default function AffiliatePage() {
   const token = getAccessToken();
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     setLoading(true);
     Promise.all([
       listAffiliateProducts(WORKSPACE_ID, token, { platform: platformParam, page }),

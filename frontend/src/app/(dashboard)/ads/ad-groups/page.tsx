@@ -23,8 +23,8 @@ import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusBadge, type StatusVariant } from "@/components/ui/status-badge";
 import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
-const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 function mapStatus(status: string): StatusVariant {
   switch (status) {
@@ -45,6 +45,7 @@ function mapStatusLabel(status: string): string {
 }
 
 export default function AdGroupsPage() {
+  const { workspaceId: WORKSPACE_ID } = useWorkspace();
   const [adGroups, setAdGroups] = useState<PaginatedResponse<AdGroupSummary> | null>(null);
   const [adAccounts, setAdAccounts] = useState<AdAccount[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,7 +60,7 @@ export default function AdGroupsPage() {
   const token = getAccessToken();
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     listAdAccounts(WORKSPACE_ID, token).then(setAdAccounts).catch(console.error);
   }, []);
 
@@ -68,7 +69,7 @@ export default function AdGroupsPage() {
   }, [statusFilter, accountFilter, platform, page]);
 
   function loadAdGroups() {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     setLoading(true);
     listAdGroups(WORKSPACE_ID, token, {
       platform: platformParam,
@@ -82,7 +83,7 @@ export default function AdGroupsPage() {
   }
 
   async function handleSync() {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     setSyncing(true);
     try {
       const result = await syncAdGroups(WORKSPACE_ID, token, accountFilter || undefined);

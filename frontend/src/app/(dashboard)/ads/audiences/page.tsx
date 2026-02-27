@@ -14,10 +14,11 @@ import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
-const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 export default function AudiencesPage() {
+  const { workspaceId: WORKSPACE_ID } = useWorkspace();
   const [data, setData] = useState<PaginatedResponse<Audience> | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -34,7 +35,7 @@ export default function AudiencesPage() {
   }, [platform, page]);
 
   function loadAudiences() {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     setLoading(true);
     listAudiences(WORKSPACE_ID, token, { platform: platformParam, page })
       .then(setData)
@@ -43,7 +44,7 @@ export default function AudiencesPage() {
   }
 
   async function handleSync() {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     setSyncing(true);
     try {
       await syncAudiences(WORKSPACE_ID, token);

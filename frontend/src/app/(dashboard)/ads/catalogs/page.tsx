@@ -14,10 +14,11 @@ import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
-const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 export default function CatalogsPage() {
+  const { workspaceId: WORKSPACE_ID } = useWorkspace();
   const [data, setData] = useState<PaginatedResponse<Catalog> | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -33,7 +34,7 @@ export default function CatalogsPage() {
   }, [platform, page]);
 
   function loadCatalogs() {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     setLoading(true);
     listCatalogs(WORKSPACE_ID, token, { platform: platformParam, page })
       .then(setData)
@@ -42,7 +43,7 @@ export default function CatalogsPage() {
   }
 
   async function handleSync() {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     setSyncing(true);
     try {
       await syncCatalogs(WORKSPACE_ID, token);

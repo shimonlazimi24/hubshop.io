@@ -22,8 +22,8 @@ import { MetricBar } from "@/components/ui/metric-bar";
 import { MetricCard } from "@/components/ui/metric-card";
 import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
-const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 const MODULE_CARDS = [
   {
@@ -72,12 +72,13 @@ function formatKpi(val: number | undefined | null): string {
 }
 
 export default function AnalyticsDashboardPage() {
+  const { workspaceId: WORKSPACE_ID } = useWorkspace();
   const [kpi, setKpi] = useState<KpiOverview | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const token = getAccessToken();
-    if (!token) {
+    if (!token || !WORKSPACE_ID) {
       setLoading(false);
       return;
     }

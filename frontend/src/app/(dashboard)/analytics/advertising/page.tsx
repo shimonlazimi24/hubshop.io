@@ -12,8 +12,8 @@ import { DataTable, type Column } from "@/components/ui/data-table";
 import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
 import { toast } from "@/lib/toast-store";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
-const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 interface SpendRow {
   date: string;
@@ -29,6 +29,7 @@ interface CampaignRow {
 }
 
 export default function AdvertisingAnalyticsPage() {
+  const { workspaceId: WORKSPACE_ID } = useWorkspace();
   const [overview, setOverview] = useState<{
     total_ad_spend: string;
     roas: string;
@@ -42,7 +43,7 @@ export default function AdvertisingAnalyticsPage() {
   const token = getAccessToken();
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     setLoading(true);
     Promise.all([
       getAnalyticsOverview(WORKSPACE_ID, token, Number(days)),

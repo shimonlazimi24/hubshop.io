@@ -11,8 +11,8 @@ import { DataTable, type Column } from "@/components/ui/data-table";
 import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
 import { toast } from "@/lib/toast-store";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
-const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 interface PerfRow {
   date: string;
@@ -29,6 +29,7 @@ interface VideoRow {
 }
 
 export default function ContentAnalyticsPage() {
+  const { workspaceId: WORKSPACE_ID } = useWorkspace();
   const [overview, setOverview] = useState<{ total_video_views: number; total_followers: number } | null>(null);
   const [performance, setPerformance] = useState<PerfRow[]>([]);
   const [topVideos, setTopVideos] = useState<VideoRow[]>([]);
@@ -37,7 +38,7 @@ export default function ContentAnalyticsPage() {
   const token = getAccessToken();
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     setLoading(true);
     Promise.all([
       getAnalyticsOverview(WORKSPACE_ID, token, 30),

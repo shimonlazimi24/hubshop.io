@@ -31,8 +31,8 @@ import { StatusBadge, type StatusVariant } from "@/components/ui/status-badge";
 import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
 import { EmptyState } from "@/components/ui/empty-state";
 import { toast } from "@/lib/toast-store";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
-const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 const STATUS_MAP: Record<string, StatusVariant> = {
   awaiting_shipment: "warning",
@@ -44,6 +44,7 @@ const STATUS_MAP: Record<string, StatusVariant> = {
 };
 
 export default function CommerceOrdersPage() {
+  const { workspaceId: WORKSPACE_ID } = useWorkspace();
   const [shops, setShops] = useState<Shop[]>([]);
   const [orders, setOrders] = useState<PaginatedResponse<OrderSummary> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -76,12 +77,12 @@ export default function CommerceOrdersPage() {
   }, [statusFilter, platformFilter, page]);
 
   function loadShops() {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     listShops(WORKSPACE_ID, token).then(setShops).catch(console.error);
   }
 
   function loadOrders() {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     setLoading(true);
     const platformParam = platformFilter === "all" ? undefined : platformFilter;
     listOrders(WORKSPACE_ID, token, {
@@ -95,7 +96,7 @@ export default function CommerceOrdersPage() {
   }
 
   async function handleSyncShops() {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     try {
       await syncShops(WORKSPACE_ID, token);
       toast.success("Shops synced successfully");

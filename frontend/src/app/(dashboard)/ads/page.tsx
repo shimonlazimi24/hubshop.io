@@ -25,8 +25,8 @@ import { StatusBadge, type StatusVariant } from "@/components/ui/status-badge";
 import { ActionMenu } from "@/components/ui/action-menu";
 import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
-const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 const OBJECTIVES = [
   "TRAFFIC",
@@ -57,6 +57,7 @@ function mapStatusLabel(status: string): string {
 }
 
 export default function CampaignsPage() {
+  const { workspaceId: WORKSPACE_ID } = useWorkspace();
   const router = useRouter();
   const [campaigns, setCampaigns] = useState<PaginatedResponse<CampaignSummary> | null>(null);
   const [adAccounts, setAdAccounts] = useState<AdAccount[]>([]);
@@ -72,7 +73,7 @@ export default function CampaignsPage() {
   const token = getAccessToken();
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     listAdAccounts(WORKSPACE_ID, token).then(setAdAccounts).catch(console.error);
   }, []);
 
@@ -85,7 +86,7 @@ export default function CampaignsPage() {
   }, [search, statusFilter, objectiveFilter, accountFilter, platformFilter, page]);
 
   function loadCampaigns() {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     setLoading(true);
     const platformParam = platformFilter === "all" ? undefined : platformFilter;
     listCampaigns(WORKSPACE_ID, token, {
@@ -102,7 +103,7 @@ export default function CampaignsPage() {
   }
 
   async function handleSync() {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     setSyncing(true);
     try {
       const result = await syncCampaigns(WORKSPACE_ID, token, accountFilter || undefined);

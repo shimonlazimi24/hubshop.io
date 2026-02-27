@@ -11,8 +11,8 @@ import { MetricCard } from "@/components/ui/metric-card";
 import { ChartCard } from "@/components/ui/chart-card";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
-const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 type Tab = "settlements" | "transactions" | "payments";
 
@@ -96,6 +96,7 @@ const paymentColumns: Column<Payment>[] = [
 ];
 
 export default function FinancePage() {
+  const { workspaceId: WORKSPACE_ID } = useWorkspace();
   const [tab, setTab] = useState<Tab>("settlements");
   const [settlements, setSettlements] = useState<PaginatedResponse<Settlement> | null>(null);
   const [transactions, setTransactions] = useState<PaginatedResponse<Transaction> | null>(null);
@@ -107,7 +108,7 @@ export default function FinancePage() {
   const token = getAccessToken();
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     setLoading(true);
     const fetcher =
       tab === "settlements" ? listSettlements(WORKSPACE_ID, token, { platform: platformParam }).then(setSettlements) :

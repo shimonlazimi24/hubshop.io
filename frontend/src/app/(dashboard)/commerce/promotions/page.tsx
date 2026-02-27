@@ -11,8 +11,8 @@ import { MetricCard } from "@/components/ui/metric-card";
 import { FilterBar, FilterDropdown } from "@/components/ui/filter-bar";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { StatusBadge, type StatusVariant } from "@/components/ui/status-badge";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
-const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 const STATUS_MAP: Record<string, StatusVariant> = {
   ACTIVE: "active",
@@ -61,6 +61,7 @@ const columns: Column<Promotion>[] = [
 ];
 
 export default function PromotionsPage() {
+  const { workspaceId: WORKSPACE_ID } = useWorkspace();
   const [data, setData] = useState<PaginatedResponse<Promotion> | null>(null);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("");
@@ -72,7 +73,7 @@ export default function PromotionsPage() {
   const token = getAccessToken();
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     setLoading(true);
     listPromotions(WORKSPACE_ID, token, {
       platform: platformParam,

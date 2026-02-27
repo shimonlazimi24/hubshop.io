@@ -31,8 +31,8 @@ import { PageShell } from "@/components/ui/page-shell";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
 import { cn } from "@/lib/utils";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
-const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 /* ───── Step Definitions ───── */
 const STEPS = [
@@ -115,6 +115,7 @@ const BUDGET_MODES = [
 ] as const;
 
 export default function NewCampaignPage() {
+  const { workspaceId: WORKSPACE_ID } = useWorkspace();
   const router = useRouter();
   const token = getAccessToken();
   const [step, setStep] = useState(0);
@@ -129,7 +130,7 @@ export default function NewCampaignPage() {
   const [budget, setBudget] = useState("");
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     listAdAccounts(WORKSPACE_ID, token)
       .then((accounts) => {
         setAdAccounts(accounts);
@@ -156,7 +157,7 @@ export default function NewCampaignPage() {
 
   /* ───── Submit ───── */
   async function handleLaunch() {
-    if (!token || !selectedAccount) return;
+    if (!token || !WORKSPACE_ID || !selectedAccount) return;
     setSubmitting(true);
     try {
       await createCampaign(

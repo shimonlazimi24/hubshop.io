@@ -10,7 +10,7 @@ export interface CommerceWSMessage {
 }
 
 interface UseCommerceWebSocketOptions {
-  workspaceId: string;
+  workspaceId: string | null;
   token: string | null;
   onMessage?: (message: CommerceWSMessage) => void;
 }

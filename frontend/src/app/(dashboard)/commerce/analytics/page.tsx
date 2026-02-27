@@ -20,8 +20,8 @@ import { MetricCard } from "@/components/ui/metric-card";
 import { ChartCard } from "@/components/ui/chart-card";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
-const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 const topProductColumns: Column<TopProduct>[] = [
   {
@@ -51,6 +51,7 @@ const topProductColumns: Column<TopProduct>[] = [
 ];
 
 export default function AnalyticsPage() {
+  const { workspaceId: WORKSPACE_ID } = useWorkspace();
   const [summary, setSummary] = useState<RevenueSummary | null>(null);
   const [timeseries, setTimeseries] = useState<RevenuePoint[]>([]);
   const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
@@ -63,7 +64,7 @@ export default function AnalyticsPage() {
   const token = getAccessToken();
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     setLoading(true);
 
     Promise.all([

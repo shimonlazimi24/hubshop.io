@@ -19,8 +19,8 @@ import { ChartCard } from "@/components/ui/chart-card";
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
-const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 const DATA_LEVELS = [
   { value: "AUCTION_CAMPAIGN", label: "Campaign" },
@@ -61,6 +61,7 @@ interface ReportRow {
 }
 
 export default function ReportsPage() {
+  const { workspaceId: WORKSPACE_ID } = useWorkspace();
   const { platform } = usePlatformFilter();
   const platformParam = platform === "all" ? undefined : platform;
   const defaultDates = getDefaultDateRange();
@@ -82,7 +83,7 @@ export default function ReportsPage() {
   const token = getAccessToken();
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     listAdAccounts(WORKSPACE_ID, token).then((accounts) => {
       setAdAccounts(accounts);
       if (accounts.length > 0) setSelectedAccount(accounts[0].advertiser_id);

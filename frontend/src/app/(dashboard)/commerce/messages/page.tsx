@@ -10,10 +10,11 @@ import { MetricBar } from "@/components/ui/metric-bar";
 import { MetricCard } from "@/components/ui/metric-card";
 import { FilterDropdown } from "@/components/ui/filter-bar";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
-const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 export default function MessagesPage() {
+  const { workspaceId: WORKSPACE_ID } = useWorkspace();
   const [shops, setShops] = useState<Shop[]>([]);
   const [selectedShop, setSelectedShop] = useState("");
   const [conversations, setConversations] = useState<Record<string, unknown>[]>([]);
@@ -24,7 +25,7 @@ export default function MessagesPage() {
   const token = getAccessToken();
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     listShops(WORKSPACE_ID, token)
       .then(s => {
         setShops(s);
@@ -35,7 +36,7 @@ export default function MessagesPage() {
   }, []);
 
   useEffect(() => {
-    if (!token || !selectedShop) return;
+    if (!token || !WORKSPACE_ID || !selectedShop) return;
     setLoading(true);
     listConversations(WORKSPACE_ID, selectedShop, token)
       .then(data => setConversations(data.conversations))

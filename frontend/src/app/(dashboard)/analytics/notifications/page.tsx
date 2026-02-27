@@ -30,8 +30,8 @@ import { FilterBar, FilterDropdown } from "@/components/ui/filter-bar";
 import { InsightPanel, InsightItem } from "@/components/ui/insight-panel";
 import { toast } from "@/lib/toast-store";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
-const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 const NOTIFICATION_ICONS: Record<string, { icon: typeof Info; color: string; bg: string }> = {
   INFO: { icon: Info, color: "text-blue-500", bg: "bg-blue-50" },
@@ -59,6 +59,7 @@ function formatTimestamp(dateStr: string): string {
 }
 
 export default function NotificationsPage() {
+  const { workspaceId: WORKSPACE_ID } = useWorkspace();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("");
@@ -68,7 +69,7 @@ export default function NotificationsPage() {
 
   const fetchNotifications = useCallback(async () => {
     const token = getAccessToken();
-    if (!token) {
+    if (!token || !WORKSPACE_ID) {
       setLoading(false);
       return;
     }
@@ -111,7 +112,7 @@ export default function NotificationsPage() {
 
   async function handleMarkRead(notificationId: string) {
     const token = getAccessToken();
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     try {
       const updated = await markNotificationRead(notificationId, token);
       setNotifications((prev) => prev.map((n) => (n.id === updated.id ? updated : n)));
@@ -122,7 +123,7 @@ export default function NotificationsPage() {
 
   async function handleMarkAllRead() {
     const token = getAccessToken();
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     try {
       await markAllNotificationsRead(WORKSPACE_ID, token);
       setNotifications((prev) =>
@@ -136,7 +137,7 @@ export default function NotificationsPage() {
 
   async function handleTogglePref(module: string, channel: string, currentEnabled: boolean) {
     const token = getAccessToken();
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     try {
       const updated = await updateNotificationPreference(
         { module, channel, is_enabled: !currentEnabled },

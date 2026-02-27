@@ -7,8 +7,8 @@ import { getAccessToken } from "@/lib/auth";
 import { PageShell } from "@/components/ui/page-shell";
 import { MetricBar } from "@/components/ui/metric-bar";
 import { MetricCard } from "@/components/ui/metric-card";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
-const WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
@@ -16,6 +16,7 @@ const MONTH_NAMES = [
 ];
 
 export default function ContentCalendarPage() {
+  const { workspaceId: WORKSPACE_ID } = useWorkspace();
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
@@ -24,7 +25,7 @@ export default function ContentCalendarPage() {
 
   useEffect(() => {
     const token = getAccessToken();
-    if (!token) return;
+    if (!token || !WORKSPACE_ID) return;
     setLoading(true);
     getCalendar(WORKSPACE_ID, year, month, token)
       .then(setEntries)
