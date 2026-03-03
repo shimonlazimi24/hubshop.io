@@ -15,6 +15,7 @@ from backend.tiktok.rate_limiter import (
 from backend.tiktok.research.client import TikTokResearchClient
 from backend.tiktok.retry import with_retry
 from backend.tiktok.shop.client import TikTokShopClient
+from backend.tiktok.shop.sdk_client import TikTokShopSDKClient
 
 # Per-platform circuit breakers
 _circuit_breakers: dict[Platform, CircuitBreaker] = {
@@ -36,6 +37,7 @@ _rate_limiters = {
 # Type alias for all supported client types
 PlatformClient = (
     TikTokShopClient
+    | TikTokShopSDKClient
     | TikTokDeveloperClient
     | TikTokMarketingClient
     | TikTokResearchClient

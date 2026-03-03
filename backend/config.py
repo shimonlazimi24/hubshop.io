@@ -39,6 +39,10 @@ class Settings(BaseSettings):
     tiktok_shop_app_key: str = ""
     tiktok_shop_app_secret: str = ""
 
+    # TikTok Shop SDK Sidecar
+    tiktok_shop_sdk_url: str = "http://localhost:4000"
+    sidecar_auth_token: str = ""
+
     # TikTok Developer
     tiktok_developer_client_key: str = ""
     tiktok_developer_client_secret: str = ""

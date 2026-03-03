@@ -12,7 +12,7 @@ from backend.db.models.platform import (
     TokenVault,
 )
 from backend.tiktok.gateway import PlatformGateway
-from backend.tiktok.shop.client import TikTokShopClient
+from backend.tiktok.shop.sdk_client import TikTokShopSDKClient
 from backend.utils.crypto import decrypt_token
 
 logger = logging.getLogger(__name__)
@@ -109,7 +109,7 @@ class ShopService:
             raise ValueError(f"No token vault for account {account.id}")
 
         access_token = decrypt_token(vault.encrypted_access_token)
-        client = TikTokShopClient(access_token=access_token)
+        client = TikTokShopSDKClient(access_token=access_token)
         return PlatformGateway(
             platform=Platform.SHOP,
             account_id=str(account.id),
@@ -135,7 +135,7 @@ class ShopService:
             raise ValueError(f"No token vault for account {account.id}")
 
         access_token = decrypt_token(vault.encrypted_access_token)
-        client = TikTokShopClient(
+        client = TikTokShopSDKClient(
             access_token=access_token,
             shop_cipher=shop.shop_cipher,
         )

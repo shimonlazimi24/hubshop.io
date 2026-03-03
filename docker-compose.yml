@@ -9,6 +9,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      tiktok-shop-sdk:
+        condition: service_healthy
     command: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
     volumes:
       - .:/app
@@ -69,6 +71,15 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  tiktok-shop-sdk:
+    build: ./tiktok-shop-sdk
+    env_file: .env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
 
 volumes:
   postgres_data:
