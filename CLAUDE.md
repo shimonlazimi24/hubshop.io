@@ -175,9 +175,9 @@ modules/<domain>/
 ## Current State
 
 - **Status**: Pre-production, actively developing
-- **Branch**: main
+- **Branch**: chore/bootstrap-claude-md
 - **Version**: 0.1.0
 - **Tests**: 879 (842 unit + 37 integration)
 - **Migrations**: alembic (social_identities + nullable password)
-- **Last session**: 2026-03-04 — Bootstrapped project CLAUDE.md, .claude/handoff.md, added .claude/ to .gitignore
-- **Next**: Production readiness, Phase 7 Intelligence platform, SDK sidecar integration tests
+- **Last session**: 2026-03-04 — Created 5-doc engineering handover package in docs/handover/ (talking points, architecture, process flows, zero-to-schema, production readiness)
+- **Next**: Commit handover docs, production readiness execution, Phase 7 Intelligence platform, SDK sidecar integration tests
