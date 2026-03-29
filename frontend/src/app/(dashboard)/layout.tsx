@@ -15,9 +15,9 @@ import { clearTokens, getAccessToken, isAuthenticated } from "@/lib/auth";
 
 function DashboardSkeleton() {
 	return (
-		<div className="flex h-screen bg-gray-50">
+		<div className="flex h-screen bg-gray-50 dark:bg-obsidian">
 			{/* Sidebar skeleton */}
-			<div className="hidden md:flex w-64 flex-col border-r border-gray-200 bg-white p-4 gap-4">
+			<div className="hidden md:flex w-64 flex-col border-r border-gray-200 dark:border-zinc-800 bg-white dark:bg-obsidian-light p-4 gap-4">
 				<Skeleton className="h-8 w-24" />
 				<div className="space-y-2 mt-4">
 					{Array.from({ length: 6 }).map((_, i) => (
@@ -116,7 +116,7 @@ export default function DashboardLayout({
 
 	return (
 		<WorkspaceContext value={{ user, workspaceId }}>
-			<div className="flex h-screen overflow-hidden bg-gray-50">
+			<div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-obsidian">
 				{/* Gradient accent line */}
 				<div className="fixed inset-x-0 top-0 z-50 h-0.5 gradient-bg-horizontal" />
 
@@ -136,13 +136,16 @@ export default function DashboardLayout({
 						onLogout={handleLogout}
 					/>
 
-					{/* Page content with subtle fade transition */}
+					{/* Page content with fade + slide transition */}
 					<main className="flex-1 overflow-y-auto">
 						<motion.div
 							key={pathname}
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							transition={{ duration: 0.15, ease: "easeOut" }}
+							initial={{ opacity: 0, y: 8 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{
+								duration: 0.3,
+								ease: [0.25, 0.1, 0.25, 1],
+							}}
 							className="p-4 md:p-6 lg:p-8"
 						>
 							{children}
