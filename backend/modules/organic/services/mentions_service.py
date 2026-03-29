@@ -44,7 +44,7 @@ class MentionsService:
     ) -> dict:
         """Get top posts that mention the brand."""
         gateway = await self._build_gateway(connected_account_id)
-        resp = await gateway.get("/mentions/posts/top/")
+        resp = await gateway.get("/business/mentions/posts/top/")
         return resp.get("data", {})
 
     async def get_mention_detail(
@@ -57,7 +57,7 @@ class MentionsService:
         """Get detailed information about a specific mention post."""
         gateway = await self._build_gateway(connected_account_id)
         resp = await gateway.get(
-            "/mentions/posts/detail/",
+            "/business/mentions/posts/detail/",
             params={"post_id": post_id},
         )
         return resp.get("data", {})
@@ -69,7 +69,7 @@ class MentionsService:
     ) -> dict:
         """Get frequently used keywords in brand mentions."""
         gateway = await self._build_gateway(connected_account_id)
-        resp = await gateway.get("/mentions/keywords/frequent/")
+        resp = await gateway.get("/business/mentions/keywords/frequent/")
         return resp.get("data", {})
 
     async def get_frequent_hashtags(
@@ -79,7 +79,7 @@ class MentionsService:
     ) -> dict:
         """Get frequently used hashtags in brand mentions."""
         gateway = await self._build_gateway(connected_account_id)
-        resp = await gateway.get("/mentions/hashtags/frequent/")
+        resp = await gateway.get("/business/mentions/hashtags/frequent/")
         return resp.get("data", {})
 
     async def get_top_comment_mentions(
@@ -89,7 +89,7 @@ class MentionsService:
     ) -> dict:
         """Get top comments that mention the brand."""
         gateway = await self._build_gateway(connected_account_id)
-        resp = await gateway.get("/mentions/comments/top/")
+        resp = await gateway.get("/business/mentions/comments/top/")
         return resp.get("data", {})
 
     async def reply_to_mention(
@@ -103,7 +103,7 @@ class MentionsService:
         """Reply to a brand mention comment."""
         gateway = await self._build_gateway(connected_account_id)
         resp = await gateway.post(
-            "/mentions/comments/reply/",
+            "/business/mentions/comments/reply/",
             json_body={
                 "comment_id": comment_id,
                 "text": text,
@@ -121,7 +121,7 @@ class MentionsService:
         """Enable a brand hashtag for monitoring."""
         gateway = await self._build_gateway(connected_account_id)
         resp = await gateway.post(
-            "/mentions/brand_hashtag/enable/",
+            "/business/mentions/brand_hashtag/enable/",
             json_body={"hashtag": hashtag},
         )
         return resp.get("data", {})
@@ -133,5 +133,5 @@ class MentionsService:
     ) -> dict:
         """List all enabled brand hashtags."""
         gateway = await self._build_gateway(connected_account_id)
-        resp = await gateway.get("/mentions/brand_hashtag/enabled/")
+        resp = await gateway.get("/business/mentions/brand_hashtag/enabled/")
         return resp.get("data", {})

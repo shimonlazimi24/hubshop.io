@@ -1,18 +1,68 @@
+import logging
 import uuid
+from datetime import UTC, datetime
 
 import httpx
-from fastapi import APIRouter, HTTPException, Query, status
+import redis.asyncio as redis
+from fastapi import APIRouter, HTTPException, Query, Request, status
 from pydantic import BaseModel, EmailStr
 from sqlalchemy import select
 
 from backend.auth.jwt import create_access_token, create_refresh_token, decode_token
-from backend.auth.passwords import hash_password, verify_password
+from backend.auth.passwords import (
+    hash_password_async,
+    validate_password,
+    verify_password_async,
+)
 from backend.auth.social import SocialAuthService
+from backend.auth.token_blacklist import blacklist_token, is_token_blacklisted
 from backend.config import settings
 from backend.db.models.organization import Membership, Organization, Role, Workspace
 from backend.db.models.social_identity import SocialProvider
 from backend.db.models.user import User
 from backend.dependencies import CurrentUser, DBSession
+
+logger = logging.getLogger(__name__)
+
+_redis_client: redis.Redis | None = None
+
+_OAUTH_STATE_TTL = 600  # 10 minutes
+
+# Login rate limiting
+_LOGIN_MAX_ATTEMPTS = 5
+_LOGIN_WINDOW_SECONDS = 300  # 5 minutes
+
+
+async def _get_redis() -> redis.Redis:
+    global _redis_client
+    if _redis_client is None:
+        _redis_client = redis.from_url(settings.redis_url, decode_responses=True)
+    return _redis_client
+
+
+async def _check_login_rate_limit(email: str) -> None:
+    """Enforce per-email rate limit on login attempts.
+
+    Raises HTTP 429 if the limit is exceeded.
+    """
+    try:
+        r = await _get_redis()
+        key = f"login_rate_limit:{email.lower()}"
+        attempts = await r.incr(key)
+        if attempts == 1:
+            await r.expire(key, _LOGIN_WINDOW_SECONDS)
+        if attempts > _LOGIN_MAX_ATTEMPTS:
+            ttl = await r.ttl(key)
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=f"Too many login attempts. Try again in {max(ttl, 1)} seconds.",
+            )
+    except HTTPException:
+        raise
+    except Exception:
+        # If Redis is unavailable, log and allow the request (fail-open for auth)
+        logger.warning("Login rate limiter unavailable — skipping check")
+
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -52,6 +102,8 @@ class UserResponse(BaseModel):
 )
 async def register(body: RegisterRequest, db: DBSession) -> TokenResponse:
     """Register a new user, create their organization and default workspace."""
+    validate_password(body.password)
+
     existing = await db.execute(select(User).where(User.email == body.email))
     if existing.scalar_one_or_none():
         raise HTTPException(
@@ -61,7 +113,7 @@ async def register(body: RegisterRequest, db: DBSession) -> TokenResponse:
 
     user = User(
         email=body.email,
-        hashed_password=hash_password(body.password),
+        hashed_password=await hash_password_async(body.password),
         full_name=body.full_name,
     )
     db.add(user)
@@ -97,10 +149,22 @@ async def register(body: RegisterRequest, db: DBSession) -> TokenResponse:
 @router.post("/login", response_model=TokenResponse)
 async def login(body: LoginRequest, db: DBSession) -> TokenResponse:
     """Authenticate user and return JWT tokens."""
+    await _check_login_rate_limit(body.email)
+
     result = await db.execute(select(User).where(User.email == body.email))
     user = result.scalar_one_or_none()
 
-    if not user or not verify_password(body.password, user.hashed_password):
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
+        )
+    if user.hashed_password is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This account uses social login. Please sign in with TikTok or Google.",
+        )
+    if not await verify_password_async(body.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
@@ -126,6 +190,41 @@ async def login(body: LoginRequest, db: DBSession) -> TokenResponse:
     )
 
 
+@router.post("/logout", status_code=status.HTTP_200_OK)
+async def logout(request: Request) -> dict:
+    """Logout by blacklisting the current access token."""
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing or invalid Authorization header",
+        )
+    token = auth_header.removeprefix("Bearer ")
+
+    try:
+        payload = decode_token(token)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+        ) from exc
+
+    jti = payload.get("jti")
+    if not jti:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token missing jti claim",
+        )
+
+    # Calculate remaining TTL in seconds
+    exp = payload.get("exp", 0)
+    remaining = int(exp - datetime.now(UTC).timestamp())
+    if remaining > 0:
+        await blacklist_token(jti, remaining)
+
+    return {"detail": "Successfully logged out"}
+
+
 @router.post("/refresh", response_model=TokenResponse)
 async def refresh_tokens(body: RefreshRequest, db: DBSession) -> TokenResponse:
     """Refresh access token using a valid refresh token."""
@@ -137,11 +236,28 @@ async def refresh_tokens(body: RefreshRequest, db: DBSession) -> TokenResponse:
                 detail="Invalid token type",
             )
         user_id = uuid.UUID(payload["sub"])
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired refresh token",
         ) from exc
+
+    # Check if this refresh token has been blacklisted (rotation)
+    old_jti = payload.get("jti")
+    if old_jti and await is_token_blacklisted(old_jti):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token has been revoked",
+        )
+
+    # Blacklist the old refresh token so it cannot be reused
+    if old_jti:
+        exp = payload.get("exp", 0)
+        remaining = int(exp - datetime.now(UTC).timestamp())
+        if remaining > 0:
+            await blacklist_token(old_jti, remaining)
 
     result = await db.execute(
         select(User).where(User.id == user_id, User.is_active.is_(True))
@@ -196,6 +312,8 @@ class SocialLoginResponse(BaseModel):
 async def tiktok_login() -> SocialLoginResponse:
     """Return the TikTok OAuth authorize URL."""
     state = uuid.uuid4().hex
+    r = await _get_redis()
+    await r.set(f"oauth_state:{state}", "1", ex=_OAUTH_STATE_TTL)
     url = SocialAuthService.build_tiktok_login_url(state)
     return SocialLoginResponse(authorize_url=url)
 
@@ -207,6 +325,15 @@ async def tiktok_callback(
     state: str = Query(""),
 ) -> TokenResponse:
     """Exchange TikTok auth code for JWT tokens."""
+    r = await _get_redis()
+    state_key = f"oauth_state:{state}"
+    if not state or not await r.get(state_key):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired OAuth state",
+        )
+    await r.delete(state_key)
+
     async with httpx.AsyncClient() as client:
         # Exchange code for access token
         token_resp = await client.post(
@@ -275,6 +402,8 @@ async def tiktok_callback(
 async def google_login() -> SocialLoginResponse:
     """Return the Google OAuth authorize URL."""
     state = uuid.uuid4().hex
+    r = await _get_redis()
+    await r.set(f"oauth_state:{state}", "1", ex=_OAUTH_STATE_TTL)
     url = SocialAuthService.build_google_login_url(state)
     return SocialLoginResponse(authorize_url=url)
 
@@ -286,6 +415,15 @@ async def google_callback(
     state: str = Query(""),
 ) -> TokenResponse:
     """Exchange Google auth code for JWT tokens."""
+    r = await _get_redis()
+    state_key = f"oauth_state:{state}"
+    if not state or not await r.get(state_key):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired OAuth state",
+        )
+    await r.delete(state_key)
+
     async with httpx.AsyncClient() as client:
         # Exchange code for access token
         token_resp = await client.post(

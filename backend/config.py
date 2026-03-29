@@ -1,4 +1,4 @@
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -66,6 +66,24 @@ class Settings(BaseSettings):
     # Celery
     celery_broker_url: str = "redis://localhost:6379/1"
     celery_result_backend: str = "redis://localhost:6379/2"
+
+    @model_validator(mode="after")
+    def _check_production_secrets(self) -> "Settings":
+        """Block production startup if secret keys still have insecure defaults."""
+        if self.app_env == "production":
+            insecure_keys: list[str] = []
+            if "change-me" in self.secret_key:
+                insecure_keys.append("SECRET_KEY")
+            if "change-me" in self.jwt_secret_key:
+                insecure_keys.append("JWT_SECRET_KEY")
+            if "change-me" in self.token_vault_key:
+                insecure_keys.append("TOKEN_VAULT_KEY")
+            if insecure_keys:
+                raise ValueError(
+                    f"Insecure default values detected for: {', '.join(insecure_keys)}. "
+                    "Set strong secret keys before running in production."
+                )
+        return self
 
     @property
     def is_production(self) -> bool:

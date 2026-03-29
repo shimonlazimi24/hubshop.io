@@ -61,7 +61,7 @@ class TestGetTopMentions:
         result = await service.get_top_mentions(workspace_id, connected_account_id)
 
         assert len(result["posts"]) == 2
-        mock_gateway.get.assert_called_once_with("/mentions/posts/top/")
+        mock_gateway.get.assert_called_once_with("/business/mentions/posts/top/")
         patched_build_gateway.assert_called_once_with(connected_account_id)
 
 
@@ -118,7 +118,9 @@ class TestGetFrequentKeywords:
 
         assert len(result["keywords"]) == 2
         assert result["keywords"][0]["keyword"] == "quality"
-        mock_gateway.get.assert_called_once_with("/mentions/keywords/frequent/")
+        mock_gateway.get.assert_called_once_with(
+            "/business/mentions/keywords/frequent/"
+        )
 
 
 class TestGetFrequentHashtags:
@@ -145,7 +147,9 @@ class TestGetFrequentHashtags:
 
         assert len(result["hashtags"]) == 2
         assert result["hashtags"][0]["hashtag"] == "#mybrand"
-        mock_gateway.get.assert_called_once_with("/mentions/hashtags/frequent/")
+        mock_gateway.get.assert_called_once_with(
+            "/business/mentions/hashtags/frequent/"
+        )
 
 
 class TestGetTopCommentMentions:
@@ -173,7 +177,7 @@ class TestGetTopCommentMentions:
 
         assert len(result["comments"]) == 1
         assert result["comments"][0]["text"] == "Great product!"
-        mock_gateway.get.assert_called_once_with("/mentions/comments/top/")
+        mock_gateway.get.assert_called_once_with("/business/mentions/comments/top/")
 
 
 class TestReplyToMention:
@@ -247,4 +251,6 @@ class TestListEnabledHashtags:
 
         assert len(result["hashtags"]) == 3
         assert "#mybrand" in result["hashtags"]
-        mock_gateway.get.assert_called_once_with("/mentions/brand_hashtag/enabled/")
+        mock_gateway.get.assert_called_once_with(
+            "/business/mentions/brand_hashtag/enabled/"
+        )

@@ -9,6 +9,7 @@ from backend.db.engine import async_session_factory
 from backend.db.models.platform import ConnectedAccount, Platform, TokenVault
 from backend.tiktok.gateway import PlatformGateway
 from backend.tiktok.marketing.client import TikTokMarketingClient
+from backend.utils.crypto import decrypt_token
 from backend.workers.celery_app import celery_app
 
 logger = logging.getLogger(__name__)
@@ -32,10 +33,15 @@ async def _build_marketing_gateway(
         )
     )
     token = result.scalar_one_or_none()
-    if not token or not token.access_token:
+    if not token or not token.encrypted_access_token:
         return None
-    client = TikTokMarketingClient(access_token=token.access_token)
-    return PlatformGateway(client=client)
+    access_token = decrypt_token(token.encrypted_access_token)
+    client = TikTokMarketingClient(access_token=access_token)
+    return PlatformGateway(
+        platform=Platform.MARKETING,
+        account_id=str(connected_account_id),
+        client=client,
+    )
 
 
 async def _sync_conversations() -> None:
@@ -58,7 +64,7 @@ async def _sync_conversations() -> None:
                     continue
 
                 resp = await gateway.get(
-                    "/business_messaging/conversation/list/",
+                    "/business/message/conversation/list/",
                     params={"page_size": "50"},
                 )
                 conversations = resp.get("data", {}).get("conversations", [])

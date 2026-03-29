@@ -81,7 +81,7 @@ class SparkAdsService:
         try:
             gateway = await self._get_marketing_gateway(auth.workspace_id)
             resp = await gateway.get(
-                "/creative/spark_ads/authorize/status/",
+                "/tt_video/info/",
                 params={"video_id": auth.platform_video_id or ""},
             )
             data = resp.get("data", {})

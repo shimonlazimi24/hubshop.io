@@ -60,7 +60,7 @@ class TestListConversations:
         assert len(result["list"]) == 2
         mock_gateway.get.assert_called_once()
         call_args = mock_gateway.get.call_args
-        assert call_args.args[0] == "/business_messaging/conversation/list/"
+        assert call_args.args[0] == "/business/message/conversation/list/"
         assert call_args.kwargs["params"]["page"] == "1"
         assert call_args.kwargs["params"]["page_size"] == "20"
 
@@ -193,7 +193,7 @@ class TestCheckCapability:
 
         assert result["is_capable"] is True
         mock_gateway.get.assert_called_once_with(
-            "/business_messaging/capability/check/",
+            "/business/message/capability/check/",
         )
 
 
@@ -255,7 +255,7 @@ class TestGetCommentToMessageSetting:
 
         assert result["enabled"] is True
         mock_gateway.get.assert_called_once_with(
-            "/business_messaging/comment_to_message/setting/",
+            "/business/message/comment_to_message/setting/",
         )
 
 
@@ -313,7 +313,7 @@ class TestListAutoMessages:
 
         assert len(result["list"]) == 2
         mock_gateway.get.assert_called_once_with(
-            "/business_messaging/auto_message/list/",
+            "/business/message/auto/list/",
         )
 
 
@@ -406,5 +406,5 @@ class TestDeleteAutoMessage:
         mock_gateway.request.assert_called_once()
         call_args = mock_gateway.request.call_args
         assert call_args.args[0] == "DELETE"
-        assert call_args.args[1] == "/business_messaging/auto_message/delete/"
+        assert call_args.args[1] == "/business/message/auto/delete/"
         assert call_args.kwargs["json_body"]["auto_message_id"] == "am1"

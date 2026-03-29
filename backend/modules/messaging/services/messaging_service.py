@@ -59,7 +59,7 @@ class MessagingService:
         """List business messaging conversations."""
         gateway = await self._build_gateway(connected_account_id)
         resp = await gateway.get(
-            "/business_messaging/conversation/list/",
+            "/business/message/conversation/list/",
             params={
                 "page": str(page),
                 "page_size": str(page_size),
@@ -78,7 +78,7 @@ class MessagingService:
         """List messages in a specific conversation."""
         gateway = await self._build_gateway(connected_account_id)
         resp = await gateway.get(
-            "/business_messaging/message/list/",
+            "/business/message/list/",
             params={
                 "conversation_id": conversation_id,
                 "page": str(page),
@@ -104,7 +104,7 @@ class MessagingService:
         if media_url is not None:
             body["media_url"] = media_url
         resp = await gateway.post(
-            "/business_messaging/message/send/",
+            "/business/message/send/",
             json_body=body,
         )
         return resp.get("data", {})
@@ -117,7 +117,7 @@ class MessagingService:
         """Check business messaging capability for the account."""
         gateway = await self._build_gateway(connected_account_id)
         resp = await gateway.get(
-            "/business_messaging/capability/check/",
+            "/business/message/capability/check/",
         )
         return resp.get("data", {})
 
@@ -130,7 +130,7 @@ class MessagingService:
         """Toggle the comment-to-message feature."""
         gateway = await self._build_gateway(connected_account_id)
         resp = await gateway.post(
-            "/business_messaging/comment_to_message/toggle/",
+            "/business/message/comment_to_message/update/",
             json_body={"enabled": enabled},
         )
         return resp.get("data", {})
@@ -141,7 +141,7 @@ class MessagingService:
         """Get the current comment-to-message setting."""
         gateway = await self._build_gateway(connected_account_id)
         resp = await gateway.get(
-            "/business_messaging/comment_to_message/setting/",
+            "/business/message/comment_to_message/setting/",
         )
         return resp.get("data", {})
 
@@ -159,7 +159,7 @@ class MessagingService:
         """Create a new auto-message."""
         gateway = await self._build_gateway(connected_account_id)
         resp = await gateway.post(
-            "/business_messaging/auto_message/create/",
+            "/business/message/auto/create/",
             json_body={
                 "message_type": message_type,
                 "content": content,
@@ -171,7 +171,7 @@ class MessagingService:
         """List all auto-messages for the account."""
         gateway = await self._build_gateway(connected_account_id)
         resp = await gateway.get(
-            "/business_messaging/auto_message/list/",
+            "/business/message/auto/list/",
         )
         return resp.get("data", {})
 
@@ -185,7 +185,7 @@ class MessagingService:
         """Update an existing auto-message's content."""
         gateway = await self._build_gateway(connected_account_id)
         resp = await gateway.post(
-            "/business_messaging/auto_message/update/",
+            "/business/message/auto/update/",
             json_body={
                 "auto_message_id": auto_message_id,
                 "content": content,
@@ -203,7 +203,7 @@ class MessagingService:
         """Toggle an auto-message on or off."""
         gateway = await self._build_gateway(connected_account_id)
         resp = await gateway.post(
-            "/business_messaging/auto_message/toggle/",
+            "/business/message/auto/toggle/",
             json_body={
                 "auto_message_id": auto_message_id,
                 "enabled": enabled,
@@ -221,7 +221,7 @@ class MessagingService:
         gateway = await self._build_gateway(connected_account_id)
         resp = await gateway.request(
             "DELETE",
-            "/business_messaging/auto_message/delete/",
+            "/business/message/auto/delete/",
             json_body={"auto_message_id": auto_message_id},
         )
         return resp.get("data", {})

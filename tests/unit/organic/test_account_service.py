@@ -57,7 +57,7 @@ class TestGetProfile:
 
         assert result["username"] == "brand_account"
         assert result["followers"] == 10000
-        mock_gateway.get.assert_called_once_with("/accounts/profile/")
+        mock_gateway.get.assert_called_once_with("/business/account/profile/")
         patched_build_gateway.assert_called_once_with(connected_account_id)
 
 
@@ -120,7 +120,9 @@ class TestGetBenchmarks:
         result = await service.get_benchmarks(workspace_id, connected_account_id)
 
         assert result["avg_views"] == 5000
-        mock_gateway.get.assert_called_once_with("/accounts/benchmarks/", params=None)
+        mock_gateway.get.assert_called_once_with(
+            "/business/account/benchmarks/", params=None
+        )
 
     @pytest.mark.asyncio
     async def test_get_benchmarks_with_category(
@@ -165,7 +167,7 @@ class TestPublishVideo:
 
         assert result["publish_id"] == "pub_123"
         mock_gateway.post.assert_called_once_with(
-            "/accounts/posts/video/publish/",
+            "/business/account/posts/video/publish/",
             json_body=config,
         )
 
@@ -192,7 +194,7 @@ class TestPublishPhoto:
 
         assert result["publish_id"] == "pub_456"
         mock_gateway.post.assert_called_once_with(
-            "/accounts/posts/photo/publish/",
+            "/business/account/posts/photo/publish/",
             json_body=config,
         )
 

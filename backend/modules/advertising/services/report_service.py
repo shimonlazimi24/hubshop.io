@@ -206,7 +206,7 @@ class ReportService:
         if campaign_ids:
             params["campaign_ids"] = str(campaign_ids)
 
-        resp = await gateway.get("/report/gmv_max/get/", params=params)
+        resp = await gateway.get("/gmv_max/report/", params=params)
         data = resp.get("data", {})
         rows = data.get("list", [])
         return {"rows": rows, "total_rows": len(rows)}

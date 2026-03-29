@@ -178,7 +178,9 @@ async def _do_check_marketing_tokens() -> None:
 @celery_app.task(
     bind=True,
     max_retries=3,
-    default_retry_delay=60,
+    retry_backoff=True,
+    retry_backoff_max=300,
+    retry_jitter=True,
     name="backend.workers.token_refresh.refresh_developer_tokens",
 )
 def refresh_developer_tokens(self) -> None:  # type: ignore[no-untyped-def]
@@ -192,7 +194,9 @@ def refresh_developer_tokens(self) -> None:  # type: ignore[no-untyped-def]
 @celery_app.task(
     bind=True,
     max_retries=3,
-    default_retry_delay=60,
+    retry_backoff=True,
+    retry_backoff_max=300,
+    retry_jitter=True,
     name="backend.workers.token_refresh.refresh_shop_tokens",
 )
 def refresh_shop_tokens(self) -> None:  # type: ignore[no-untyped-def]
@@ -206,7 +210,9 @@ def refresh_shop_tokens(self) -> None:  # type: ignore[no-untyped-def]
 @celery_app.task(
     bind=True,
     max_retries=3,
-    default_retry_delay=60,
+    retry_backoff=True,
+    retry_backoff_max=300,
+    retry_jitter=True,
     name="backend.workers.token_refresh.check_marketing_tokens",
 )
 def check_marketing_tokens(self) -> None:  # type: ignore[no-untyped-def]
