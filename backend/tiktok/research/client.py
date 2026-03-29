@@ -5,6 +5,7 @@ Base URL: https://open.tiktokapis.com/v2/research/
 """
 
 import logging
+import time
 from typing import Any
 
 import httpx
@@ -16,6 +17,7 @@ class TikTokResearchClient:
     """Async client for TikTok Research API.
 
     Uses client credentials OAuth for authentication.
+    Tracks token expiration to auto-refresh before it expires.
     Base URL: https://open.tiktokapis.com/v2/research/
     """
 
@@ -26,12 +28,17 @@ class TikTokResearchClient:
         self._client_key = client_key
         self._client_secret = client_secret
         self._access_token: str | None = None
+        self._token_expires_at: float = 0.0
         self._http = httpx.AsyncClient(timeout=30.0)
 
     async def _ensure_token(self) -> str:
-        """Get or refresh access token via client credentials."""
-        if self._access_token:
+        """Get or refresh access token via client credentials.
+
+        Refreshes the token 60 seconds before it expires to avoid edge cases.
+        """
+        if self._access_token and time.time() < self._token_expires_at - 60:
             return self._access_token
+
         resp = await self._http.post(
             self.TOKEN_URL,
             json={
@@ -42,8 +49,15 @@ class TikTokResearchClient:
         )
         resp.raise_for_status()
         data = resp.json()
-        self._access_token = data.get("data", {}).get("access_token", "")
-        return self._access_token
+        token_data = data.get("data", {})
+        token = token_data.get("access_token")
+        if not token:
+            raise ValueError(f"No access_token in OAuth response: {data}")
+        self._access_token = token
+        expires_in = token_data.get("expires_in", 7200)
+        self._token_expires_at = time.time() + expires_in
+        logger.info("Research API token acquired, expires in %ds", expires_in)
+        return token
 
     async def request(
         self,
@@ -53,7 +67,10 @@ class TikTokResearchClient:
         params: dict[str, str] | None = None,
         json_body: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        """Make an authenticated request to the Research API."""
+        """Make an authenticated request to the Research API.
+
+        On 401, clears the cached token and retries once with a fresh token.
+        """
         token = await self._ensure_token()
         response = await self._http.request(
             method,
@@ -62,6 +79,18 @@ class TikTokResearchClient:
             json=json_body,
             headers={"Authorization": f"Bearer {token}"},
         )
+        if response.status_code == 401:
+            logger.warning("Research API token expired, re-authenticating")
+            self._access_token = None
+            self._token_expires_at = 0.0
+            token = await self._ensure_token()
+            response = await self._http.request(
+                method,
+                f"{self.BASE_URL}{path}",
+                params=params,
+                json=json_body,
+                headers={"Authorization": f"Bearer {token}"},
+            )
         response.raise_for_status()
         return response.json()
 

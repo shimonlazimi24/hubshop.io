@@ -173,7 +173,33 @@ class TikTokLiveClientWrapper:
             )
             self._connected = False
 
-        await client.start()
+        # Connect with automatic reconnection and timeout
+        import asyncio
+
+        max_retries = 5
+        for attempt in range(max_retries):
+            try:
+                await asyncio.wait_for(client.start(), timeout=300)
+                break  # Clean exit (stream ended normally)
+            except TimeoutError:
+                logger.warning(
+                    "LIVE connection timed out for %s (attempt %d/%d)",
+                    self._unique_id,
+                    attempt + 1,
+                    max_retries,
+                )
+            except Exception:
+                logger.exception(
+                    "LIVE connection error for %s (attempt %d/%d)",
+                    self._unique_id,
+                    attempt + 1,
+                    max_retries,
+                )
+            self._connected = False
+            if attempt < max_retries - 1:
+                delay = min(2**attempt, 30)
+                logger.info("Reconnecting in %ds...", delay)
+                await asyncio.sleep(delay)
 
     async def _dispatch(self, event: LiveEventData) -> None:
         """Dispatch event to registered callbacks."""
