@@ -110,6 +110,65 @@ async def _monitor_live_stream(session_id: str, unique_id: str) -> None:
             await session.commit()
 
 
+async def _estimate_peak_concurrent(session, session_id: str) -> int:  # type: ignore[no-untyped-def]
+    """Estimate peak concurrent viewers from JOIN events.
+
+    Uses a simple approach: count distinct users who joined within each
+    60-second window and return the maximum count observed.
+    """
+    from sqlalchemy import extract
+
+    join_events = await session.execute(
+        select(
+            LiveEvent.user_id,
+            extract("epoch", LiveEvent.timestamp).label("ts"),
+        ).where(
+            LiveEvent.session_id == session_id,
+            LiveEvent.event_type == LiveEventType.JOIN,
+            LiveEvent.user_id.isnot(None),
+        )
+    )
+    rows = join_events.all()
+    if not rows:
+        return 0
+
+    # Sort by timestamp, then slide a 60-second window
+    sorted_rows = sorted(rows, key=lambda r: r.ts)
+    peak = 0
+    window_start = 0
+    seen_in_window: set[str] = set()
+
+    for i, row in enumerate(sorted_rows):
+        # Move window start forward while outside 60s window
+        while sorted_rows[window_start].ts < row.ts - 60:
+            window_start += 1
+        # Count unique users in current window
+        seen_in_window = {r.user_id for r in sorted_rows[window_start : i + 1]}
+        peak = max(peak, len(seen_in_window))
+
+    return peak
+
+
+async def _sum_gift_repeat_counts(session, session_id: str) -> int:  # type: ignore[no-untyped-def]
+    """Sum gift repeat_count values from GIFT event payloads.
+
+    The TikTokLive library stores ``repeat_count`` in the event payload
+    but does not include monetary value. This returns the total repeat
+    count as a proxy until a gift-value mapping table is available.
+    """
+    gift_events = await session.execute(
+        select(LiveEvent.payload).where(
+            LiveEvent.session_id == session_id,
+            LiveEvent.event_type == LiveEventType.GIFT,
+        )
+    )
+    total = 0
+    for (payload,) in gift_events.all():
+        if isinstance(payload, dict):
+            total += int(payload.get("repeat_count", 0))
+    return total
+
+
 async def _compute_live_analytics(session_id: str) -> None:
     """Compute analytics for a completed LIVE session."""
     async with async_session_factory() as session:
@@ -169,6 +228,19 @@ async def _compute_live_analytics(session_id: str) -> None:
                 for row in top_gifters_result.all()
             ]
 
+            # Estimate peak concurrent viewers by counting overlapping join/leave
+            # windows. Since the TikTokLive library does not emit viewer-count
+            # snapshots, we approximate using the maximum number of unique
+            # viewers seen within any 60-second sliding window of JOIN events.
+            peak_concurrent = await _estimate_peak_concurrent(session, session_id)
+
+            # Gift revenue: the TikTokLive library provides gift name and
+            # repeat_count in the event payload, but does NOT include the
+            # monetary value (diamond/coin cost) of each gift. Accurate
+            # revenue calculation requires a gift-value mapping table which
+            # is not yet implemented. Sum repeat_count as a proxy metric.
+            gift_revenue = await _sum_gift_repeat_counts(session, session_id)
+
             total_engagement = (
                 counts.get("comment", 0)
                 + counts.get("like", 0)
@@ -181,12 +253,12 @@ async def _compute_live_analytics(session_id: str) -> None:
             analytics = LiveAnalytics(
                 session_id=session_id,
                 total_viewers=total_viewers,
-                peak_concurrent=0,  # Would need real-time tracking
+                peak_concurrent=peak_concurrent,
                 total_comments=counts.get("comment", 0),
                 total_likes=counts.get("like", 0),
                 total_shares=counts.get("share", 0),
                 total_follows=counts.get("follow", 0),
-                gift_revenue=0.0,  # Would need gift value mapping
+                gift_revenue=float(gift_revenue),
                 engagement_rate=round(engagement_rate, 4),
                 top_commenters=top_commenters,
                 top_gifters=top_gifters,

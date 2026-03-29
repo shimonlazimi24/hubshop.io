@@ -44,7 +44,7 @@ class OrganicAccountService:
     ) -> dict:
         """Get the organic account profile."""
         gateway = await self._build_gateway(connected_account_id)
-        resp = await gateway.get("/accounts/profile/")
+        resp = await gateway.get("/business/account/profile/")
         return resp.get("data", {})
 
     async def get_posts(
@@ -58,7 +58,7 @@ class OrganicAccountService:
         """List posts for the organic account."""
         gateway = await self._build_gateway(connected_account_id)
         resp = await gateway.get(
-            "/accounts/posts/",
+            "/business/account/posts/",
             params={
                 "page": str(page),
                 "page_size": str(page_size),
@@ -78,7 +78,9 @@ class OrganicAccountService:
         params: dict[str, str] = {}
         if category:
             params["category"] = category
-        resp = await gateway.get("/accounts/benchmarks/", params=params or None)
+        # NOTE: /business/account/benchmarks/ is undocumented in TikTok's
+        # official API docs and may not work in production.
+        resp = await gateway.get("/business/account/benchmarks/", params=params or None)
         return resp.get("data", {})
 
     async def publish_video(
@@ -91,7 +93,7 @@ class OrganicAccountService:
         """Publish a video to the organic account."""
         gateway = await self._build_gateway(connected_account_id)
         resp = await gateway.post(
-            "/accounts/posts/video/publish/",
+            "/business/account/posts/video/publish/",
             json_body=video_config,
         )
         return resp.get("data", {})
@@ -106,7 +108,7 @@ class OrganicAccountService:
         """Publish a photo to the organic account."""
         gateway = await self._build_gateway(connected_account_id)
         resp = await gateway.post(
-            "/accounts/posts/photo/publish/",
+            "/business/account/posts/photo/publish/",
             json_body=photo_config,
         )
         return resp.get("data", {})
@@ -121,7 +123,7 @@ class OrganicAccountService:
         """Get the status of a publish operation."""
         gateway = await self._build_gateway(connected_account_id)
         resp = await gateway.get(
-            "/accounts/posts/status/",
+            "/business/account/posts/status/",
             params={"publish_id": publish_id},
         )
         return resp.get("data", {})
@@ -136,7 +138,7 @@ class OrganicAccountService:
         """Get recommended hashtags based on the given text."""
         gateway = await self._build_gateway(connected_account_id)
         resp = await gateway.get(
-            "/accounts/posts/hashtags/recommend/",
+            "/business/account/posts/hashtags/recommend/",
             params={"text": text},
         )
         return resp.get("data", {})

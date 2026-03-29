@@ -62,7 +62,9 @@ class PublishService:
             },
         }
 
-        resp = await gateway.post("/post/publish/video/direct_post/", json_body=body)
+        # TODO: Full video publishing flow requires init -> upload -> publish.
+        # This currently only calls the init endpoint.
+        resp = await gateway.post("/v2/post/publish/video/init/", json_body=body)
         data = resp.get("data", {})
         publish_id = data.get("publish_id", "")
 

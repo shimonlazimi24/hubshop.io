@@ -166,13 +166,14 @@ class TikTokResearchClient:
     async def query_user_followers(
         self, username: str, max_count: int = 100
     ) -> dict[str, Any]:
-        """List followers of a public user."""
-        return await self.post(
-            "/user/followers/",
-            json_body={
-                "username": username,
-                "max_count": max_count,
-            },
+        """List followers of a public user.
+
+        NOTE: The /research/user/followers/ endpoint does NOT exist in the
+        TikTok Research API.  This method is retained for interface
+        compatibility but will always raise ``NotImplementedError``.
+        """
+        raise NotImplementedError(
+            "TikTok Research API does not provide a /research/user/followers/ endpoint"
         )
 
     async def close(self) -> None:

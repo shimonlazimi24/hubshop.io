@@ -121,9 +121,28 @@ class TestComputeLiveAnalytics:
         gifters_result = MagicMock()
         gifters_result.all.return_value = [("gifter1", 3)]
 
+        # _estimate_peak_concurrent queries JOIN events with user_id + ts attrs
+        peak_concurrent_result = MagicMock()
+        peak_row_a = MagicMock(user_id="user_a", ts=1000.0)
+        peak_row_b = MagicMock(user_id="user_b", ts=1001.0)
+        peak_concurrent_result.all.return_value = [peak_row_a, peak_row_b]
+
+        # _sum_gift_repeat_counts queries GIFT event payloads as (payload,) tuples
+        gift_revenue_result = MagicMock()
+        gift_revenue_result.all.return_value = [
+            ({"repeat_count": 3},),
+            ({"repeat_count": 7},),
+        ]
+
         mock_session.execute = AsyncMock(
             side_effect=count_results
-            + [viewer_result, commenters_result, gifters_result]
+            + [
+                viewer_result,
+                commenters_result,
+                gifters_result,
+                peak_concurrent_result,
+                gift_revenue_result,
+            ]
         )
 
         with patch("backend.workers.live_sync.async_session_factory") as mock_factory:

@@ -157,7 +157,10 @@ class Product(Base, UUIDMixin, TimestampMixin):
         back_populates="product", lazy="selectin", cascade="all, delete-orphan"
     )
 
-    __table_args__ = (Index("ix_products_workspace_status", "workspace_id", "status"),)
+    __table_args__ = (
+        Index("ix_products_workspace_status", "workspace_id", "status"),
+        Index("ix_products_workspace_created", "workspace_id", "created_at"),
+    )
 
 
 class ProductSku(Base, UUIDMixin, TimestampMixin):

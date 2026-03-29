@@ -83,16 +83,13 @@ class TestTikTokResearchClient:
             assert result["data"]["comments"][0]["text"] == "nice"
 
     @pytest.mark.asyncio
-    async def test_query_user_followers(self) -> None:
+    async def test_query_user_followers_raises(self) -> None:
+        """The /research/user/followers/ endpoint does not exist in the TikTok
+        Research API, so the method must raise NotImplementedError."""
         client = TikTokResearchClient(client_key="key", client_secret="secret")
         client._access_token = "fake_token"
-        with patch.object(client._http, "request", new_callable=AsyncMock) as mock:
-            mock_resp = MagicMock()
-            mock_resp.json.return_value = {"data": {"followers": []}}
-            mock_resp.raise_for_status = MagicMock()
-            mock.return_value = mock_resp
-            result = await client.query_user_followers(username="user1")
-            assert result["data"]["followers"] == []
+        with pytest.raises(NotImplementedError):
+            await client.query_user_followers(username="user1")
 
     @pytest.mark.asyncio
     async def test_get_method(self) -> None:

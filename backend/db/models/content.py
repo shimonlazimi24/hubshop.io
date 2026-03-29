@@ -68,7 +68,10 @@ class Video(Base, UUIDMixin, TimestampMixin):
         back_populates="video", lazy="noload"
     )
 
-    __table_args__ = (Index("ix_videos_workspace_status", "workspace_id", "status"),)
+    __table_args__ = (
+        Index("ix_videos_workspace_status", "workspace_id", "status"),
+        Index("ix_videos_workspace_created", "workspace_id", "created_at"),
+    )
 
 
 class VideoMetrics(Base, UUIDMixin, TimestampMixin):

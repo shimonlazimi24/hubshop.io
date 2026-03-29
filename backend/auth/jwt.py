@@ -14,10 +14,11 @@ def create_access_token(
     expire = datetime.now(UTC) + timedelta(
         minutes=settings.jwt_access_token_expire_minutes
     )
-    payload = {
+    payload: dict = {
         "sub": str(user_id),
         "exp": expire,
         "type": "access",
+        "jti": uuid.uuid4().hex,
     }
     if organization_id:
         payload["org_id"] = str(organization_id)
@@ -34,6 +35,7 @@ def create_refresh_token(user_id: uuid.UUID) -> str:
         "sub": str(user_id),
         "exp": expire,
         "type": "refresh",
+        "jti": uuid.uuid4().hex,
     }
     return jwt.encode(
         payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm

@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import uuid
 
@@ -6,21 +5,34 @@ from sqlalchemy import select
 
 from backend.db.engine import async_session_factory
 from backend.db.models.webhook import WebhookEvent, WebhookStatus
+from backend.tiktok.rate_limiter import get_redis
 from backend.workers.celery_app import celery_app
 
 logger = logging.getLogger(__name__)
 
+# Redis key TTL for webhook idempotency (24 hours)
+_IDEMPOTENCY_TTL_SECONDS = 24 * 60 * 60
 
-def _run_async(coro):  # type: ignore[no-untyped-def]
-    loop = asyncio.new_event_loop()
-    try:
-        return loop.run_until_complete(coro)
-    finally:
-        loop.close()
+
+async def _is_already_processed(event_id: str) -> bool:
+    """Check if a webhook event was already processed via Redis idempotency key."""
+    r = await get_redis()
+    return await r.exists(f"webhook_processed:{event_id}") > 0
+
+
+async def _mark_processed(event_id: str) -> None:
+    """Mark a webhook event as processed by setting a Redis key with 24h TTL."""
+    r = await get_redis()
+    await r.set(f"webhook_processed:{event_id}", "1", ex=_IDEMPOTENCY_TTL_SECONDS)
 
 
 async def _process_webhook(event_id: str) -> None:
     """Process a single webhook event by routing to the appropriate domain handler."""
+    # Idempotency check: skip if already processed (e.g. Celery requeue)
+    if await _is_already_processed(event_id):
+        logger.info("Webhook %s already processed, skipping", event_id)
+        return
+
     async with async_session_factory() as session:
         result = await session.execute(
             select(WebhookEvent).where(WebhookEvent.id == uuid.UUID(event_id))
@@ -47,6 +59,10 @@ async def _process_webhook(event_id: str) -> None:
 
             event.status = WebhookStatus.PROCESSED
             await session.commit()
+
+            # Mark as processed in Redis to prevent duplicate processing
+            await _mark_processed(event_id)
+
             logger.info(
                 "Processed webhook %s (%s:%s)",
                 event_id,
@@ -85,12 +101,19 @@ def _get_handler(platform: str, event_type: str):  # type: ignore[no-untyped-def
 @celery_app.task(
     bind=True,
     max_retries=3,
-    default_retry_delay=30,
+    retry_backoff=True,
+    retry_backoff_max=300,
+    retry_jitter=True,
     name="backend.workers.webhook_processor.process_webhook",
 )
 def process_webhook(self, event_id: str) -> None:  # type: ignore[no-untyped-def]
+    import asyncio
+
+    loop = asyncio.new_event_loop()
     try:
-        _run_async(_process_webhook(event_id))
+        loop.run_until_complete(_process_webhook(event_id))
     except Exception as exc:
         logger.exception("Webhook processing failed for %s", event_id)
         self.retry(exc=exc)
+    finally:
+        loop.close()

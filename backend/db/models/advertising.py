@@ -129,13 +129,17 @@ class Campaign(Base, UUIDMixin, TimestampMixin):
         JSONB, nullable=True, comment="Full API snapshot"
     )
 
-    ad_account: Mapped["AdAccount"] = relationship(back_populates="campaigns")
+    ad_account: Mapped["AdAccount"] = relationship(
+        back_populates="campaigns", lazy="selectin"
+    )
     ad_groups: Mapped[list["AdGroup"]] = relationship(
         back_populates="campaign", lazy="noload"
     )
 
     __table_args__ = (
         Index("ix_campaigns_workspace_status", "workspace_id", "operation_status"),
+        Index("ix_campaigns_ad_account_status", "ad_account_id", "operation_status"),
+        Index("ix_campaigns_workspace_created", "workspace_id", "created_at"),
     )
 
 
@@ -191,11 +195,15 @@ class AdGroup(Base, UUIDMixin, TimestampMixin):
         JSONB, nullable=True, comment="Full API snapshot"
     )
 
-    campaign: Mapped["Campaign"] = relationship(back_populates="ad_groups")
+    campaign: Mapped["Campaign"] = relationship(
+        back_populates="ad_groups", lazy="selectin"
+    )
     ads: Mapped[list["Ad"]] = relationship(back_populates="ad_group", lazy="noload")
 
     __table_args__ = (
         Index("ix_ad_groups_workspace_status", "workspace_id", "operation_status"),
+        Index("ix_ad_groups_ad_account_status", "ad_account_id", "operation_status"),
+        Index("ix_ad_groups_workspace_created", "workspace_id", "created_at"),
     )
 
 
@@ -238,10 +246,12 @@ class Ad(Base, UUIDMixin, TimestampMixin):
         JSONB, nullable=True, comment="Full API snapshot"
     )
 
-    ad_group: Mapped["AdGroup"] = relationship(back_populates="ads")
+    ad_group: Mapped["AdGroup"] = relationship(back_populates="ads", lazy="selectin")
 
     __table_args__ = (
         Index("ix_ads_workspace_status", "workspace_id", "operation_status"),
+        Index("ix_ads_ad_account_status", "ad_account_id", "operation_status"),
+        Index("ix_ads_workspace_created", "workspace_id", "created_at"),
     )
 
 

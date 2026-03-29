@@ -2,6 +2,9 @@ import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
+from starlette.requests import Request
+from starlette.responses import Response
 
 from backend.auth.routes import router as auth_router
 from backend.config import settings
@@ -21,6 +24,28 @@ from backend.modules.messaging.routes import router as messaging_router
 from backend.modules.organic.routes import router as organic_router
 from backend.modules.webhooks.routes import router as webhooks_router
 
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Add standard security headers to every response."""
+
+    async def dispatch(
+        self, request: Request, call_next: RequestResponseEndpoint
+    ) -> Response:
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = (
+            "camera=(), microphone=(), geolocation=()"
+        )
+        if not settings.debug:
+            response.headers["Strict-Transport-Security"] = (
+                "max-age=31536000; includeSubDomains"
+            )
+        return response
+
+
 logging.basicConfig(
     level=logging.DEBUG if settings.debug else logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -39,12 +64,18 @@ def create_app() -> FastAPI:
     # Middleware (order matters: last added = first executed)
     app.add_middleware(RequestLoggingMiddleware)
     app.add_middleware(TenantMiddleware)
+    app.add_middleware(SecurityHeadersMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[settings.frontend_url],
         allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allow_headers=[
+            "Authorization",
+            "Content-Type",
+            "X-Workspace-Id",
+            "X-Requested-With",
+        ],
     )
 
     # API routes
@@ -68,7 +99,33 @@ def create_app() -> FastAPI:
 
     @app.get("/health")
     async def health_check() -> dict:
-        return {"status": "healthy", "version": "0.1.0"}
+        import redis.asyncio as aioredis
+        from sqlalchemy import text
+
+        from backend.db.engine import async_session_factory
+
+        checks: dict[str, str] = {"status": "healthy", "version": "0.1.0"}
+
+        # Database connectivity
+        try:
+            async with async_session_factory() as session:
+                await session.execute(text("SELECT 1"))
+            checks["database"] = "connected"
+        except Exception:
+            checks["database"] = "disconnected"
+            checks["status"] = "degraded"
+
+        # Redis connectivity
+        try:
+            r = aioredis.from_url(settings.redis_url, decode_responses=True)
+            await r.ping()
+            await r.aclose()
+            checks["redis"] = "connected"
+        except Exception:
+            checks["redis"] = "disconnected"
+            checks["status"] = "degraded"
+
+        return checks
 
     return app
 

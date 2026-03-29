@@ -68,7 +68,8 @@ class ConnectedAccount(Base, UUIDMixin, TimestampMixin):
     )
 
     workspace: Mapped["Workspace"] = relationship(
-        back_populates="connected_accounts"
+        back_populates="connected_accounts",
+        lazy="selectin",
     )  # noqa: F821
     token_vault: Mapped["TokenVault | None"] = relationship(
         back_populates="connected_account",
