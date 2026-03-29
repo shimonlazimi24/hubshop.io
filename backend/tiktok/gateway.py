@@ -1,7 +1,10 @@
 from typing import Any
 
 from backend.db.models.platform import Platform
-from backend.tiktok.circuit_breaker import CircuitBreaker, CircuitBreakerOpen
+from backend.tiktok.circuit_breaker import (
+    CircuitBreakerOpen,
+    circuit_breaker_registry,
+)
 from backend.tiktok.developer.client import TikTokDeveloperClient
 from backend.tiktok.live.client import TikTokLiveClientWrapper
 from backend.tiktok.marketing.client import TikTokMarketingClient
@@ -16,15 +19,6 @@ from backend.tiktok.research.client import TikTokResearchClient
 from backend.tiktok.retry import with_retry
 from backend.tiktok.shop.client import TikTokShopClient
 from backend.tiktok.shop.sdk_client import TikTokShopSDKClient
-
-# Per-platform circuit breakers
-_circuit_breakers: dict[Platform, CircuitBreaker] = {
-    Platform.SHOP: CircuitBreaker(),
-    Platform.DEVELOPER: CircuitBreaker(),
-    Platform.MARKETING: CircuitBreaker(),
-    Platform.LIVE: CircuitBreaker(),
-    Platform.RESEARCH: CircuitBreaker(),
-}
 
 _rate_limiters = {
     Platform.SHOP: shop_rate_limiter,
@@ -49,6 +43,7 @@ class PlatformGateway:
     """Unified gateway for all TikTok platform API calls.
 
     Wraps each call with rate limiting, circuit breaker, and retry logic.
+    Circuit breakers are per-(platform, account) to prevent tenant cross-contamination.
     """
 
     def __init__(
@@ -60,7 +55,7 @@ class PlatformGateway:
         self._platform = platform
         self._account_id = account_id
         self._client = client
-        self._circuit_breaker = _circuit_breakers[platform]
+        self._circuit_breaker = circuit_breaker_registry.get(platform.value, account_id)
         self._rate_limiter = _rate_limiters[platform]
 
     async def request(
@@ -72,7 +67,7 @@ class PlatformGateway:
         json_body: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Execute a platform API request through the middleware chain."""
-        if not self._circuit_breaker.allow_request():
+        if not await self._circuit_breaker.allow_request():
             raise CircuitBreakerOpen(f"Circuit breaker open for {self._platform.value}")
 
         allowed = await self._rate_limiter.acquire(self._account_id)
@@ -89,10 +84,10 @@ class PlatformGateway:
                 params=params,
                 json_body=json_body,
             )
-            self._circuit_breaker.record_success()
+            await self._circuit_breaker.record_success()
             return result
         except Exception:
-            self._circuit_breaker.record_failure()
+            await self._circuit_breaker.record_failure()
             raise
 
     async def get(

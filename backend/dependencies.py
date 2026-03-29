@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.auth.jwt import decode_token
 from backend.auth.token_blacklist import is_token_blacklisted
 from backend.db.engine import get_db
-from backend.db.models.organization import Membership
+from backend.db.models.organization import Membership, Workspace
 from backend.db.models.user import User
 
 _bearer_scheme = HTTPBearer()
@@ -101,11 +101,21 @@ async def get_workspace_id(
             detail="Invalid workspace ID format",
         ) from exc
 
-    # Verify workspace exists and user has membership
+    # Verify workspace exists
+    ws_result = await db.execute(select(Workspace).where(Workspace.id == workspace_id))
+    workspace = ws_result.scalar_one_or_none()
+    if not workspace:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Workspace not found",
+        )
+
+    # Verify user has membership in the workspace's organization
     # A membership with workspace_id=NULL means org-wide access (covers all workspaces)
     result = await db.execute(
         select(Membership).where(
             Membership.user_id == current_user.id,
+            Membership.organization_id == workspace.organization_id,
             (Membership.workspace_id == workspace_id)
             | (Membership.workspace_id.is_(None)),
         )

@@ -1,10 +1,21 @@
+import logging
 from typing import Any
 
 import httpx
 
+logger = logging.getLogger(__name__)
+
+
+class TokenExpiredError(Exception):
+    """Raised when the Developer API access token has expired."""
+
 
 class TikTokDeveloperClient:
-    """TikTok Developer API client with Bearer token auth."""
+    """TikTok Developer API client with Bearer token auth.
+
+    Detects 401 responses and raises TokenExpiredError so callers
+    can trigger token refresh via the token vault.
+    """
 
     BASE_URL = "https://open.tiktokapis.com/v2"
 
@@ -18,6 +29,11 @@ class TikTokDeveloperClient:
                 "Content-Type": "application/json",
             },
         )
+
+    def update_token(self, access_token: str) -> None:
+        """Update the access token after a refresh."""
+        self._access_token = access_token
+        self._client.headers["Authorization"] = f"Bearer {access_token}"
 
     async def request(
         self,
@@ -34,6 +50,11 @@ class TikTokDeveloperClient:
             params=params,
             json=json_body,
         )
+        if response.status_code == 401:
+            logger.warning("Developer API token expired (401) on %s %s", method, path)
+            raise TokenExpiredError(
+                f"Access token expired for Developer API ({method} {path})"
+            )
         response.raise_for_status()
         return response.json()
 

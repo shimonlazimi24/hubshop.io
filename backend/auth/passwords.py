@@ -1,11 +1,12 @@
 import asyncio
+import os
 import re
 from concurrent.futures import ThreadPoolExecutor
 
 import bcrypt
 from fastapi import HTTPException, status
 
-_executor = ThreadPoolExecutor(max_workers=4)
+_executor = ThreadPoolExecutor(max_workers=min(32, (os.cpu_count() or 1) + 4))
 
 # Password policy constants
 _MIN_LENGTH = 8

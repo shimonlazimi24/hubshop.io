@@ -1,5 +1,7 @@
 import asyncio
 import logging
+import random
+import time
 from collections.abc import Awaitable, Callable
 from typing import TypeVar
 
@@ -17,13 +19,17 @@ async def with_retry(
     *args: object,
     max_retries: int = 3,
     base_delay: float = 1.0,
+    max_total_time: float = 15.0,
     **kwargs: object,
 ) -> T:
-    """Execute an async function with exponential backoff retry.
+    """Execute an async function with exponential backoff + jitter retry.
 
     Only retries on 429 (rate limited) and 5xx server errors.
+    Adds randomized jitter to prevent thundering herd.
+    Enforces a total time limit across all retries.
     """
     last_exception: Exception | None = None
+    start_time = time.monotonic()
 
     for attempt in range(max_retries + 1):
         try:
@@ -33,7 +39,16 @@ async def with_retry(
                 raise
             last_exception = exc
             if attempt < max_retries:
-                delay = base_delay * (2**attempt)
+                elapsed = time.monotonic() - start_time
+                if elapsed >= max_total_time:
+                    logger.warning(
+                        "Retry aborted: total time %.1fs exceeds limit %.1fs",
+                        elapsed,
+                        max_total_time,
+                    )
+                    break
+                # Exponential backoff with jitter (20% randomization)
+                delay = base_delay * (2**attempt) * random.uniform(0.8, 1.2)
                 logger.warning(
                     "Retry %d/%d after HTTP %d on %s (delay=%.1fs)",
                     attempt + 1,
@@ -46,7 +61,15 @@ async def with_retry(
         except httpx.TransportError as exc:
             last_exception = exc
             if attempt < max_retries:
-                delay = base_delay * (2**attempt)
+                elapsed = time.monotonic() - start_time
+                if elapsed >= max_total_time:
+                    logger.warning(
+                        "Retry aborted: total time %.1fs exceeds limit %.1fs",
+                        elapsed,
+                        max_total_time,
+                    )
+                    break
+                delay = base_delay * (2**attempt) * random.uniform(0.8, 1.2)
                 logger.warning(
                     "Retry %d/%d after transport error: %s (delay=%.1fs)",
                     attempt + 1,

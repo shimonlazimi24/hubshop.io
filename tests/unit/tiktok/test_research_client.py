@@ -1,3 +1,4 @@
+import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -41,6 +42,7 @@ class TestTikTokResearchClient:
     async def test_ensure_token_reuses_cached(self) -> None:
         client = TikTokResearchClient(client_key="key", client_secret="secret")
         client._access_token = "cached_token"
+        client._token_expires_at = time.time() + 3600
         token = await client._ensure_token()
         assert token == "cached_token"
 
@@ -48,6 +50,7 @@ class TestTikTokResearchClient:
     async def test_query_videos(self) -> None:
         client = TikTokResearchClient(client_key="key", client_secret="secret")
         client._access_token = "fake_token"
+        client._token_expires_at = time.time() + 3600
         with patch.object(client._http, "request", new_callable=AsyncMock) as mock:
             mock_resp = MagicMock()
             mock_resp.json.return_value = {"data": {"videos": [{"id": "123"}]}}
@@ -62,6 +65,7 @@ class TestTikTokResearchClient:
     async def test_query_user_info(self) -> None:
         client = TikTokResearchClient(client_key="key", client_secret="secret")
         client._access_token = "fake_token"
+        client._token_expires_at = time.time() + 3600
         with patch.object(client._http, "request", new_callable=AsyncMock) as mock:
             mock_resp = MagicMock()
             mock_resp.json.return_value = {"data": {"display_name": "testuser"}}
@@ -74,6 +78,7 @@ class TestTikTokResearchClient:
     async def test_query_video_comments(self) -> None:
         client = TikTokResearchClient(client_key="key", client_secret="secret")
         client._access_token = "fake_token"
+        client._token_expires_at = time.time() + 3600
         with patch.object(client._http, "request", new_callable=AsyncMock) as mock:
             mock_resp = MagicMock()
             mock_resp.json.return_value = {"data": {"comments": [{"text": "nice"}]}}
@@ -88,6 +93,7 @@ class TestTikTokResearchClient:
         Research API, so the method must raise NotImplementedError."""
         client = TikTokResearchClient(client_key="key", client_secret="secret")
         client._access_token = "fake_token"
+        client._token_expires_at = time.time() + 3600
         with pytest.raises(NotImplementedError):
             await client.query_user_followers(username="user1")
 
@@ -95,6 +101,7 @@ class TestTikTokResearchClient:
     async def test_get_method(self) -> None:
         client = TikTokResearchClient(client_key="key", client_secret="secret")
         client._access_token = "fake_token"
+        client._token_expires_at = time.time() + 3600
         with patch.object(client._http, "request", new_callable=AsyncMock) as mock:
             mock_resp = MagicMock()
             mock_resp.json.return_value = {"data": {}}

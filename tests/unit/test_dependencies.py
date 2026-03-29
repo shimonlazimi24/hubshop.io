@@ -19,13 +19,20 @@ class TestGetWorkspaceId:
         user.id = uuid.uuid4()
 
         workspace_id = uuid.uuid4()
+        workspace = MagicMock()
+        workspace.id = workspace_id
+        workspace.organization_id = uuid.uuid4()
+
         membership = MagicMock()
         membership.workspace_id = workspace_id
 
         mock_db = AsyncMock()
-        mock_result = MagicMock()
-        mock_result.scalar_one_or_none.return_value = membership
-        mock_db.execute = AsyncMock(return_value=mock_result)
+        # First call: workspace lookup, second call: membership lookup
+        ws_result = MagicMock()
+        ws_result.scalar_one_or_none.return_value = workspace
+        mem_result = MagicMock()
+        mem_result.scalar_one_or_none.return_value = membership
+        mock_db.execute = AsyncMock(side_effect=[ws_result, mem_result])
 
         result = await get_workspace_id(
             current_user=user,
@@ -35,8 +42,8 @@ class TestGetWorkspaceId:
 
         assert result == workspace_id
 
-    async def test_valid_workspace_no_membership_raises_403(self) -> None:
-        """Valid workspace_id with no membership raises 403."""
+    async def test_workspace_not_found_raises_404(self) -> None:
+        """Workspace that doesn't exist raises 404."""
         user = MagicMock()
         user.id = uuid.uuid4()
 
@@ -44,6 +51,32 @@ class TestGetWorkspaceId:
         mock_result = MagicMock()
         mock_result.scalar_one_or_none.return_value = None
         mock_db.execute = AsyncMock(return_value=mock_result)
+
+        with pytest.raises(HTTPException) as exc_info:
+            await get_workspace_id(
+                current_user=user,
+                db=mock_db,
+                x_workspace_id=str(uuid.uuid4()),
+            )
+
+        assert exc_info.value.status_code == 404
+        assert "not found" in exc_info.value.detail.lower()
+
+    async def test_valid_workspace_no_membership_raises_403(self) -> None:
+        """Valid workspace_id with no membership raises 403."""
+        user = MagicMock()
+        user.id = uuid.uuid4()
+
+        workspace = MagicMock()
+        workspace.id = uuid.uuid4()
+        workspace.organization_id = uuid.uuid4()
+
+        mock_db = AsyncMock()
+        ws_result = MagicMock()
+        ws_result.scalar_one_or_none.return_value = workspace
+        mem_result = MagicMock()
+        mem_result.scalar_one_or_none.return_value = None
+        mock_db.execute = AsyncMock(side_effect=[ws_result, mem_result])
 
         with pytest.raises(HTTPException) as exc_info:
             await get_workspace_id(
@@ -108,14 +141,20 @@ class TestGetWorkspaceId:
         user.id = uuid.uuid4()
 
         workspace_id = uuid.uuid4()
+        workspace = MagicMock()
+        workspace.id = workspace_id
+        workspace.organization_id = uuid.uuid4()
+
         # Org-wide membership (workspace_id is None)
         membership = MagicMock()
         membership.workspace_id = None
 
         mock_db = AsyncMock()
-        mock_result = MagicMock()
-        mock_result.scalar_one_or_none.return_value = membership
-        mock_db.execute = AsyncMock(return_value=mock_result)
+        ws_result = MagicMock()
+        ws_result.scalar_one_or_none.return_value = workspace
+        mem_result = MagicMock()
+        mem_result.scalar_one_or_none.return_value = membership
+        mock_db.execute = AsyncMock(side_effect=[ws_result, mem_result])
 
         result = await get_workspace_id(
             current_user=user,
