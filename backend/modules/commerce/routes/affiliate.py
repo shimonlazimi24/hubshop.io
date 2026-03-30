@@ -7,12 +7,16 @@ from backend.db.models.affiliate import AffiliateProduct
 from backend.dependencies import CurrentUser, DBSession
 from backend.modules.commerce.schemas import (
     AddToMarketplaceRequest,
+    AffiliateOrderResponse,
     AffiliateProductResponse,
     CreateOpenCollaborationRequest,
     CreateTargetCollaborationRequest,
     OpenCollaborationResponse,
     PaginatedResponse,
     RespondToApplicationRequest,
+    ReviewSampleRequest,
+    SampleRequestResponse,
+    SendCreatorMessageRequest,
     TargetCollaborationResponse,
 )
 from backend.modules.commerce.services.affiliate_service import AffiliateService
@@ -184,3 +188,191 @@ async def respond_to_application(
         application_id, approved=body.approved
     )
     return {"status": application.status}
+
+
+# --- Creator Discovery (E1) ---
+
+
+@router.get("/affiliate/creators")
+async def search_creators(
+    shop_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+    category: str | None = None,
+    min_followers: int | None = None,
+    page_size: int = 20,
+) -> dict:
+    shop_service = ShopService(db)
+    shop = await shop_service.get_shop(shop_id)
+    if not shop:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Shop not found"
+        )
+
+    service = AffiliateService(db)
+    return await service.search_creators(
+        shop, category=category, min_followers=min_followers, page_size=page_size
+    )
+
+
+@router.get("/affiliate/creators/{creator_id}/performance")
+async def get_creator_performance(
+    creator_id: str,
+    shop_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    shop_service = ShopService(db)
+    shop = await shop_service.get_shop(shop_id)
+    if not shop:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Shop not found"
+        )
+
+    service = AffiliateService(db)
+    return await service.get_creator_performance(shop, creator_id)
+
+
+@router.get("/affiliate/creators/{creator_id}/profile")
+async def get_creator_profile(
+    creator_id: str,
+    shop_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    shop_service = ShopService(db)
+    shop = await shop_service.get_shop(shop_id)
+    if not shop:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Shop not found"
+        )
+
+    service = AffiliateService(db)
+    return await service.get_creator_profile(shop, creator_id)
+
+
+# --- Sample Management (E2) ---
+
+
+@router.get(
+    "/affiliate/samples",
+    response_model=PaginatedResponse[SampleRequestResponse],
+)
+async def list_samples(
+    workspace_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+    shop_id: uuid.UUID | None = None,
+    status_filter: str | None = None,
+    page: int = 1,
+    page_size: int = 20,
+) -> PaginatedResponse[SampleRequestResponse]:
+    service = AffiliateService(db)
+    result = await service.list_sample_requests(
+        workspace_id,
+        shop_id=shop_id,
+        status_filter=status_filter,
+        page=page,
+        page_size=page_size,
+    )
+    return PaginatedResponse(
+        items=[SampleRequestResponse.model_validate(s) for s in result.items],
+        total=result.total,
+        page=result.page,
+        page_size=result.page_size,
+        total_pages=result.total_pages,
+    )
+
+
+@router.post("/affiliate/samples/{request_id}/review")
+async def review_sample(
+    request_id: str,
+    body: ReviewSampleRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    shop_service = ShopService(db)
+    shop = await shop_service.get_shop(uuid.UUID(body.shop_id))
+    if not shop:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Shop not found"
+        )
+
+    service = AffiliateService(db)
+    return await service.review_sample(
+        shop, request_id, approved=body.approved, reason=body.reason
+    )
+
+
+# --- Affiliate Orders (E3) ---
+
+
+@router.get(
+    "/affiliate/orders",
+    response_model=PaginatedResponse[AffiliateOrderResponse],
+)
+async def list_affiliate_orders(
+    workspace_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+    shop_id: uuid.UUID | None = None,
+    creator_id: str | None = None,
+    page: int = 1,
+    page_size: int = 20,
+) -> PaginatedResponse[AffiliateOrderResponse]:
+    service = AffiliateService(db)
+    result = await service.list_affiliate_orders(
+        workspace_id,
+        shop_id=shop_id,
+        creator_id=creator_id,
+        page=page,
+        page_size=page_size,
+    )
+    return PaginatedResponse(
+        items=[AffiliateOrderResponse.model_validate(o) for o in result.items],
+        total=result.total,
+        page=result.page,
+        page_size=result.page_size,
+        total_pages=result.total_pages,
+    )
+
+
+# --- Creator Messaging (E4) ---
+
+
+@router.get("/affiliate/messages")
+async def get_creator_conversations(
+    shop_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+    page_size: int = 20,
+) -> dict:
+    shop_service = ShopService(db)
+    shop = await shop_service.get_shop(shop_id)
+    if not shop:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Shop not found"
+        )
+
+    service = AffiliateService(db)
+    return await service.get_creator_conversations(shop, page_size=page_size)
+
+
+@router.post("/affiliate/messages/{conversation_id}")
+async def send_creator_message(
+    conversation_id: str,
+    body: SendCreatorMessageRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    shop_service = ShopService(db)
+    shop = await shop_service.get_shop(uuid.UUID(body.shop_id))
+    if not shop:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Shop not found"
+        )
+
+    service = AffiliateService(db)
+    return await service.send_creator_message(
+        shop, conversation_id, content=body.content
+    )

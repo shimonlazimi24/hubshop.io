@@ -324,8 +324,7 @@ class TestPerformanceSummaryRoute:
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             response = await client.get(
-                f"/api/content/videos/performance-summary"
-                f"?workspace_id={workspace_id}",
+                f"/api/content/videos/performance-summary?workspace_id={workspace_id}",
             )
 
         assert response.status_code == 200

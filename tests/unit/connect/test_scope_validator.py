@@ -1,7 +1,5 @@
 """Tests for platform scope validation."""
 
-import pytest
-
 from backend.modules.connect.services.scope_validator import (
     REQUIRED_SCOPES,
     validate_scopes,

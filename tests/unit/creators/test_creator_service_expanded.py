@@ -248,6 +248,6 @@ class TestPartnershipServiceRemoved:
             "services",
             "partnership_service.py",
         )
-        assert not os.path.exists(
-            path
-        ), f"partnership_service.py should have been deleted but still exists at {path}"
+        assert not os.path.exists(path), (
+            f"partnership_service.py should have been deleted but still exists at {path}"
+        )

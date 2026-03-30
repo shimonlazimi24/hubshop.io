@@ -1,0 +1,1043 @@
+{
+  "workflows": {
+    "workflow-1774810457347-0nw438": {
+      "workflowId": "workflow-1774810457347-0nw438",
+      "name": "frodo-feature-dev",
+      "description": "Full-stack feature development workflow for Frodo. Plans, implements with TDD, reviews, and prepares for merge.",
+      "steps": [
+        {
+          "stepId": "step-1",
+          "name": "plan-feature",
+          "type": "task",
+          "config": {
+            "agent": "planner",
+            "model": "opus",
+            "description": "Analyze requirements, identify affected modules (backend/modules/, frontend/src/app/, workers/), map dependencies, create implementation plan with phases"
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-2",
+          "name": "write-tests-first",
+          "type": "task",
+          "config": {
+            "agent": "tdd-guide",
+            "model": "opus",
+            "description": "Write failing tests for the feature using pytest markers (unit/integration). Follow RED phase of TDD. Target 80%+ coverage for new code."
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-3",
+          "name": "implement-backend-frontend",
+          "type": "parallel",
+          "config": {
+            "tasks": [
+              {
+                "name": "implement-backend",
+                "agent": "coder",
+                "model": "sonnet",
+                "description": "Implement backend: routes/ + services/ + schemas.py pattern. Follow PEP 8, type annotations, ruff format."
+              },
+              {
+                "name": "implement-frontend",
+                "agent": "coder",
+                "model": "sonnet",
+                "description": "Implement frontend: Next.js App Router pages, Tailwind via cn(), components in components/ui/. Update api.ts client if needed."
+              }
+            ]
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-4",
+          "name": "run-tests-green",
+          "type": "task",
+          "config": {
+            "command": "pytest --cov=backend --cov-report=term-missing",
+            "description": "Run full test suite. All tests must pass (GREEN phase). Fix any failures."
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-5",
+          "name": "quality-checks",
+          "type": "parallel",
+          "config": {
+            "tasks": [
+              {
+                "name": "lint-format",
+                "command": "ruff format backend/ tests/ && ruff check backend/ tests/ --fix"
+              },
+              {
+                "name": "type-check",
+                "command": "mypy backend/"
+              },
+              {
+                "name": "security-scan",
+                "command": "bandit -r backend/"
+              }
+            ]
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-6",
+          "name": "code-review",
+          "type": "task",
+          "config": {
+            "agent": "code-reviewer",
+            "model": "sonnet",
+            "description": "Review all changed files. Check for OWASP top 10, proper error handling, tenant isolation (workspace_id), and convention compliance."
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-7",
+          "name": "security-review",
+          "type": "condition",
+          "config": {
+            "condition": "touches_auth_or_api",
+            "if_true": {
+              "agent": "security-reviewer",
+              "model": "sonnet",
+              "description": "Deep security review: JWT handling, RBAC enforcement, token vault operations, SQL injection, XSS prevention"
+            }
+          },
+          "status": "pending"
+        }
+      ],
+      "status": "ready",
+      "currentStep": 0,
+      "variables": {
+        "project": "frodo",
+        "test_command": "pytest --cov=backend --cov-report=term-missing",
+        "lint_command": "ruff check backend/ tests/ --fix",
+        "format_command": "ruff format backend/ tests/"
+      },
+      "createdAt": "2026-03-29T18:54:17.347Z"
+    },
+    "workflow-1774810468995-7uq44z": {
+      "workflowId": "workflow-1774810468995-7uq44z",
+      "name": "frodo-tiktok-api-integration",
+      "description": "Workflow for integrating real TikTok API endpoints. Validates auth, tests with sandbox, handles rate limits and error responses.",
+      "steps": [
+        {
+          "stepId": "step-1",
+          "name": "research-api-docs",
+          "type": "task",
+          "config": {
+            "agent": "researcher",
+            "model": "opus",
+            "description": "Research the specific TikTok API endpoint from knowledge-base/ (60 files). Identify auth requirements, rate limits, request/response schemas, error codes, and sandbox vs production differences."
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-2",
+          "name": "validate-platform-client",
+          "type": "task",
+          "config": {
+            "agent": "coder",
+            "model": "sonnet",
+            "description": "Check the platform client in backend/tiktok/ (shop/, developer/, marketing/, live/, research/). Verify the method signature matches real API docs. Update if needed."
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-3",
+          "name": "update-gateway-middleware",
+          "type": "task",
+          "config": {
+            "agent": "coder",
+            "model": "sonnet",
+            "description": "Verify gateway.py routing, rate_limiter.py token bucket config, circuit_breaker.py thresholds, and retry.py backoff for this platform. Tune for real API behavior."
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-4",
+          "name": "write-integration-tests",
+          "type": "task",
+          "config": {
+            "agent": "tdd-guide",
+            "model": "sonnet",
+            "description": "Write integration tests with @pytest.mark.integration that test against real API sandbox. Mock only external network, not internal logic. Test error responses and rate limit handling."
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-5",
+          "name": "validate-token-flow",
+          "type": "task",
+          "config": {
+            "agent": "security-reviewer",
+            "model": "sonnet",
+            "description": "Verify token acquisition, refresh, and vault storage for this platform. Check AES-256-GCM encryption, Celery Beat refresh schedule, and error recovery."
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-6",
+          "name": "update-worker-sync",
+          "type": "task",
+          "config": {
+            "agent": "coder",
+            "model": "sonnet",
+            "description": "Update the corresponding sync worker in backend/workers/ to handle real API responses, pagination, error codes, and retry logic."
+          },
+          "status": "pending"
+        }
+      ],
+      "status": "ready",
+      "currentStep": 0,
+      "variables": {
+        "project": "frodo",
+        "knowledge_base": "knowledge-base/",
+        "platforms": [
+          "shop",
+          "developer",
+          "marketing",
+          "live",
+          "research"
+        ]
+      },
+      "createdAt": "2026-03-29T18:54:28.995Z"
+    },
+    "workflow-1774810478733-jgyhr6": {
+      "workflowId": "workflow-1774810478733-jgyhr6",
+      "name": "frodo-module-creation",
+      "description": "Scaffold and implement a new backend module following Frodo's standard pattern.",
+      "steps": [
+        {
+          "stepId": "step-1",
+          "name": "plan-module",
+          "type": "task",
+          "config": {
+            "agent": "architect",
+            "model": "opus",
+            "description": "Design module: define routes, services, schemas, DB models, and any cross-module bridges. Identify which TikTok platforms this module interacts with."
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-2",
+          "name": "scaffold-structure",
+          "type": "task",
+          "config": {
+            "agent": "coder",
+            "model": "sonnet",
+            "description": "Create module directory: backend/modules/<name>/__init__.py, routes/__init__.py, services/__init__.py, schemas.py. Add DB models to backend/db/models/. Register routes in backend/main.py."
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-3",
+          "name": "implement-and-test",
+          "type": "parallel",
+          "config": {
+            "tasks": [
+              {
+                "name": "write-schemas",
+                "description": "Pydantic v2 request/response models in schemas.py"
+              },
+              {
+                "name": "write-services",
+                "description": "Business logic in services/, using dependency injection"
+              },
+              {
+                "name": "write-routes",
+                "description": "FastAPI routers with proper auth deps (CurrentUser, get_workspace_id)"
+              },
+              {
+                "name": "write-tests",
+                "description": "pytest unit tests with fixtures from conftest.py"
+              }
+            ]
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-4",
+          "name": "add-worker-if-needed",
+          "type": "condition",
+          "config": {
+            "condition": "needs_background_sync",
+            "if_true": {
+              "description": "Create sync worker in backend/workers/, add beat schedule to celery_app.py"
+            }
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-5",
+          "name": "quality-gate",
+          "type": "parallel",
+          "config": {
+            "tasks": [
+              {
+                "name": "tests",
+                "command": "pytest tests/modules/<name>/ -v --cov"
+              },
+              {
+                "name": "lint",
+                "command": "ruff check backend/modules/<name>/ --fix"
+              },
+              {
+                "name": "types",
+                "command": "mypy backend/modules/<name>/"
+              }
+            ]
+          },
+          "status": "pending"
+        }
+      ],
+      "status": "ready",
+      "currentStep": 0,
+      "variables": {
+        "module_pattern": "routes/ + services/ + schemas.py",
+        "required_deps": [
+          "CurrentUser",
+          "DBSession",
+          "get_workspace_id"
+        ]
+      },
+      "createdAt": "2026-03-29T18:54:38.733Z"
+    },
+    "workflow-1774810489885-juy4ap": {
+      "workflowId": "workflow-1774810489885-juy4ap",
+      "name": "frodo-production-hardening",
+      "description": "Systematic production readiness workflow. Addresses the 79 items needed for production deployment.",
+      "steps": [
+        {
+          "stepId": "step-1",
+          "name": "audit-current-state",
+          "type": "task",
+          "config": {
+            "agent": "analyst",
+            "model": "opus",
+            "description": "Run full audit: test coverage, security scan (bandit), type checking (mypy), dependency audit. Map current status of 79 production readiness items."
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-2",
+          "name": "security-hardening",
+          "type": "parallel",
+          "config": {
+            "tasks": [
+              {
+                "name": "auth-audit",
+                "description": "JWT validation, RBAC enforcement, session management, CORS config"
+              },
+              {
+                "name": "input-validation",
+                "description": "All API endpoints validate input via Pydantic, SQL parameterized queries"
+              },
+              {
+                "name": "secrets-audit",
+                "description": "No hardcoded secrets, proper env var usage via config.py"
+              },
+              {
+                "name": "dependency-audit",
+                "description": "Check for vulnerable dependencies, pin versions"
+              }
+            ]
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-3",
+          "name": "performance-hardening",
+          "type": "parallel",
+          "config": {
+            "tasks": [
+              {
+                "name": "db-optimization",
+                "description": "Connection pooling, query optimization, index review for 120 models"
+              },
+              {
+                "name": "cache-strategy",
+                "description": "Redis caching for hot paths, token cache TTLs, rate limit tuning"
+              },
+              {
+                "name": "api-performance",
+                "description": "Response time profiling, N+1 query detection, pagination enforcement"
+              }
+            ]
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-4",
+          "name": "observability",
+          "type": "task",
+          "config": {
+            "agent": "coder",
+            "model": "sonnet",
+            "description": "Add structured logging, health check endpoints, metrics collection, error tracking integration points"
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-5",
+          "name": "deployment-prep",
+          "type": "parallel",
+          "config": {
+            "tasks": [
+              {
+                "name": "docker-optimization",
+                "description": "Multi-stage builds, health checks, resource limits in docker-compose"
+              },
+              {
+                "name": "env-config",
+                "description": "Separate dev/staging/prod configs, secrets management"
+              },
+              {
+                "name": "ci-cd",
+                "description": "GitHub Actions pipeline: lint -> test -> build -> deploy"
+              }
+            ]
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-6",
+          "name": "final-validation",
+          "type": "parallel",
+          "config": {
+            "tasks": [
+              {
+                "name": "full-test-suite",
+                "command": "pytest --cov=backend --cov-report=term-missing"
+              },
+              {
+                "name": "security-scan",
+                "command": "bandit -r backend/"
+              },
+              {
+                "name": "type-check",
+                "command": "mypy backend/"
+              }
+            ]
+          },
+          "status": "pending"
+        }
+      ],
+      "status": "ready",
+      "currentStep": 0,
+      "variables": {
+        "production_items_total": 79,
+        "production_items_done": 0,
+        "target_coverage": "80%"
+      },
+      "createdAt": "2026-03-29T18:54:49.885Z"
+    },
+    "workflow-1774810497532-88t6xf": {
+      "workflowId": "workflow-1774810497532-88t6xf",
+      "name": "frodo-testing-blitz",
+      "description": "Comprehensive testing workflow to improve coverage and catch regressions across the entire Frodo codebase.",
+      "steps": [
+        {
+          "stepId": "step-1",
+          "name": "coverage-analysis",
+          "type": "task",
+          "config": {
+            "command": "pytest --cov=backend --cov-report=term-missing --cov-report=json",
+            "description": "Run coverage analysis to identify uncovered modules and functions"
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-2",
+          "name": "gap-identification",
+          "type": "task",
+          "config": {
+            "agent": "analyst",
+            "model": "sonnet",
+            "description": "Analyze coverage report. Identify: modules below 80%, untested edge cases, missing integration tests, untested error paths in TikTok clients"
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-3",
+          "name": "write-missing-tests",
+          "type": "parallel",
+          "config": {
+            "tasks": [
+              {
+                "name": "unit-tests",
+                "agent": "tdd-guide",
+                "description": "Write unit tests for uncovered functions. Use fixtures from conftest.py. Mark with @pytest.mark.unit"
+              },
+              {
+                "name": "integration-tests",
+                "agent": "tdd-guide",
+                "description": "Write integration tests for API endpoints and DB operations. Mark with @pytest.mark.integration"
+              },
+              {
+                "name": "edge-case-tests",
+                "agent": "tdd-guide",
+                "description": "Write tests for error paths: invalid tokens, rate limits, circuit breaker trips, malformed API responses"
+              }
+            ]
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-4",
+          "name": "verify-all-pass",
+          "type": "task",
+          "config": {
+            "command": "pytest -v --tb=short",
+            "description": "Run full suite, verify all tests pass including new ones"
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-5",
+          "name": "final-coverage",
+          "type": "task",
+          "config": {
+            "command": "pytest --cov=backend --cov-report=term-missing",
+            "description": "Verify coverage meets 80%+ target across all modules"
+          },
+          "status": "pending"
+        }
+      ],
+      "status": "ready",
+      "currentStep": 0,
+      "variables": {
+        "current_tests": 879,
+        "target_coverage": "80%",
+        "markers": [
+          "unit",
+          "integration",
+          "e2e"
+        ]
+      },
+      "createdAt": "2026-03-29T18:54:57.532Z"
+    }
+  },
+  "templates": {
+    "template-1774810503847-t77czn": {
+      "workflowId": "template-1774810503847-t77czn",
+      "name": "frodo-feature-dev",
+      "description": "Full-stack feature development workflow for Frodo. Plans, implements with TDD, reviews, and prepares for merge.",
+      "steps": [
+        {
+          "stepId": "step-1",
+          "name": "plan-feature",
+          "type": "task",
+          "config": {
+            "agent": "planner",
+            "model": "opus",
+            "description": "Analyze requirements, identify affected modules (backend/modules/, frontend/src/app/, workers/), map dependencies, create implementation plan with phases"
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-2",
+          "name": "write-tests-first",
+          "type": "task",
+          "config": {
+            "agent": "tdd-guide",
+            "model": "opus",
+            "description": "Write failing tests for the feature using pytest markers (unit/integration). Follow RED phase of TDD. Target 80%+ coverage for new code."
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-3",
+          "name": "implement-backend-frontend",
+          "type": "parallel",
+          "config": {
+            "tasks": [
+              {
+                "name": "implement-backend",
+                "agent": "coder",
+                "model": "sonnet",
+                "description": "Implement backend: routes/ + services/ + schemas.py pattern. Follow PEP 8, type annotations, ruff format."
+              },
+              {
+                "name": "implement-frontend",
+                "agent": "coder",
+                "model": "sonnet",
+                "description": "Implement frontend: Next.js App Router pages, Tailwind via cn(), components in components/ui/. Update api.ts client if needed."
+              }
+            ]
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-4",
+          "name": "run-tests-green",
+          "type": "task",
+          "config": {
+            "command": "pytest --cov=backend --cov-report=term-missing",
+            "description": "Run full test suite. All tests must pass (GREEN phase). Fix any failures."
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-5",
+          "name": "quality-checks",
+          "type": "parallel",
+          "config": {
+            "tasks": [
+              {
+                "name": "lint-format",
+                "command": "ruff format backend/ tests/ && ruff check backend/ tests/ --fix"
+              },
+              {
+                "name": "type-check",
+                "command": "mypy backend/"
+              },
+              {
+                "name": "security-scan",
+                "command": "bandit -r backend/"
+              }
+            ]
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-6",
+          "name": "code-review",
+          "type": "task",
+          "config": {
+            "agent": "code-reviewer",
+            "model": "sonnet",
+            "description": "Review all changed files. Check for OWASP top 10, proper error handling, tenant isolation (workspace_id), and convention compliance."
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-7",
+          "name": "security-review",
+          "type": "condition",
+          "config": {
+            "condition": "touches_auth_or_api",
+            "if_true": {
+              "agent": "security-reviewer",
+              "model": "sonnet",
+              "description": "Deep security review: JWT handling, RBAC enforcement, token vault operations, SQL injection, XSS prevention"
+            }
+          },
+          "status": "pending"
+        }
+      ],
+      "status": "draft",
+      "currentStep": 0,
+      "variables": {
+        "project": "frodo",
+        "test_command": "pytest --cov=backend --cov-report=term-missing",
+        "lint_command": "ruff check backend/ tests/ --fix",
+        "format_command": "ruff format backend/ tests/"
+      },
+      "createdAt": "2026-03-29T18:55:03.847Z"
+    },
+    "template-1774810504495-t0tyi9": {
+      "workflowId": "template-1774810504495-t0tyi9",
+      "name": "frodo-tiktok-api-integration",
+      "description": "Workflow for integrating real TikTok API endpoints. Validates auth, tests with sandbox, handles rate limits and error responses.",
+      "steps": [
+        {
+          "stepId": "step-1",
+          "name": "research-api-docs",
+          "type": "task",
+          "config": {
+            "agent": "researcher",
+            "model": "opus",
+            "description": "Research the specific TikTok API endpoint from knowledge-base/ (60 files). Identify auth requirements, rate limits, request/response schemas, error codes, and sandbox vs production differences."
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-2",
+          "name": "validate-platform-client",
+          "type": "task",
+          "config": {
+            "agent": "coder",
+            "model": "sonnet",
+            "description": "Check the platform client in backend/tiktok/ (shop/, developer/, marketing/, live/, research/). Verify the method signature matches real API docs. Update if needed."
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-3",
+          "name": "update-gateway-middleware",
+          "type": "task",
+          "config": {
+            "agent": "coder",
+            "model": "sonnet",
+            "description": "Verify gateway.py routing, rate_limiter.py token bucket config, circuit_breaker.py thresholds, and retry.py backoff for this platform. Tune for real API behavior."
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-4",
+          "name": "write-integration-tests",
+          "type": "task",
+          "config": {
+            "agent": "tdd-guide",
+            "model": "sonnet",
+            "description": "Write integration tests with @pytest.mark.integration that test against real API sandbox. Mock only external network, not internal logic. Test error responses and rate limit handling."
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-5",
+          "name": "validate-token-flow",
+          "type": "task",
+          "config": {
+            "agent": "security-reviewer",
+            "model": "sonnet",
+            "description": "Verify token acquisition, refresh, and vault storage for this platform. Check AES-256-GCM encryption, Celery Beat refresh schedule, and error recovery."
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-6",
+          "name": "update-worker-sync",
+          "type": "task",
+          "config": {
+            "agent": "coder",
+            "model": "sonnet",
+            "description": "Update the corresponding sync worker in backend/workers/ to handle real API responses, pagination, error codes, and retry logic."
+          },
+          "status": "pending"
+        }
+      ],
+      "status": "draft",
+      "currentStep": 0,
+      "variables": {
+        "project": "frodo",
+        "knowledge_base": "knowledge-base/",
+        "platforms": [
+          "shop",
+          "developer",
+          "marketing",
+          "live",
+          "research"
+        ]
+      },
+      "createdAt": "2026-03-29T18:55:04.495Z"
+    },
+    "template-1774810505510-3g57hh": {
+      "workflowId": "template-1774810505510-3g57hh",
+      "name": "frodo-module-creation",
+      "description": "Scaffold and implement a new backend module following Frodo's standard pattern.",
+      "steps": [
+        {
+          "stepId": "step-1",
+          "name": "plan-module",
+          "type": "task",
+          "config": {
+            "agent": "architect",
+            "model": "opus",
+            "description": "Design module: define routes, services, schemas, DB models, and any cross-module bridges. Identify which TikTok platforms this module interacts with."
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-2",
+          "name": "scaffold-structure",
+          "type": "task",
+          "config": {
+            "agent": "coder",
+            "model": "sonnet",
+            "description": "Create module directory: backend/modules/<name>/__init__.py, routes/__init__.py, services/__init__.py, schemas.py. Add DB models to backend/db/models/. Register routes in backend/main.py."
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-3",
+          "name": "implement-and-test",
+          "type": "parallel",
+          "config": {
+            "tasks": [
+              {
+                "name": "write-schemas",
+                "description": "Pydantic v2 request/response models in schemas.py"
+              },
+              {
+                "name": "write-services",
+                "description": "Business logic in services/, using dependency injection"
+              },
+              {
+                "name": "write-routes",
+                "description": "FastAPI routers with proper auth deps (CurrentUser, get_workspace_id)"
+              },
+              {
+                "name": "write-tests",
+                "description": "pytest unit tests with fixtures from conftest.py"
+              }
+            ]
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-4",
+          "name": "add-worker-if-needed",
+          "type": "condition",
+          "config": {
+            "condition": "needs_background_sync",
+            "if_true": {
+              "description": "Create sync worker in backend/workers/, add beat schedule to celery_app.py"
+            }
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-5",
+          "name": "quality-gate",
+          "type": "parallel",
+          "config": {
+            "tasks": [
+              {
+                "name": "tests",
+                "command": "pytest tests/modules/<name>/ -v --cov"
+              },
+              {
+                "name": "lint",
+                "command": "ruff check backend/modules/<name>/ --fix"
+              },
+              {
+                "name": "types",
+                "command": "mypy backend/modules/<name>/"
+              }
+            ]
+          },
+          "status": "pending"
+        }
+      ],
+      "status": "draft",
+      "currentStep": 0,
+      "variables": {
+        "module_pattern": "routes/ + services/ + schemas.py",
+        "required_deps": [
+          "CurrentUser",
+          "DBSession",
+          "get_workspace_id"
+        ]
+      },
+      "createdAt": "2026-03-29T18:55:05.510Z"
+    },
+    "template-1774810505969-s1cttg": {
+      "workflowId": "template-1774810505969-s1cttg",
+      "name": "frodo-production-hardening",
+      "description": "Systematic production readiness workflow. Addresses the 79 items needed for production deployment.",
+      "steps": [
+        {
+          "stepId": "step-1",
+          "name": "audit-current-state",
+          "type": "task",
+          "config": {
+            "agent": "analyst",
+            "model": "opus",
+            "description": "Run full audit: test coverage, security scan (bandit), type checking (mypy), dependency audit. Map current status of 79 production readiness items."
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-2",
+          "name": "security-hardening",
+          "type": "parallel",
+          "config": {
+            "tasks": [
+              {
+                "name": "auth-audit",
+                "description": "JWT validation, RBAC enforcement, session management, CORS config"
+              },
+              {
+                "name": "input-validation",
+                "description": "All API endpoints validate input via Pydantic, SQL parameterized queries"
+              },
+              {
+                "name": "secrets-audit",
+                "description": "No hardcoded secrets, proper env var usage via config.py"
+              },
+              {
+                "name": "dependency-audit",
+                "description": "Check for vulnerable dependencies, pin versions"
+              }
+            ]
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-3",
+          "name": "performance-hardening",
+          "type": "parallel",
+          "config": {
+            "tasks": [
+              {
+                "name": "db-optimization",
+                "description": "Connection pooling, query optimization, index review for 120 models"
+              },
+              {
+                "name": "cache-strategy",
+                "description": "Redis caching for hot paths, token cache TTLs, rate limit tuning"
+              },
+              {
+                "name": "api-performance",
+                "description": "Response time profiling, N+1 query detection, pagination enforcement"
+              }
+            ]
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-4",
+          "name": "observability",
+          "type": "task",
+          "config": {
+            "agent": "coder",
+            "model": "sonnet",
+            "description": "Add structured logging, health check endpoints, metrics collection, error tracking integration points"
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-5",
+          "name": "deployment-prep",
+          "type": "parallel",
+          "config": {
+            "tasks": [
+              {
+                "name": "docker-optimization",
+                "description": "Multi-stage builds, health checks, resource limits in docker-compose"
+              },
+              {
+                "name": "env-config",
+                "description": "Separate dev/staging/prod configs, secrets management"
+              },
+              {
+                "name": "ci-cd",
+                "description": "GitHub Actions pipeline: lint -> test -> build -> deploy"
+              }
+            ]
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-6",
+          "name": "final-validation",
+          "type": "parallel",
+          "config": {
+            "tasks": [
+              {
+                "name": "full-test-suite",
+                "command": "pytest --cov=backend --cov-report=term-missing"
+              },
+              {
+                "name": "security-scan",
+                "command": "bandit -r backend/"
+              },
+              {
+                "name": "type-check",
+                "command": "mypy backend/"
+              }
+            ]
+          },
+          "status": "pending"
+        }
+      ],
+      "status": "draft",
+      "currentStep": 0,
+      "variables": {
+        "production_items_total": 79,
+        "production_items_done": 0,
+        "target_coverage": "80%"
+      },
+      "createdAt": "2026-03-29T18:55:05.969Z"
+    },
+    "template-1774810506782-4wwusn": {
+      "workflowId": "template-1774810506782-4wwusn",
+      "name": "frodo-testing-blitz",
+      "description": "Comprehensive testing workflow to improve coverage and catch regressions across the entire Frodo codebase.",
+      "steps": [
+        {
+          "stepId": "step-1",
+          "name": "coverage-analysis",
+          "type": "task",
+          "config": {
+            "command": "pytest --cov=backend --cov-report=term-missing --cov-report=json",
+            "description": "Run coverage analysis to identify uncovered modules and functions"
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-2",
+          "name": "gap-identification",
+          "type": "task",
+          "config": {
+            "agent": "analyst",
+            "model": "sonnet",
+            "description": "Analyze coverage report. Identify: modules below 80%, untested edge cases, missing integration tests, untested error paths in TikTok clients"
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-3",
+          "name": "write-missing-tests",
+          "type": "parallel",
+          "config": {
+            "tasks": [
+              {
+                "name": "unit-tests",
+                "agent": "tdd-guide",
+                "description": "Write unit tests for uncovered functions. Use fixtures from conftest.py. Mark with @pytest.mark.unit"
+              },
+              {
+                "name": "integration-tests",
+                "agent": "tdd-guide",
+                "description": "Write integration tests for API endpoints and DB operations. Mark with @pytest.mark.integration"
+              },
+              {
+                "name": "edge-case-tests",
+                "agent": "tdd-guide",
+                "description": "Write tests for error paths: invalid tokens, rate limits, circuit breaker trips, malformed API responses"
+              }
+            ]
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-4",
+          "name": "verify-all-pass",
+          "type": "task",
+          "config": {
+            "command": "pytest -v --tb=short",
+            "description": "Run full suite, verify all tests pass including new ones"
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-5",
+          "name": "final-coverage",
+          "type": "task",
+          "config": {
+            "command": "pytest --cov=backend --cov-report=term-missing",
+            "description": "Verify coverage meets 80%+ target across all modules"
+          },
+          "status": "pending"
+        }
+      ],
+      "status": "draft",
+      "currentStep": 0,
+      "variables": {
+        "current_tests": 879,
+        "target_coverage": "80%",
+        "markers": [
+          "unit",
+          "integration",
+          "e2e"
+        ]
+      },
+      "createdAt": "2026-03-29T18:55:06.782Z"
+    }
+  },
+  "version": "3.0.0"
+}

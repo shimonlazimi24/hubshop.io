@@ -3,7 +3,10 @@ import uuid
 from fastapi import APIRouter, HTTPException, status
 
 from backend.dependencies import CurrentUser, DBSession
-from backend.modules.commerce.schemas import SendMessageRequest
+from backend.modules.commerce.schemas import (
+    SendMessageRequest,
+    UpdateAgentSettingsRequest,
+)
 from backend.modules.commerce.services.customer_service import CustomerServiceService
 from backend.modules.commerce.services.shop_service import ShopService
 
@@ -75,3 +78,59 @@ async def mark_as_read(
     shop = await _get_shop(db, shop_id)
     service = CustomerServiceService(db)
     return await service.mark_as_read(shop, conversation_id)
+
+
+@router.get("/agent-settings")
+async def get_agent_settings(
+    shop_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    shop = await _get_shop(db, shop_id)
+    service = CustomerServiceService(db)
+    return await service.get_agent_settings(shop)
+
+
+@router.put("/agent-settings")
+async def update_agent_settings(
+    shop_id: uuid.UUID,
+    body: UpdateAgentSettingsRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    shop = await _get_shop(db, shop_id)
+    service = CustomerServiceService(db)
+    return await service.update_agent_settings(
+        shop,
+        settings=body.model_dump(exclude_none=True),
+    )
+
+
+@router.get("/cs-performance")
+async def get_cs_performance(
+    shop_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> dict:
+    shop = await _get_shop(db, shop_id)
+    service = CustomerServiceService(db)
+    return await service.get_cs_performance(shop)
+
+
+@router.get("/sessions")
+async def search_sessions(
+    shop_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+    session_status: str | None = None,
+    page_size: int = 20,
+    page_token: str | None = None,
+) -> dict:
+    shop = await _get_shop(db, shop_id)
+    service = CustomerServiceService(db)
+    filters: dict[str, str | int] = {"page_size": page_size}
+    if session_status:
+        filters["status"] = session_status
+    if page_token:
+        filters["page_token"] = page_token
+    return await service.search_sessions(shop, filters=filters)

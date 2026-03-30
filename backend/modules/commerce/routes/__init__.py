@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from backend.modules.commerce.routes.affiliate import router as affiliate_router
 from backend.modules.commerce.routes.analytics import router as analytics_router
+from backend.modules.commerce.routes.coupons import router as coupons_router
 from backend.modules.commerce.routes.customer_service import (
     router as customer_service_router,
 )
@@ -26,6 +27,7 @@ router.include_router(returns_router)
 router.include_router(analytics_router)
 router.include_router(affiliate_router)
 router.include_router(promotions_router)
+router.include_router(coupons_router)
 router.include_router(finance_router)
 router.include_router(customer_service_router)
 router.include_router(logistics_router)

@@ -1,0 +1,51 @@
+{
+  "agents": {},
+  "workflows": {
+    "tiktok-shop-ops": {
+      "id": "tiktok-shop-ops",
+      "name": "TikTok Shop End-to-End Operations",
+      "status": "completed",
+      "steps": [
+        {
+          "name": "Step 1",
+          "status": "completed",
+          "output": "Completed: Step 1"
+        },
+        {
+          "name": "Step 2",
+          "status": "completed",
+          "output": "Completed: Step 2"
+        },
+        {
+          "name": "Step 3",
+          "status": "completed",
+          "output": "Completed: Step 3"
+        },
+        {
+          "name": "Step 4",
+          "status": "completed",
+          "output": "Completed: Step 4"
+        },
+        {
+          "name": "Step 5",
+          "status": "completed",
+          "output": "Completed: Step 5"
+        },
+        {
+          "name": "Step 6",
+          "status": "completed",
+          "output": "Completed: Step 6"
+        },
+        {
+          "name": "Step 7",
+          "status": "completed",
+          "output": "Completed: Step 7"
+        }
+      ],
+      "strategy": "sequential",
+      "createdAt": "2026-03-30T08:40:51.080Z"
+    }
+  },
+  "knowledge": {},
+  "version": "3.0.0"
+}

@@ -122,7 +122,9 @@ class TestGetOrCreateUserExisting:
 
         # Second query (membership lookup in _ensure_membership) -> has membership
         membership_mock = MagicMock()
-        membership_mock.scalar_one_or_none.return_value = MagicMock()  # existing membership
+        membership_mock.scalar_one_or_none.return_value = (
+            MagicMock()
+        )  # existing membership
 
         db.execute.side_effect = [identity_mock, membership_mock]
 

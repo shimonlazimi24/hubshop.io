@@ -1,0 +1,23 @@
+{
+  "values": {
+    "swarm.topology": "mesh",
+    "swarm.maxAgents": 15,
+    "swarm.autoScale": true,
+    "memory.persistInterval": 60000,
+    "memory.maxEntries": 50000,
+    "session.autoSave": true,
+    "session.saveInterval": 300000,
+    "logging.level": "info",
+    "logging.format": "json",
+    "security.sandboxEnabled": true,
+    "security.pathValidation": true
+  },
+  "scopes": {
+    "project": {
+      "project.name": "frodo",
+      "project.type": "fullstack-saas"
+    }
+  },
+  "version": "3.0.0",
+  "updatedAt": "2026-03-29T18:52:17.000Z"
+}

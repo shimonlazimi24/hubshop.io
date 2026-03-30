@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException, status
 
 from backend.dependencies import CurrentUser, DBSession
 from backend.modules.commerce.schemas import (
+    CreateFlashDealRequest,
     CreatePromotionRequest,
     PaginatedResponse,
     PromotionResponse,
@@ -85,6 +86,35 @@ async def create_promotion(
         discount_type=body.discount_type,
         discount_value=body.discount_value,
         product_ids=body.product_ids,
+    )
+    return PromotionResponse.model_validate(promotion)
+
+
+@router.post("/promotions/flash-deal", response_model=PromotionResponse)
+async def create_flash_deal(
+    workspace_id: uuid.UUID,
+    body: CreateFlashDealRequest,
+    current_user: CurrentUser,
+    db: DBSession,
+) -> PromotionResponse:
+    shop_service = ShopService(db)
+    shop = await shop_service.get_shop(uuid.UUID(body.shop_id))
+    if not shop:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Shop not found"
+        )
+
+    service = PromotionService(db)
+    promotion = await service.create_flash_deal(
+        workspace_id,
+        shop,
+        title=body.title,
+        product_ids=body.product_ids,
+        countdown_duration_hours=body.countdown_duration_hours,
+        price_rules=body.price_rules,
+        max_quantity=body.max_quantity,
+        start_time=body.start_time,
+        end_time=body.end_time,
     )
     return PromotionResponse.model_validate(promotion)
 

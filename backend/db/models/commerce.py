@@ -375,6 +375,20 @@ class Promotion(Base, UUIDMixin, TimestampMixin):
     )
     discount_value: Mapped[str | None] = mapped_column(String(20), nullable=True)
     detail_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    max_quantity: Mapped[int | None] = mapped_column(
+        nullable=True, comment="Flash deal: max units available"
+    )
+    countdown_duration_hours: Mapped[int | None] = mapped_column(
+        nullable=True, comment="Flash deal: duration in hours, max 72"
+    )
+    price_rules: Mapped[list | None] = mapped_column(
+        JSONB,
+        nullable=True,
+        comment="Per-SKU pricing: [{sku_id, original_price, discount_price}]",
+    )
+    product_count: Mapped[int | None] = mapped_column(
+        nullable=True, comment="Number of products in this promotion"
+    )
 
     __table_args__ = (
         Index("ix_promotions_workspace_status", "workspace_id", "status"),

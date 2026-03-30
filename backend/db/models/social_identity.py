@@ -48,9 +48,7 @@ class SocialIdentity(Base, UUIDMixin, TimestampMixin):
         comment="Avatar URL from the social provider",
     )
 
-    user: Mapped["User"] = relationship(
-        back_populates="social_identities"
-    )  # noqa: F821
+    user: Mapped["User"] = relationship(back_populates="social_identities")  # noqa: F821
 
     __table_args__ = (
         UniqueConstraint(

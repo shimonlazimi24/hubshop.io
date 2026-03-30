@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Generic, TypeVar
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 T = TypeVar("T")
 
@@ -337,6 +337,63 @@ class RespondToApplicationRequest(BaseModel):
     approved: bool
 
 
+# --- Sample Requests (E2) ---
+
+
+class SampleRequestResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    workspace_id: str
+    shop_id: str
+    platform_request_id: str
+    collaboration_id: str | None = None
+    creator_id: str
+    product_id: str
+    status: str
+    rejection_reason: str | None = None
+    shipping_tracking: str | None = None
+    reviewed_at: datetime | None = None
+    shipped_at: datetime | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class ReviewSampleRequest(BaseModel):
+    shop_id: str
+    approved: bool
+    reason: str | None = None
+
+
+# --- Affiliate Orders (E3) ---
+
+
+class AffiliateOrderResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    workspace_id: str
+    shop_id: str
+    platform_order_id: str
+    creator_id: str
+    collab_type: str
+    product_id: str
+    order_amount: str
+    commission_rate: str
+    commission_amount: str
+    ordered_at: datetime | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+# --- Creator Messaging (E4) ---
+
+
+class SendCreatorMessageRequest(BaseModel):
+    shop_id: str
+    content: str
+
+
 # --- Promotions ---
 
 
@@ -421,6 +478,13 @@ class SendMessageRequest(BaseModel):
     content: str
 
 
+class UpdateAgentSettingsRequest(BaseModel):
+    online_hours: dict | None = None
+    auto_reply_enabled: bool | None = None
+    auto_reply_message: str | None = None
+    greeting_message: str | None = None
+
+
 # --- Product Create / Edit ---
 
 
@@ -486,3 +550,55 @@ class UploadFileRequest(BaseModel):
     shop_id: str
     file_url: str
     file_name: str
+
+
+# --- Flash Deal schemas ---
+
+
+class CreateFlashDealRequest(BaseModel):
+    shop_id: str
+    title: str
+    product_ids: list[str]
+    countdown_duration_hours: int = Field(ge=1, le=72)
+    max_quantity: int | None = None
+    price_rules: list[dict]
+    start_time: str | None = None
+    end_time: str | None = None
+
+
+class CreateProductDiscountRequest(BaseModel):
+    shop_id: str
+    title: str
+    product_ids: list[str]
+    discount_type: str  # PERCENTAGE or FIXED_AMOUNT
+    discount_value: str
+    start_time: str | None = None
+    end_time: str | None = None
+
+
+class UpdatePromotionProductsRequest(BaseModel):
+    product_ids: list[str]
+    action: str  # ADD or REMOVE
+
+
+# --- Coupon schemas ---
+
+
+class CouponResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    platform_coupon_id: str
+    code: str
+    discount_type: str
+    discount_value: str
+    min_order_amount: str | None = None
+    validity_start: datetime | None = None
+    validity_end: datetime | None = None
+    total_claim_limit: int | None = None
+    per_user_limit: int | None = None
+    claimed_count: int
+    used_count: int
+    status: str
+    created_at: datetime
+    updated_at: datetime

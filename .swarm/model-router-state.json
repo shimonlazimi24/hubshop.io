@@ -1,0 +1,50 @@
+{
+  "totalDecisions": 1,
+  "modelDistribution": {
+    "haiku": 0,
+    "sonnet": 0,
+    "opus": 1,
+    "inherit": 0
+  },
+  "avgComplexity": 0.4262775510204081,
+  "avgConfidence": 0.5676240478500366,
+  "circuitBreakerTrips": 0,
+  "lastUpdated": "2026-03-29T18:56:22.657Z",
+  "learningHistory": [
+    {
+      "task": "Fix the order fulfillment sync worker to handle TikTok Shop API pagination correctly",
+      "model": "sonnet",
+      "complexity": 0.4262775510204081,
+      "outcome": "success",
+      "timestamp": "2026-03-29T18:56:18.922Z"
+    },
+    {
+      "task": "Design the architecture for real-time TikTok LIVE event processing",
+      "model": "opus",
+      "complexity": 0.4262775510204081,
+      "outcome": "success",
+      "timestamp": "2026-03-29T18:56:19.841Z"
+    },
+    {
+      "task": "Review and harden the JWT token refresh flow for production security",
+      "model": "opus",
+      "complexity": 0.4262775510204081,
+      "outcome": "success",
+      "timestamp": "2026-03-29T18:56:20.564Z"
+    },
+    {
+      "task": "Write pytest unit tests for the commerce module services",
+      "model": "sonnet",
+      "complexity": 0.4262775510204081,
+      "outcome": "success",
+      "timestamp": "2026-03-29T18:56:21.634Z"
+    },
+    {
+      "task": "Add new React dashboard page with Tailwind styling",
+      "model": "sonnet",
+      "complexity": 0.4262775510204081,
+      "outcome": "success",
+      "timestamp": "2026-03-29T18:56:22.656Z"
+    }
+  ]
+}

@@ -105,6 +105,63 @@ celery_app.conf.beat_schedule = {
         "task": "backend.workers.messaging_sync.sync_mentions",
         "schedule": crontab(minute=37, hour="*/2"),  # Every 2h, offset :37
     },
+    # Promotion & coupon sync
+    "sync-promotions": {
+        "task": "backend.workers.promotion_sync.sync_all_promotions",
+        "schedule": crontab(minute="4,34"),  # ~Every 30 min, offset :04
+    },
+    "sync-coupons": {
+        "task": "backend.workers.promotion_sync.sync_all_coupons",
+        "schedule": crontab(minute=24, hour="*/2"),  # Every 2h, offset :24
+    },
+    # Finance sync
+    "sync-daily-statements": {
+        "task": "backend.workers.finance_sync.sync_daily_statements",
+        "schedule": crontab(minute=15, hour=2),  # Daily at 02:15
+    },
+    "sync-unsettled-transactions": {
+        "task": "backend.workers.finance_sync.sync_unsettled_transactions",
+        "schedule": crontab(minute="25,55"),  # ~Every 30 min, offset :25
+    },
+    # Customer service sync
+    "sync-cs-conversations": {
+        "task": "backend.workers.customer_service_sync.sync_cs_conversations",
+        "schedule": crontab(minute="6,21,36,51"),  # Every 15 min, offset :06
+    },
+    "snapshot-cs-performance": {
+        "task": "backend.workers.customer_service_sync.snapshot_cs_performance",
+        "schedule": crontab(minute=5, hour=2),  # Daily at 02:05
+    },
+    "sync-engagement-templates": {
+        "task": "backend.workers.customer_service_sync.sync_engagement_templates",
+        "schedule": crontab(minute=15, hour=3),  # Daily at 03:15
+    },
+    # Affiliate sync
+    "sync-affiliate-creators": {
+        "task": "backend.workers.affiliate_sync.sync_affiliate_creators",
+        "schedule": crontab(minute=33, hour=0),  # Daily at 00:33
+    },
+    "sync-affiliate-orders": {
+        "task": "backend.workers.affiliate_sync.sync_affiliate_orders",
+        "schedule": crontab(minute=43, hour="*/2"),  # Every 2h, offset :43
+    },
+    "sync-sample-requests": {
+        "task": "backend.workers.affiliate_sync.sync_sample_requests",
+        "schedule": crontab(minute="14,44"),  # Every 30 min, offset :14/:44
+    },
+    # Shop Health sync
+    "calculate-daily-sps": {
+        "task": "backend.workers.shop_health_sync.calculate_daily_sps",
+        "schedule": crontab(minute=1, hour=1),  # Daily at 01:01
+    },
+    "calculate-daily-unified-metrics": {
+        "task": "backend.workers.shop_health_sync.calculate_daily_unified_metrics",
+        "schedule": crontab(minute=30, hour=1),  # Daily at 01:30
+    },
+    "check-health-alerts": {
+        "task": "backend.workers.shop_health_sync.check_health_alerts",
+        "schedule": crontab(minute=46, hour="*/2"),  # Every 2h, offset :46
+    },
 }
 
 

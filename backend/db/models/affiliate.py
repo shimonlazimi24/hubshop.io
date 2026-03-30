@@ -1,7 +1,8 @@
 import enum
 import uuid
+from datetime import datetime
 
-from sqlalchemy import ForeignKey, Index, String
+from sqlalchemy import DateTime, ForeignKey, Index, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -113,4 +114,86 @@ class CreatorApplication(Base, UUIDMixin, TimestampMixin):
     )
     creator_id: Mapped[str] = mapped_column(String(255), nullable=False)
     status: Mapped[str] = mapped_column(String(50), nullable=False, default="PENDING")
+    detail_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+
+
+class SampleRequestStatus(str, enum.Enum):
+    PENDING = "PENDING"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+    SHIPPED = "SHIPPED"
+    RECEIVED = "RECEIVED"
+
+
+class SampleRequest(Base, UUIDMixin, TimestampMixin):
+    __tablename__ = "sample_requests"
+
+    workspace_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("workspaces.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    shop_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("shops.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    platform_request_id: Mapped[str] = mapped_column(
+        String(255),
+        unique=True,
+        nullable=False,
+        comment="TikTok sample request ID",
+    )
+    collaboration_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        nullable=True,
+    )
+    creator_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    product_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    status: Mapped[str] = mapped_column(String(50), nullable=False, default="PENDING")
+    rejection_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    shipping_tracking: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    reviewed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    shipped_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    detail_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+
+
+class AffiliateOrder(Base, UUIDMixin, TimestampMixin):
+    __tablename__ = "affiliate_orders"
+
+    workspace_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("workspaces.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    shop_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("shops.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    platform_order_id: Mapped[str] = mapped_column(
+        String(255),
+        unique=True,
+        nullable=False,
+        comment="TikTok affiliate order ID",
+    )
+    creator_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    collab_type: Mapped[str] = mapped_column(
+        String(50), nullable=False, comment="OPEN or TARGET"
+    )
+    product_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    order_amount: Mapped[str] = mapped_column(String(50), nullable=False)
+    commission_rate: Mapped[str] = mapped_column(String(20), nullable=False)
+    commission_amount: Mapped[str] = mapped_column(String(50), nullable=False)
+    ordered_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     detail_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True)

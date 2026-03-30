@@ -15,6 +15,7 @@ from backend.db.models.advertising import (
     ReportCache,
 )
 from backend.db.models.affiliate import (
+    AffiliateOrder,
     AffiliateProduct,
     ApplicationStatus,
     CollaborationStatus,
@@ -22,6 +23,8 @@ from backend.db.models.affiliate import (
     CreatorApplication,
     InviteStatus,
     OpenCollaboration,
+    SampleRequest,
+    SampleRequestStatus,
     TargetCollaboration,
 )
 from backend.db.models.analytics import (
@@ -61,6 +64,7 @@ from backend.db.models.content import (
     VideoMetrics,
     VideoStatus,
 )
+from backend.db.models.coupon import Coupon
 from backend.db.models.creators import (
     AuthorizationStatus,
     CampaignStatus,
@@ -71,7 +75,15 @@ from backend.db.models.creators import (
     CreatorTier,
     InvitationStatus,
 )
-from backend.db.models.finance import Payment, Settlement, Transaction
+from backend.db.models.customer_engagement import EngagementTask, EngagementTemplate
+from backend.db.models.customer_service import CsPerformanceSnapshot
+from backend.db.models.finance import Payment, Settlement, Transaction, Withdrawal
+from backend.db.models.gmvmax import (
+    CampaignType,
+    DraftStatus,
+    GmvMaxDraft,
+    GmvMaxReport,
+)
 from backend.db.models.intelligence import (
     CompetitorContent,
     CompetitorTracker,
@@ -106,6 +118,13 @@ from backend.db.models.platform import (
     PlatformAppCredential,
     TokenVault,
 )
+from backend.db.models.promotion_product import PromotionProduct
+from backend.db.models.shop_health import (
+    HealthAlert,
+    SpsSnapshot,
+    UnifiedDailyMetrics,
+    ViolationRecord,
+)
 from backend.db.models.social_identity import SocialIdentity, SocialProvider
 from backend.db.models.user import User
 from backend.db.models.webhook import WebhookEvent
@@ -116,6 +135,7 @@ __all__ = [
     "AdFormat",
     "AdGroup",
     "AdSyncCursor",
+    "AffiliateOrder",
     "AffiliateProduct",
     "ApiKey",
     "ApplicationStatus",
@@ -130,6 +150,7 @@ __all__ = [
     "Campaign",
     "CampaignObjective",
     "CampaignStatus",
+    "CampaignType",
     "Catalog",
     "CollaborationStatus",
     "CollaborationType",
@@ -137,15 +158,23 @@ __all__ = [
     "CompetitorTracker",
     "ConnectedAccount",
     "ContentAuthorization",
+    "Coupon",
     "Conversation",
     "ConversationStatus",
     "ContentPublishJob",
     "ContentSyncCursor",
+    "CsPerformanceSnapshot",
+    "EngagementTask",
+    "EngagementTemplate",
     "CreatorApplication",
+    "HealthAlert",
     "CreatorCampaign",
     "CreatorInvitation",
     "CreatorProfile",
     "CreatorTier",
+    "DraftStatus",
+    "GmvMaxDraft",
+    "GmvMaxReport",
     "InvitationStatus",
     "InviteStatus",
     "LiveAnalytics",
@@ -178,6 +207,7 @@ __all__ = [
     "ProductSku",
     "ProductStatus",
     "Promotion",
+    "PromotionProduct",
     "PublishStatus",
     "ReportCache",
     "ReportFormat",
@@ -186,11 +216,14 @@ __all__ = [
     "ReturnRequest",
     "ReturnStatus",
     "ReturnType",
+    "SampleRequest",
+    "SampleRequestStatus",
     "ScheduledReport",
     "SessionStatus",
     "Settlement",
     "Shop",
     "SocialIdentity",
+    "SpsSnapshot",
     "SocialProvider",
     "SyncCursor",
     "TargetCollaboration",
@@ -198,11 +231,14 @@ __all__ = [
     "Transaction",
     "TrendSnapshot",
     "TrendType",
+    "UnifiedDailyMetrics",
     "UnifiedKpiSnapshot",
     "User",
     "Video",
     "VideoMetrics",
     "VideoStatus",
+    "ViolationRecord",
     "WebhookEvent",
+    "Withdrawal",
     "Workspace",
 ]

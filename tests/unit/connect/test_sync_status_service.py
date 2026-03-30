@@ -53,7 +53,9 @@ class TestUpdateProgress:
         session.execute = AsyncMock(return_value=result)
 
         service = SyncStatusService(session)
-        updated = await service.update_progress(job.id, items_synced=50, items_total=200)
+        updated = await service.update_progress(
+            job.id, items_synced=50, items_total=200
+        )
 
         assert updated is not None
         assert updated.items_synced == 50

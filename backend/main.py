@@ -18,6 +18,8 @@ from backend.modules.connect.sync_routes import router as sync_router
 from backend.modules.connect.ws import router as connect_ws_router
 from backend.modules.content.routes import router as content_router
 from backend.modules.creators.routes import router as creators_router
+from backend.modules.customer_engagement.routes import router as engagement_router
+from backend.modules.gmvmax.routes import router as gmvmax_router
 from backend.modules.intelligence.routes import router as intelligence_router
 from backend.modules.live.routes import router as live_router
 from backend.modules.messaging.routes import router as messaging_router
@@ -88,11 +90,18 @@ def create_app() -> FastAPI:
     app.include_router(ads_router, prefix=api_prefix)
     app.include_router(content_router, prefix=api_prefix)
     app.include_router(creators_router, prefix=api_prefix)
+    app.include_router(engagement_router, prefix=api_prefix)
+    app.include_router(gmvmax_router, prefix=api_prefix)
     app.include_router(intelligence_router, prefix=api_prefix)
     app.include_router(live_router, prefix=api_prefix)
     app.include_router(messaging_router, prefix=api_prefix)
     app.include_router(organic_router, prefix=api_prefix)
     app.include_router(analytics_router, prefix=api_prefix)
+
+    # Shop Health module
+    from backend.modules.shop_health.routes import router as shop_health_router
+
+    app.include_router(shop_health_router, prefix=api_prefix)
 
     # Webhooks at root (no /api prefix - external callbacks)
     app.include_router(webhooks_router)

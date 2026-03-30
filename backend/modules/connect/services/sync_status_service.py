@@ -100,9 +100,7 @@ class SyncStatusService:
         result = await self._session.execute(
             select(SyncJob)
             .where(SyncJob.workspace_id == workspace_id)
-            .where(
-                SyncJob.status.in_([SyncJobStatus.PENDING, SyncJobStatus.RUNNING])
-            )
+            .where(SyncJob.status.in_([SyncJobStatus.PENDING, SyncJobStatus.RUNNING]))
             .order_by(SyncJob.created_at.desc())
         )
         jobs = result.scalars().all()

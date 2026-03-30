@@ -1,8 +1,9 @@
 """Tests for TikTokShopSDKClient — the sidecar proxy client."""
 
-import pytest
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import httpx
-from unittest.mock import AsyncMock, patch, MagicMock
+import pytest
 
 from backend.tiktok.shop.sdk_client import TikTokShopSDKClient, TikTokShopSDKError
 
@@ -133,9 +134,7 @@ class TestSDKClientGatewayInterface:
     """Test the gateway-compatible .request()/.get()/.post() interface."""
 
     @pytest.mark.asyncio
-    async def test_request_translates_path(
-        self, mock_httpx_response: object
-    ) -> None:
+    async def test_request_translates_path(self, mock_httpx_response: object) -> None:
         mock_resp = mock_httpx_response(
             200,
             {
@@ -156,9 +155,7 @@ class TestSDKClientGatewayInterface:
                 sdk_base_url="http://localhost:4000",
                 sidecar_auth_token=SIDECAR_AUTH_TOKEN,
             )
-            result = await client.request(
-                "GET", "/authorization/202309/shops"
-            )
+            result = await client.request("GET", "/authorization/202309/shops")
 
             assert "data" in result
 

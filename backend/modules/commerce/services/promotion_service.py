@@ -105,6 +105,71 @@ class PromotionService:
         await self._session.flush()
         return promotion
 
+    async def create_flash_deal(
+        self,
+        workspace_id: uuid.UUID,
+        shop: Shop,
+        *,
+        title: str,
+        product_ids: list[str],
+        countdown_duration_hours: int,
+        price_rules: list[dict],
+        max_quantity: int | None = None,
+        start_time: str | None = None,
+        end_time: str | None = None,
+    ) -> Promotion:
+        if countdown_duration_hours > 72:
+            raise ValueError("Flash deal duration cannot exceed 72 hours")
+        if countdown_duration_hours < 1:
+            raise ValueError("Flash deal duration must be at least 1 hour")
+
+        shop_service = ShopService(self._session)
+        gateway = await shop_service.build_gateway_for_shop(shop)
+
+        body: dict = {
+            "title": title,
+            "activity_type": "FLASH_DEAL",
+            "product_ids": product_ids,
+            "countdown_duration": countdown_duration_hours * 3600,
+        }
+        if max_quantity:
+            body["quantity_limit"] = max_quantity
+        if start_time:
+            body["begin_time"] = start_time
+        if end_time:
+            body["end_time"] = end_time
+        if price_rules:
+            body["product_prices"] = price_rules
+
+        resp = await gateway.post(
+            "/promotion/202309/activities",
+            json_body=body,
+        )
+        data = resp.get("data", {})
+        platform_id = str(data.get("activity_id", ""))
+
+        promotion = Promotion(
+            workspace_id=workspace_id,
+            shop_id=shop.id,
+            platform_activity_id=platform_id,
+            promotion_type="FLASH_DEAL",
+            title=title,
+            status="ACTIVE",
+            countdown_duration_hours=countdown_duration_hours,
+            max_quantity=max_quantity,
+            price_rules=price_rules,
+            product_count=len(product_ids),
+            detail_json=data,
+        )
+        if start_time:
+            promotion.start_time = datetime.fromisoformat(start_time)
+        if end_time:
+            promotion.end_time = datetime.fromisoformat(end_time)
+
+        self._session.add(promotion)
+        await self._session.flush()
+        return promotion
+
     async def update_promotion(
         self,
         promotion: Promotion,

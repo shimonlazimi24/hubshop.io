@@ -1,0 +1,194 @@
+{
+  "agents": {
+    "ux-lead": {
+      "agentId": "ux-lead",
+      "agentType": "designer",
+      "status": "completed",
+      "health": 0.9,
+      "taskCount": 0,
+      "config": {
+        "model": "opus"
+      },
+      "createdAt": "2026-03-29T18:05:18.839Z",
+      "domain": "frontend",
+      "model": "opus",
+      "modelRoutedBy": "explicit"
+    },
+    "component-designer": {
+      "agentId": "component-designer",
+      "agentType": "designer",
+      "status": "completed",
+      "health": 0.9,
+      "taskCount": 0,
+      "config": {
+        "model": "sonnet"
+      },
+      "createdAt": "2026-03-29T18:05:20.670Z",
+      "domain": "frontend",
+      "model": "sonnet",
+      "modelRoutedBy": "explicit"
+    },
+    "page-designer": {
+      "agentId": "page-designer",
+      "agentType": "designer",
+      "status": "completed",
+      "health": 0.9,
+      "taskCount": 0,
+      "config": {
+        "model": "sonnet"
+      },
+      "createdAt": "2026-03-29T18:05:22.041Z",
+      "domain": "frontend",
+      "model": "sonnet",
+      "modelRoutedBy": "explicit"
+    },
+    "animation-designer": {
+      "agentId": "animation-designer",
+      "agentType": "designer",
+      "status": "completed",
+      "health": 0.9,
+      "taskCount": 0,
+      "config": {
+        "model": "sonnet"
+      },
+      "createdAt": "2026-03-29T18:05:23.253Z",
+      "domain": "frontend",
+      "model": "sonnet",
+      "modelRoutedBy": "explicit"
+    },
+    "frodo-queen": {
+      "agentId": "frodo-queen",
+      "agentType": "coordinator",
+      "status": "idle",
+      "health": 1,
+      "taskCount": 0,
+      "config": {
+        "swarm": "frodo-fullstack-dev",
+        "role": "queen",
+        "priority": "high",
+        "model": "opus"
+      },
+      "createdAt": "2026-03-29T18:56:39.136Z",
+      "domain": "orchestration",
+      "model": "opus",
+      "modelRoutedBy": "explicit"
+    },
+    "frodo-backend-dev": {
+      "agentId": "frodo-backend-dev",
+      "agentType": "coder",
+      "status": "idle",
+      "health": 1,
+      "taskCount": 0,
+      "config": {
+        "swarm": "frodo-fullstack-dev",
+        "specialization": "python-fastapi",
+        "files": [
+          "backend/"
+        ],
+        "model": "sonnet"
+      },
+      "createdAt": "2026-03-29T18:56:41.696Z",
+      "domain": "backend",
+      "model": "sonnet",
+      "modelRoutedBy": "explicit"
+    },
+    "frodo-frontend-dev": {
+      "agentId": "frodo-frontend-dev",
+      "agentType": "coder",
+      "status": "idle",
+      "health": 1,
+      "taskCount": 0,
+      "config": {
+        "swarm": "frodo-fullstack-dev",
+        "specialization": "nextjs-react",
+        "files": [
+          "frontend/"
+        ],
+        "model": "sonnet"
+      },
+      "createdAt": "2026-03-29T18:56:44.370Z",
+      "domain": "frontend",
+      "model": "sonnet",
+      "modelRoutedBy": "explicit"
+    },
+    "frodo-tiktok-specialist": {
+      "agentId": "frodo-tiktok-specialist",
+      "agentType": "coder",
+      "status": "idle",
+      "health": 1,
+      "taskCount": 0,
+      "config": {
+        "swarm": "frodo-fullstack-dev",
+        "specialization": "tiktok-apis",
+        "files": [
+          "backend/tiktok/",
+          "tiktok-shop-sdk/",
+          "knowledge-base/"
+        ],
+        "model": "sonnet"
+      },
+      "createdAt": "2026-03-29T18:56:47.946Z",
+      "domain": "tiktok-api",
+      "model": "sonnet",
+      "modelRoutedBy": "explicit"
+    },
+    "frodo-tester": {
+      "agentId": "frodo-tester",
+      "agentType": "tester",
+      "status": "idle",
+      "health": 1,
+      "taskCount": 0,
+      "config": {
+        "swarm": "frodo-fullstack-dev",
+        "specialization": "pytest",
+        "files": [
+          "tests/",
+          "conftest.py"
+        ],
+        "model": "sonnet"
+      },
+      "createdAt": "2026-03-29T18:56:51.057Z",
+      "domain": "testing",
+      "model": "sonnet",
+      "modelRoutedBy": "explicit"
+    },
+    "frodo-security": {
+      "agentId": "frodo-security",
+      "agentType": "security-architect",
+      "status": "idle",
+      "health": 1,
+      "taskCount": 0,
+      "config": {
+        "swarm": "frodo-fullstack-dev",
+        "specialization": "security-review",
+        "files": [
+          "backend/auth/",
+          "backend/dependencies.py",
+          "backend/middleware/"
+        ],
+        "model": "opus"
+      },
+      "createdAt": "2026-03-29T18:56:54.878Z",
+      "domain": "security",
+      "model": "opus",
+      "modelRoutedBy": "explicit"
+    },
+    "frodo-reviewer": {
+      "agentId": "frodo-reviewer",
+      "agentType": "reviewer",
+      "status": "idle",
+      "health": 1,
+      "taskCount": 0,
+      "config": {
+        "swarm": "frodo-fullstack-dev",
+        "specialization": "code-review",
+        "model": "sonnet"
+      },
+      "createdAt": "2026-03-29T18:56:57.095Z",
+      "domain": "quality",
+      "model": "sonnet",
+      "modelRoutedBy": "explicit"
+    }
+  },
+  "version": "3.0.0"
+}

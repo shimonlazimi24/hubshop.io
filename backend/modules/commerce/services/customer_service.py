@@ -83,3 +83,42 @@ class CustomerServiceService:
             f"/customer_service/202309/conversations/{conversation_id}/read",
         )
         return resp.get("data", {})
+
+    async def get_agent_settings(self, shop: Shop) -> dict:
+        shop_service = ShopService(self._session)
+        gateway = await shop_service.build_gateway_for_shop(shop)
+        resp = await gateway.get("/customer_service/202309/agents/settings")
+        return resp.get("data", {})
+
+    async def update_agent_settings(self, shop: Shop, *, settings: dict) -> dict:
+        shop_service = ShopService(self._session)
+        gateway = await shop_service.build_gateway_for_shop(shop)
+        resp = await gateway.post(
+            "/customer_service/202309/agents/settings",
+            json_body=settings,
+        )
+        return resp.get("data", {})
+
+    async def get_cs_performance(self, shop: Shop) -> dict:
+        shop_service = ShopService(self._session)
+        gateway = await shop_service.build_gateway_for_shop(shop)
+        resp = await gateway.get("/customer_service/202309/performance")
+        return resp.get("data", {})
+
+    async def upload_image(self, shop: Shop, *, image_data: bytes) -> dict:
+        shop_service = ShopService(self._session)
+        gateway = await shop_service.build_gateway_for_shop(shop)
+        resp = await gateway.post(
+            "/customer_service/202309/media/upload",
+            json_body={"data": "base64_placeholder"},
+        )
+        return resp.get("data", {})
+
+    async def search_sessions(self, shop: Shop, *, filters: dict) -> dict:
+        shop_service = ShopService(self._session)
+        gateway = await shop_service.build_gateway_for_shop(shop)
+        resp = await gateway.get(
+            "/customer_service/202309/sessions",
+            params={k: str(v) for k, v in filters.items()},
+        )
+        return resp.get("data", {})

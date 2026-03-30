@@ -27,7 +27,9 @@ def _run_async(coro):  # type: ignore[no-untyped-def]
 
 
 async def _get_or_create_cursor(
-    session, shop_id, sync_type: str  # type: ignore[no-untyped-def]
+    session,
+    shop_id,
+    sync_type: str,  # type: ignore[no-untyped-def]
 ) -> SyncCursor:
     """Get or create a SyncCursor for a shop and sync type."""
     result = await session.execute(

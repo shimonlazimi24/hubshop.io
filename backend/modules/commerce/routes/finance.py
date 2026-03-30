@@ -1,6 +1,7 @@
 import uuid
+from datetime import datetime
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Query, status
 
 from backend.dependencies import CurrentUser, DBSession
 from backend.modules.commerce.schemas import (
@@ -9,6 +10,7 @@ from backend.modules.commerce.schemas import (
     SettlementResponse,
     TransactionResponse,
 )
+from backend.modules.commerce.services.finance_analytics import FinanceAnalyticsService
 from backend.modules.commerce.services.finance_service import FinanceService
 from backend.modules.commerce.services.shop_service import ShopService
 
@@ -183,3 +185,34 @@ async def get_unsettled_transactions(
 ) -> list[dict]:
     service = FinanceService(db)
     return await service.get_unsettled_transactions(shop_id)
+
+
+# --- Analytics routes (Phase B4) ---
+
+
+@router.get("/finance/analytics/revenue-summary")
+async def get_revenue_summary(
+    workspace_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+    period_start: datetime = Query(..., description="Start of period (ISO 8601)"),
+    period_end: datetime = Query(..., description="End of period (ISO 8601)"),
+) -> dict:
+    service = FinanceAnalyticsService(db)
+    return await service.get_revenue_summary(
+        workspace_id, period_start=period_start, period_end=period_end
+    )
+
+
+@router.get("/finance/analytics/fee-breakdown")
+async def get_fee_breakdown(
+    workspace_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DBSession,
+    period_start: datetime = Query(..., description="Start of period (ISO 8601)"),
+    period_end: datetime = Query(..., description="End of period (ISO 8601)"),
+) -> list[dict]:
+    service = FinanceAnalyticsService(db)
+    return await service.get_fee_breakdown(
+        workspace_id, period_start=period_start, period_end=period_end
+    )

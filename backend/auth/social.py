@@ -34,12 +34,14 @@ class SocialAuthService:
         self._db.add(workspace)
         await self._db.flush()
 
-        self._db.add(Membership(
-            user_id=user.id,
-            organization_id=org.id,
-            workspace_id=workspace.id,
-            role=Role.OWNER,
-        ))
+        self._db.add(
+            Membership(
+                user_id=user.id,
+                organization_id=org.id,
+                workspace_id=workspace.id,
+                role=Role.OWNER,
+            )
+        )
 
     async def get_or_create_user(
         self,

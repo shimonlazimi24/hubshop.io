@@ -90,8 +90,7 @@ class TestListComments:
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             response = await client.get(
-                f"/api/content/videos/{video_id}/comments"
-                f"?workspace_id={workspace_id}",
+                f"/api/content/videos/{video_id}/comments?workspace_id={workspace_id}",
             )
 
         assert response.status_code == 200

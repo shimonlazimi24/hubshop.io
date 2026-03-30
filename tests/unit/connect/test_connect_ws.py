@@ -25,8 +25,9 @@ class TestConnectWebSocketAuth:
         client = TestClient(app)
         workspace_id = uuid.uuid4()
 
-        with pytest.raises(Exception), client.websocket_connect(
-            f"/api/connect/ws/{workspace_id}?token=invalid"
+        with (
+            pytest.raises(Exception),
+            client.websocket_connect(f"/api/connect/ws/{workspace_id}?token=invalid"),
         ):
             pass
 
