@@ -87,7 +87,7 @@ export function ShopResultPage() {
           {!status && !decoded ? (
             <p className="text-sm text-zinc-400">
               No query parameters present — this screen is shown after TikTok redirects back to
-              Frodo.
+              Hubshop.
             </p>
           ) : null}
 

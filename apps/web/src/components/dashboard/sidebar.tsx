@@ -181,7 +181,7 @@ export function Sidebar({
         <NavLink to="/" className="group flex items-center gap-2.5">
           <div className="animate-logo-shimmer glow-gold-always relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-coral to-purple">
             <span className="relative z-10 select-none text-sm font-bold text-white">
-              F
+              H
             </span>
           </div>
 
@@ -195,7 +195,7 @@ export function Sidebar({
                 transition={{ duration: 0.15 }}
               >
                 <h1 className="truncate text-sm font-semibold text-zinc-100">
-                  Frodo
+                  Hubshop
                 </h1>
                 <p className="truncate text-[10px] text-zinc-500">
                   One platform to rule them all

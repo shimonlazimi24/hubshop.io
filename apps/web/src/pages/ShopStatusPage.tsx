@@ -106,7 +106,7 @@ export function ShopStatusPage() {
             <TableRow>
               <TableHeaderCell>Shop</TableHeaderCell>
               <TableHeaderCell>TikTok shop ID</TableHeaderCell>
-              <TableHeaderCell>Frodo ID</TableHeaderCell>
+              <TableHeaderCell>Hubshop ID</TableHeaderCell>
               <TableHeaderCell className="w-28 text-right">Open</TableHeaderCell>
             </TableRow>
           </TableHead>

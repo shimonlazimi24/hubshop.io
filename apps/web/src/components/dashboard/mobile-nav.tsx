@@ -47,10 +47,10 @@ export function MobileNav({ user, onLogout }: MobileNavProps) {
               <div className="flex items-center justify-between border-b border-gray-100 p-4 dark:border-zinc-800">
                 <div className="flex items-center gap-2.5">
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-coral to-purple">
-                    <span className="text-sm font-bold text-white">F</span>
+                    <span className="text-sm font-bold text-white">H</span>
                   </div>
                   <span className="text-sm font-semibold text-gray-900 dark:text-zinc-100">
-                    Frodo
+                    Hubshop
                   </span>
                 </div>
                 <button

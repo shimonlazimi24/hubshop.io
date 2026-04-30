@@ -81,7 +81,7 @@ export function RegisterPage() {
     >
       <motion.div variants={itemVariants} className="text-center">
         <h1 className="text-3xl font-bold tracking-tight text-white">
-          Frodo
+          Hubshop
         </h1>
         <p className="mt-1 text-sm text-zinc-400">
           One platform to rule them all

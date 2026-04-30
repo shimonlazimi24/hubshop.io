@@ -51,7 +51,7 @@ export function ConnectShopPage() {
     <div className="space-y-8">
       <PageHeader
         title="Connect TikTok Shop"
-        description="Authorize Frodo against your TikTok Shop seller account. Tokens are stored encrypted; discovery runs in the background worker."
+        description="Authorize Hubshop against your TikTok Shop seller account. Tokens are stored encrypted; discovery runs in the background worker."
       />
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -60,7 +60,7 @@ export function ConnectShopPage() {
             <CardTitle>Integration</CardTitle>
             <CardDescription>
               You will leave this app to approve OAuth access in TikTok&apos;s consent screen,
-              then return to Frodo for shop discovery.
+              then return to Hubshop for shop discovery.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -90,7 +90,7 @@ export function ConnectShopPage() {
               <ul className="mt-3 space-y-2 text-sm text-zinc-400">
                 <li className="flex gap-2">
                   <Shield className="mt-0.5 h-4 w-4 shrink-0 text-coral" />
-                  Signed in with a valid Frodo session (JWT).
+                  Signed in with a valid Hubshop session (JWT).
                 </li>
                 <li className="flex gap-2">
                   <ListChecks className="mt-0.5 h-4 w-4 shrink-0 text-coral" />
