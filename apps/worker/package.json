@@ -1,0 +1,26 @@
+{
+  "name": "@frodo/worker",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/main.ts",
+    "start": "node dist/main.js",
+    "lint": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@aws-sdk/client-sqs": "^3.731.0",
+    "@frodo/config": "workspace:*",
+    "@frodo/contracts": "workspace:*",
+    "@frodo/db": "workspace:*",
+    "@frodo/domain": "workspace:*",
+    "drizzle-orm": "^0.38.3",
+    "ioredis": "^5.4.2"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^3.0.5"
+  }
+}

@@ -1,0 +1,590 @@
+@import "tailwindcss";
+
+/* Self-hosted Geist (copied from official `geist` package → public/fonts/ by scripts/copy-geist-fonts.mjs) */
+@font-face {
+  font-family: "Geist";
+  src: url("/fonts/geist-sans.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/fonts/geist-mono.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --font-geist-sans: "Geist", ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-geist-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, "Liberation Mono", monospace;
+
+  --background: #ffffff;
+  --foreground: #0F172A;
+  --foreground-secondary: #64748B;
+  --surface: #F8FAFC;
+  --surface-alt: #FAFAFA;
+  --border: #E2E8F0;
+  --coral: #FE2C55;
+  --cyan: #25F4EE;
+  --purple: #7B68EE;
+  --coral-dark: #E0234A;
+
+  /* Obsidian Gold palette */
+  --gold: #FFD700;
+  --gold-dim: #B8860B;
+  --gold-bright: #FFC125;
+  --obsidian: #09090b;
+  --obsidian-light: #18181b;
+
+  /* Semantic status colors */
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --info: #3B82F6;
+
+  /* Chart palette */
+  --chart-1: #FE2C55;
+  --chart-2: #7B68EE;
+  --chart-3: #25F4EE;
+  --chart-4: #10B981;
+  --chart-5: #F59E0B;
+  --chart-6: #3B82F6;
+
+  /* Elevation */
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-panel: 0 4px 12px rgba(0,0,0,0.1);
+  --shadow-modal: 0 8px 24px rgba(0,0,0,0.15);
+
+  /* Animation durations */
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+
+  /* Spring easing */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ===== Dark Mode — "Obsidian Gold" ===== */
+.dark,
+[data-theme="dark"] {
+  --background: #09090b;
+  --foreground: #fafafa;
+  --foreground-secondary: #a1a1aa;
+  --surface: #18181b;
+  --surface-alt: #27272a;
+  --border: #3f3f46;
+  --coral: #FF4D73;
+  --cyan: #34FFE8;
+  --purple: #9B8AFE;
+  --coral-dark: #FE2C55;
+
+  --gold: #FFD700;
+  --gold-dim: #B8860B;
+  --gold-bright: #FFC125;
+
+  --success: #34D399;
+  --warning: #FBBF24;
+  --danger: #F87171;
+  --info: #60A5FA;
+
+  --chart-1: #FF4D73;
+  --chart-2: #9B8AFE;
+  --chart-3: #34FFE8;
+  --chart-4: #34D399;
+  --chart-5: #FBBF24;
+  --chart-6: #60A5FA;
+
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.03);
+  --shadow-panel: 0 4px 16px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05);
+  --shadow-modal: 0 16px 48px rgba(0,0,0,0.5);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-foreground-secondary: var(--foreground-secondary);
+  --color-surface: var(--surface);
+  --color-surface-alt: var(--surface-alt);
+  --color-border: var(--border);
+  --color-coral: var(--coral);
+  --color-cyan: var(--cyan);
+  --color-purple: var(--purple);
+  --color-coral-dark: var(--coral-dark);
+  --color-gold: var(--gold);
+  --color-gold-dim: var(--gold-dim);
+  --color-gold-bright: var(--gold-bright);
+  --color-obsidian: var(--obsidian);
+  --color-obsidian-light: var(--obsidian-light);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* Gradient utilities */
+.gradient-text {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--coral) 0%, var(--purple) 50%, var(--cyan) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-bg {
+  background: linear-gradient(135deg, var(--coral) 0%, var(--purple) 50%, var(--cyan) 100%);
+}
+
+.gradient-bg-horizontal {
+  background: linear-gradient(90deg, var(--coral) 0%, var(--cyan) 100%);
+}
+
+.gradient-border {
+  position: relative;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.gradient-border::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--coral), var(--cyan));
+  z-index: -1;
+}
+
+/* Logo scroll animation */
+@keyframes scroll-logos {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll-logos {
+  animation: scroll-logos 30s linear infinite;
+}
+
+.animate-scroll-logos:hover {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-scroll-logos {
+    animation: none;
+  }
+  .one-ring,
+  .one-ring::after {
+    animation: none;
+  }
+  .ring-orbit-layer {
+    animation: none !important;
+  }
+}
+
+/* Grain texture overlay */
+.grain-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Counter animation */
+@keyframes count-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== The One Ring ===== */
+.one-ring {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  position: relative;
+  background: conic-gradient(
+    from 0deg,
+    #ffd700, #b8860b, #daa520, #ffd700, #b8860b, #ffd700
+  );
+  mask: radial-gradient(circle, transparent 42%, black 46%);
+  -webkit-mask: radial-gradient(circle, transparent 42%, black 46%);
+  animation: ring-spin 4s linear infinite;
+}
+
+/* Inscription text overlay */
+.one-ring-text {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  animation: inscription-shine 3s ease-in-out infinite;
+}
+
+.one-ring-text text {
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+@keyframes ring-spin {
+  from { transform: rotateX(20deg) rotateZ(0deg); }
+  to { transform: rotateX(20deg) rotateZ(360deg); }
+}
+
+@keyframes inscription-shine {
+  0%, 100% {
+    opacity: 0.4;
+    filter: none;
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.9));
+  }
+}
+
+/* 3D orbit path around text */
+@keyframes ring-orbit-3d {
+  0%, 100% {
+    transform: translateX(120px) translateY(0px) scale(0.9);
+    filter: brightness(1) drop-shadow(0 0 10px rgba(255, 215, 0, 0.4));
+  }
+  25% {
+    transform: translateX(0px) translateY(30px) scale(1.15);
+    filter: brightness(1.15) drop-shadow(0 0 22px rgba(255, 215, 0, 0.7));
+  }
+  50% {
+    transform: translateX(-120px) translateY(0px) scale(0.9);
+    filter: brightness(1) drop-shadow(0 0 10px rgba(255, 215, 0, 0.4));
+  }
+  75% {
+    transform: translateX(0px) translateY(-30px) scale(0.55);
+    filter: brightness(0.65) drop-shadow(0 0 4px rgba(255, 215, 0, 0.15));
+  }
+}
+
+@media (min-width: 640px) {
+  @keyframes ring-orbit-3d {
+    0%, 100% {
+      transform: translateX(170px) translateY(0px) scale(0.9);
+      filter: brightness(1) drop-shadow(0 0 12px rgba(255, 215, 0, 0.4));
+    }
+    25% {
+      transform: translateX(0px) translateY(32px) scale(1.2);
+      filter: brightness(1.15) drop-shadow(0 0 25px rgba(255, 215, 0, 0.7));
+    }
+    50% {
+      transform: translateX(-170px) translateY(0px) scale(0.9);
+      filter: brightness(1) drop-shadow(0 0 12px rgba(255, 215, 0, 0.4));
+    }
+    75% {
+      transform: translateX(0px) translateY(-32px) scale(0.55);
+      filter: brightness(0.65) drop-shadow(0 0 4px rgba(255, 215, 0, 0.15));
+    }
+  }
+}
+
+/* Front/back layer visibility for z-order trick */
+@keyframes ring-show-front {
+  0%, 46% { opacity: 1; }
+  50%, 96% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes ring-show-back {
+  0%, 46% { opacity: 0; }
+  50%, 96% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ===== Obsidian Gold — Utility Classes ===== */
+
+/* Glass morphism */
+.glass {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dark .glass,
+[data-theme="dark"] .glass {
+  background: rgba(24, 24, 27, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Glow effects */
+.glow-coral {
+  transition: box-shadow var(--duration-normal) ease;
+}
+
+.glow-coral:hover {
+  box-shadow:
+    0 0 20px rgba(254, 44, 85, 0.25),
+    0 0 40px rgba(254, 44, 85, 0.1);
+}
+
+.glow-gold {
+  transition: box-shadow var(--duration-normal) ease;
+}
+
+.glow-gold:hover {
+  box-shadow:
+    0 0 20px rgba(255, 215, 0, 0.3),
+    0 0 40px rgba(255, 215, 0, 0.12),
+    0 0 2px rgba(255, 215, 0, 0.5);
+}
+
+.glow-gold-always {
+  box-shadow:
+    0 0 12px rgba(255, 215, 0, 0.15),
+    0 0 2px rgba(255, 215, 0, 0.3);
+}
+
+/* ===== Entrance Animations ===== */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in var(--duration-normal) var(--ease-out-expo) both;
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up var(--duration-slow) var(--ease-spring) both;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.04) 25%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 75%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+.animate-counter {
+  animation: count-up var(--duration-normal) var(--ease-out-expo) both;
+}
+
+@keyframes pulse-badge {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+.animate-pulse-badge {
+  animation: pulse-badge 2s ease-in-out infinite;
+}
+
+@keyframes logo-shimmer {
+  0% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-logo-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-logo-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.25) 45%,
+    rgba(255, 255, 255, 0.35) 50%,
+    rgba(255, 255, 255, 0.25) 55%,
+    transparent 70%
+  );
+  background-size: 200% 100%;
+  animation: logo-shimmer 3s ease-in-out infinite;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* ===== Extended Gradient Utilities ===== */
+
+.gradient-gold {
+  background: linear-gradient(135deg, #FFD700 0%, #B8860B 50%, #DAA520 100%);
+}
+
+.gradient-gold-text {
+  display: inline-block;
+  background: linear-gradient(135deg, #FFD700 0%, #FFC125 50%, #DAA520 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-obsidian {
+  background: linear-gradient(180deg, #18181b 0%, #09090b 100%);
+}
+
+.gradient-coral-gold {
+  background: linear-gradient(135deg, var(--coral) 0%, var(--gold) 100%);
+}
+
+.gradient-bg-subtle {
+  background: linear-gradient(135deg, var(--coral) 0%, var(--purple) 30%, var(--cyan) 70%, var(--gold) 100%);
+}
+
+.gradient-bg-radial {
+  background: radial-gradient(ellipse at top left, var(--coral) 0%, transparent 50%),
+    radial-gradient(ellipse at bottom right, var(--purple) 0%, transparent 50%),
+    var(--background);
+}
+
+.gradient-border-gold {
+  position: relative;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.gradient-border-gold::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, #FFD700, #B8860B, #DAA520);
+  z-index: -1;
+}
+
+/* Shimmer sweep for custom loading skeletons */
+@keyframes shimmer-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Gradient mesh background for auth pages */
+@keyframes mesh-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.auth-mesh-bg {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at 20% 50%, rgba(254, 44, 85, 0.12) 0%, transparent 50%),
+              radial-gradient(ellipse at 80% 20%, rgba(123, 104, 238, 0.10) 0%, transparent 50%),
+              radial-gradient(ellipse at 60% 80%, rgba(37, 244, 238, 0.08) 0%, transparent 50%);
+  background-size: 200% 200%;
+  animation: mesh-shift 12s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Pulse animation for live status dots */
+@keyframes live-pulse {
+  0% {
+    box-shadow: 0 0 0 0 currentColor;
+  }
+  70% {
+    box-shadow: 0 0 0 5px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+.animate-live-pulse {
+  animation: live-pulse 2s ease-in-out infinite;
+}
+
+/* ===== Reduced Motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-slide-up,
+  .animate-shimmer,
+  .animate-counter,
+  .animate-pulse-badge,
+  .animate-live-pulse {
+    animation: none;
+  }
+  .animate-logo-shimmer::after {
+    animation: none;
+  }
+  .auth-mesh-bg {
+    animation: none;
+  }
+  .glow-coral,
+  .glow-gold {
+    transition: none;
+  }
+}

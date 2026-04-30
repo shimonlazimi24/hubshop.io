@@ -1,0 +1,29 @@
+{
+  "name": "frodo-monorepo",
+  "private": true,
+  "packageManager": "pnpm@9.15.4",
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.18.0",
+    "eslint": "^9.18.0",
+    "typescript-eslint": "^8.21.0"
+  },
+  "scripts": {
+    "build": "pnpm --filter @frodo/contracts build && pnpm --filter @frodo/config build && pnpm --filter @frodo/db build && pnpm --filter @frodo/domain build && pnpm --filter @frodo/api build && pnpm --filter @frodo/worker build && pnpm --filter @frodo/web build && pnpm --filter @frodo/scheduler build",
+    "dev": "npx --yes pnpm@9.15.4 dev:web",
+    "dev:api": "pnpm --filter @frodo/api start:dev",
+    "dev:web": "pnpm --filter @frodo/web dev",
+    "dev:worker": "pnpm --filter @frodo/worker dev",
+    "lint": "pnpm exec eslint . && pnpm -r run lint",
+    "audit": "pnpm audit --audit-level=critical",
+    "db:generate": "pnpm --filter @frodo/db generate",
+    "db:migrate": "pnpm --filter @frodo/db migrate",
+    "db:check": "pnpm --filter @frodo/db db-check",
+    "db:studio": "pnpm --filter @frodo/db studio",
+    "validate:shop-connect": "pnpm --filter @frodo/db validate:shop-connect --",
+    "validate:shop-commerce": "pnpm --filter @frodo/db validate:shop-commerce --",
+    "test": "pnpm --filter @frodo/domain test && pnpm --filter @frodo/config test && pnpm --filter @frodo/db test && pnpm --filter @frodo/api test && pnpm --filter @frodo/worker test"
+  }
+}

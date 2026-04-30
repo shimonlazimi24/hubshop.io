@@ -1,0 +1,44 @@
+name: v2 monorepo CI
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    paths:
+      - "apps/**"
+      - "packages/**"
+      - "pnpm-lock.yaml"
+      - "package.json"
+      - "eslint.config.mjs"
+      - ".github/workflows/v2-ci.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+      - run: pnpm install --frozen-lockfile
+      - name: Lint (eslint + typecheck)
+        run: pnpm lint
+      - name: Security audit
+        # High-severity issues in transitive deps (e.g. Nest 10, bcrypt) are triaged separately; fail on critical.
+        run: pnpm audit --audit-level=critical
+      - name: Build packages and apps
+        run: |
+          pnpm --filter @frodo/contracts build
+          pnpm --filter @frodo/config build
+          pnpm --filter @frodo/db build
+          pnpm --filter @frodo/domain build
+          pnpm --filter @frodo/api build
+          pnpm --filter @frodo/worker build
+          pnpm --filter @frodo/web build
+          pnpm --filter @frodo/scheduler build
+      - name: Monorepo tests
+        run: pnpm test

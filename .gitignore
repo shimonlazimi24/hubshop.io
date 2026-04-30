@@ -31,10 +31,13 @@ env/
 htmlcov/
 .pytest_cache/
 
-# Node (frontend)
+# Node (frontend + v2 monorepo)
 node_modules/
 .next/
 out/
+dist/
+apps/*/dist/
+packages/*/dist/
 
 # OS
 .DS_Store

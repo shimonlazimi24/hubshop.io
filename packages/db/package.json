@@ -1,0 +1,40 @@
+{
+  "name": "@frodo/db",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./schema": {
+      "types": "./dist/schema/index.d.ts",
+      "default": "./dist/schema/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "generate": "drizzle-kit generate",
+    "migrate": "node dist/migrate.js",
+    "db-check": "node dist/cli/db-check.js",
+    "studio": "drizzle-kit studio",
+    "parity-check": "node dist/parity-check.js",
+    "lint": "tsc --noEmit",
+    "test": "vitest run",
+    "validate:shop-connect": "tsx src/cli/validate-shop-connect.ts",
+    "validate:shop-commerce": "tsx src/cli/validate-shop-commerce.ts"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.38.3",
+    "postgres": "^3.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "drizzle-kit": "^0.30.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^3.0.5"
+  }
+}
