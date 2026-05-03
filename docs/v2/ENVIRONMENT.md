@@ -112,6 +112,18 @@ Required on **API** to start Shop OAuth (`GET /api/connect/shop/authorize`). Req
 
 `TOKEN_ENCRYPTION_KEY` must be set on the API before storing Shop tokens (same key on worker to decrypt for discovery).
 
+### TikTok Shop webhooks (`POST /api/webhooks/shop`)
+
+Verification follows [TikTok webhook signature docs](https://developers.tiktok.com/doc/webhooks-verification): header **`TikTok-Signature`** with value `t=<unix_seconds>,s=<hex_hmac>` where HMAC-SHA256 is computed over **`${t}.${exact_raw_json_body}`** using the **same app secret** as Partner Center (**`TIKTOK_SHOP_APP_SECRET`**).
+
+| Variable | Services | Purpose |
+|----------|----------|---------|
+| `TIKTOK_SHOP_APP_SECRET` | api | **Required** for signature verification in staging/production (same value as OAuth/Open API). Boot fails if missing when `APP_ENV` is `staging` or `production`. |
+| `TIKTOK_WEBHOOK_MAX_SKEW_SECONDS` | api | Optional replay window for `t` vs server time (default **300**). |
+| `ALLOW_UNVERIFIED_WEBHOOKS` | api | **Development only.** If `true` and `APP_ENV=development`, skips signature verification (local tooling only). **Forbidden** for staging/production. |
+
+The API captures **raw POST bytes** for `/api/webhooks/*` in Express `verify` so the signature matches TikTok’s payload exactly.
+
 See also: `docs/v2/CUTOVER_RUNBOOK.md` (redirect URI checklist).
 
 ## Railway deployment

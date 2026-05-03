@@ -1,0 +1,13 @@
+# Vite SPA — set Config-as-code path → /infra/railway/web/railway.toml
+# Set VITE_API_URL on this service to your public API origin (no trailing slash), e.g. https://api.example.com
+
+[build]
+builder = "RAILPACK"
+buildCommand = "pnpm install --frozen-lockfile && pnpm --filter @frodo/web build"
+watchPatterns = [ "apps/web/**", "packages/**" ]
+
+[deploy]
+startCommand = "pnpm --filter @frodo/web start"
+healthcheckPath = "/"
+healthcheckTimeout = 120
+restartPolicyType = "ON_FAILURE"

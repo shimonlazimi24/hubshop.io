@@ -10,7 +10,11 @@ import {
   CardTitle,
   Input,
 } from "../components/ui";
-import { getApiPrefix } from "../lib/api";
+import {
+  API_DOWN_HINT,
+  errorMessageFromFailedResponse,
+  getApiPrefix,
+} from "../lib/api";
 import { persistProfile } from "../lib/user-profile";
 
 const containerVariants = {
@@ -55,8 +59,7 @@ export function RegisterPage() {
         }),
       });
       if (!r.ok) {
-        const j = (await r.json().catch(() => ({}))) as { message?: string };
-        setErr(j.message ?? `HTTP ${r.status}`);
+        setErr(await errorMessageFromFailedResponse(r));
         return;
       }
       const j = (await r.json()) as {
@@ -67,6 +70,14 @@ export function RegisterPage() {
       localStorage.setItem("frodo_refresh_token", j.refresh_token);
       persistProfile(fullName, email);
       nav("/workspace");
+    } catch (e) {
+      setErr(
+        e instanceof TypeError
+          ? API_DOWN_HINT
+          : e instanceof Error
+            ? e.message
+            : "Request failed",
+      );
     } finally {
       setLoading(false);
     }

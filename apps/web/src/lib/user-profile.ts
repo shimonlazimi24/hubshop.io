@@ -1,6 +1,7 @@
 import { getApiPrefix } from "./api";
 
-export type LegacyUser = {
+/** Dashboard session user (from JWT `/auth/me` + stored profile fallback). */
+export type SessionUser = {
   id: string;
   full_name: string;
   email: string;
@@ -19,14 +20,14 @@ export function clearProfile() {
   localStorage.removeItem(PROFILE_EMAIL);
 }
 
-export function loadStoredProfile(): Pick<LegacyUser, "full_name" | "email"> {
+export function loadStoredProfile(): Pick<SessionUser, "full_name" | "email"> {
   return {
     full_name: localStorage.getItem(PROFILE_NAME) ?? "User",
     email: localStorage.getItem(PROFILE_EMAIL) ?? "",
   };
 }
 
-export async function fetchLegacyUser(token: string): Promise<LegacyUser | null> {
+export async function fetchSessionUser(token: string): Promise<SessionUser | null> {
   const r = await fetch(`${getApiPrefix()}/api/auth/me`, {
     headers: { Authorization: `Bearer ${token}` },
   });

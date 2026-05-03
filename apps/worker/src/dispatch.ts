@@ -20,8 +20,9 @@ export async function dispatch(
       await handleTokenRefreshTick(db);
       break;
     case "refresh_workspace_tokens":
+      // Envelope reserved for future token refresh; no-op until API/worker implement refresh (same scope as token_refresh_tick fan-out).
       console.info(
-        `refresh_workspace_tokens workspace=${env.workspaceId} account=${env.connectedAccountId}`,
+        `refresh_workspace_tokens noop workspace=${env.workspaceId} account=${env.connectedAccountId}`,
       );
       break;
     case "sync_shop_orders":

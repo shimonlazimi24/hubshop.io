@@ -15,6 +15,14 @@ import type { AccessJwtPayload } from "../auth/jwt.strategy";
 import type { WorkspaceRequestContext } from "./workspace-context";
 import { parseUuidParam } from "./parse-uuid";
 
+function firstString(
+  v: string | string[] | undefined,
+): string | undefined {
+  if (typeof v === "string") return v;
+  if (Array.isArray(v)) return v[0];
+  return undefined;
+}
+
 @Injectable()
 export class WorkspaceMembershipGuard implements CanActivate {
   constructor(@Inject(DRIZZLE) private readonly db: FrodoDb) {}
@@ -34,14 +42,18 @@ export class WorkspaceMembershipGuard implements CanActivate {
     }
 
     const headerWs =
-      (req.headers["x-workspace-id"] as string | undefined) ??
-      (req.headers["X-Workspace-Id"] as string | undefined);
+      firstString(req.headers["x-workspace-id"]) ??
+      firstString(req.headers["X-Workspace-Id"]);
     const queryWs = req.query["workspaceId"];
     const paramWs = req.params["workspaceId"];
 
     const raw =
-      (typeof headerWs === "string" ? headerWs : undefined) ??
-      (typeof queryWs === "string" ? queryWs : Array.isArray(queryWs) ? queryWs[0] : undefined) ??
+      headerWs ??
+      (typeof queryWs === "string"
+        ? queryWs
+        : Array.isArray(queryWs)
+          ? queryWs[0]
+          : undefined) ??
       paramWs;
 
     if (!raw?.trim()) {

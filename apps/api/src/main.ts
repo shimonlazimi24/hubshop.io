@@ -5,6 +5,7 @@ import type { NestExpressApplication } from "@nestjs/platform-express";
 import cookieParser from "cookie-parser";
 import { json, urlencoded } from "express";
 import { AppModule } from "./app.module";
+import { LoggingExceptionFilter } from "./logging-exception.filter";
 import type { FrodoRequest } from "./tenancy/workspace-context";
 
 async function bootstrap(): Promise<void> {
@@ -26,6 +27,11 @@ async function bootstrap(): Promise<void> {
   app.use(
     json({
       limit: "2mb",
+      /**
+       * TikTok webhook signatures are computed over the exact JSON bytes. If we only used `JSON.stringify(req.body)`
+       * after parse, whitespace/order could diverge and verification would fail. Capture `buf` only for POST
+       * `/api/webhooks/*` (originalUrl includes global prefix + route path).
+       */
       verify: (req: FrodoRequest, _res, buf: Buffer) => {
         if (
           req.originalUrl?.includes("/webhooks/") &&
@@ -46,6 +52,7 @@ async function bootstrap(): Promise<void> {
       transform: true,
     }),
   );
+  app.useGlobalFilters(new LoggingExceptionFilter());
   const origin = process.env.PUBLIC_WEB_ORIGIN ?? "http://localhost:5173";
   app.enableCors({
     origin: [origin],

@@ -8,3 +8,4 @@ export * from "./tiktok/shop/commerce-parse";
 export * from "./tiktok/shop/shop-api-client";
 export * from "./tiktok/shop/error-codes";
 export * from "./tiktok/shop/redact";
+export * from "./tiktok/shop/webhook-signature";

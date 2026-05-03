@@ -20,6 +20,5 @@ export async function handleTokenRefreshTick(db: FrodoDb): Promise<void> {
     return;
   }
 
-  // Placeholder: query accounts due for refresh and enqueue refresh_workspace_tokens jobs.
-  console.info("token_refresh_tick: enqueue per-account jobs (TODO)");
+  // Out of current Shop-only scope: enqueue `refresh_workspace_tokens` per account when token refresh is implemented (ADR job envelope already exists).
 }

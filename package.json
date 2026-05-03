@@ -20,6 +20,7 @@
     "audit": "pnpm audit --audit-level=critical",
     "db:generate": "pnpm --filter @frodo/db generate",
     "db:migrate": "pnpm --filter @frodo/db migrate",
+    "db:seed:dev": "pnpm --filter @frodo/db seed:dev",
     "db:check": "pnpm --filter @frodo/db db-check",
     "db:studio": "pnpm --filter @frodo/db studio",
     "validate:shop-connect": "pnpm --filter @frodo/db validate:shop-connect --",

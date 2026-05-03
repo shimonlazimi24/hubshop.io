@@ -1,3 +1,5 @@
+# Legacy Python FastAPI image — used only by docker-compose (api, celery-*).
+# Frodo v2 on Railway: Railpack + per-service config under infra/railway/.
 FROM python:3.12-slim
 
 WORKDIR /app

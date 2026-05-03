@@ -62,6 +62,16 @@ const baseApiSchema = z.object({
   TIKTOK_OPEN_API_BASE: z.string().optional(),
   /** Defaults to JWT_SECRET when unset; used only for Shop OAuth `state` signing. */
   SHOP_OAUTH_STATE_SECRET: z.string().optional(),
+  /**
+   * Development only: accept Shop webhooks without `TikTok-Signature` verification.
+   * Forbidden when APP_ENV is staging or production.
+   */
+  ALLOW_UNVERIFIED_WEBHOOKS: z.preprocess(
+    (v) => envBool(v),
+    z.boolean().optional(),
+  ),
+  /** Max |now - webhook t| in seconds for TikTok `TikTok-Signature` replay window (default 300). */
+  TIKTOK_WEBHOOK_MAX_SKEW_SECONDS: z.coerce.number().int().positive().max(3600).optional(),
 });
 
 export type ApiEnvInput = z.input<typeof baseApiSchema>;
@@ -81,6 +91,24 @@ function refineApiEnv(
   if (allowSkipExplicit && appEnv !== "development") {
     throw new Error(
       "ALLOW_ASYNC_SKIP is only permitted when APP_ENV=development (local dev only)",
+    );
+  }
+
+  if (
+    parsed.ALLOW_UNVERIFIED_WEBHOOKS === true &&
+    appEnv !== "development"
+  ) {
+    throw new Error(
+      "ALLOW_UNVERIFIED_WEBHOOKS is only permitted when APP_ENV=development",
+    );
+  }
+
+  if (
+    (appEnv === "staging" || appEnv === "production") &&
+    !parsed.TIKTOK_SHOP_APP_SECRET?.trim()
+  ) {
+    throw new Error(
+      "TIKTOK_SHOP_APP_SECRET is required when APP_ENV is staging or production (Shop OAuth + webhook verification)",
     );
   }
 

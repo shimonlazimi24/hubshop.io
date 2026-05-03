@@ -3,11 +3,11 @@ import { LogOut, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { ALL_NAV_ITEMS } from "@/config/navigation";
-import type { LegacyUser } from "@/lib/user-profile";
+import type { SessionUser } from "@/lib/user-profile";
 import { cn } from "@/lib/utils";
 
 interface MobileNavProps {
-  user: LegacyUser | null;
+  user: SessionUser | null;
   onLogout: () => void;
 }
 

@@ -52,6 +52,8 @@ Supabase/Railway connection strings: **`docs/v2/ENVIRONMENT.md`**. Multi-service
 | `TIKTOK_TOKEN_URL` | Optional; default token exchange URL |
 | `PUBLIC_WEB_ORIGIN` | SPA origin for post-OAuth redirect (`/connect/shop/result`) |
 | `AWS_REGION`, `SQS_QUEUE_URL` | Job enqueue (required unless dev skip flags) |
+| `TIKTOK_WEBHOOK_MAX_SKEW_SECONDS` | Optional; max \(\|now - t\|\) for `TikTok-Signature` (default 300s) |
+| `ALLOW_UNVERIFIED_WEBHOOKS` | **Never in staging.** Dev-only bypass — see below |
 
 ### Worker (`apps/worker`)
 
@@ -62,6 +64,47 @@ Supabase/Railway connection strings: **`docs/v2/ENVIRONMENT.md`**. Multi-service
 | `TIKTOK_SHOP_APP_KEY`, `TIKTOK_SHOP_APP_SECRET` | Signed Open API requests |
 | `TIKTOK_OPEN_API_BASE` | Optional; default global Shop Open API base |
 | Redis URL (if used) | Optional pub/sub; publish failures are non-fatal |
+
+## Shop webhooks — signature verification
+
+TikTok delivers Shop events to **`POST /api/webhooks/shop`** with header **`TikTok-Signature`**: `t=<unix_seconds>,s=<lower_hex_hmac>`.
+
+**Algorithm (implemented in `@frodo/domain`):**
+
+1. Parse `t` and `s` from the header (comma-separated `key=value` pairs).
+2. `signed_payload = `${t}.${raw_utf8_body}`** — must be the **exact** HTTP body bytes TikTok sent (the API stores them via Express `verify` on `/api/webhooks/*`).
+3. `expected = HMAC_SHA256(key = TIKTOK_SHOP_APP_SECRET, message = signed_payload)` → hex string.
+4. Compare `expected` to `s` with **constant-time** equality.
+5. Reject if the webhook timestamp `t` is too far from server time (skew limit **`TIKTOK_WEBHOOK_MAX_SKEW_SECONDS`**, default 300 seconds).
+
+**Behavior:**
+
+- Invalid/missing signature → **401** `webhook_signature_invalid`; logs only `shop_webhook_verify_failed code=<reason>` (no body, no secret).
+- No DB insert and no SQS enqueue on failure.
+- **`ALLOW_UNVERIFIED_WEBHOOKS=true`** only when **`APP_ENV=development`** — use for local curl without TikTok headers; staging/production reject this flag at boot.
+
+### Test locally (signed replay)
+
+From a machine with `TIKTOK_SHOP_APP_SECRET` and Node:
+
+```bash
+BODY='{"type":5,"shop_id":"test"}'
+TS=$(date +%s)
+PAYLOAD="${TS}.${BODY}"
+SIG=$(node -e "console.log(require('crypto').createHmac('sha256',process.env.TIKTOK_SHOP_APP_SECRET).update(process.argv[1]).digest('hex'))" "$PAYLOAD")
+curl -sS -X POST "http://localhost:8001/api/webhooks/shop" \
+  -H "Content-Type: application/json" \
+  -H "TikTok-Signature: t=${TS},s=${SIG}" \
+  -d "$BODY"
+```
+
+Expect JSON `{ ok: true, ... }` if DB/SQS are configured; **401** if skew too large or secret wrong.
+
+### Staging checklist — webhooks
+
+- [ ] Partner Center webhook URL points to **`https://<api-host>/api/webhooks/shop`** (HTTPS, `/api` prefix included).
+- [ ] **`TIKTOK_SHOP_APP_SECRET`** on the API matches Partner Center (same as OAuth).
+- [ ] Do **not** set `ALLOW_UNVERIFIED_WEBHOOKS` in staging/production.
 
 ## Automated validation (recommended)
 

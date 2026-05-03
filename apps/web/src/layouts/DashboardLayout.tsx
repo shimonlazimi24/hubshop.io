@@ -15,8 +15,8 @@ import { useSidebarState } from "@/hooks/useSidebarState";
 import { getApiPrefix } from "@/lib/api";
 import {
   clearProfile,
-  fetchLegacyUser,
-  type LegacyUser,
+  fetchSessionUser,
+  type SessionUser,
 } from "@/lib/user-profile";
 
 function DashboardSkeleton() {
@@ -45,7 +45,7 @@ function DashboardSkeleton() {
 export function DashboardLayout() {
   const nav = useNavigate();
   const { pathname } = useLocation();
-  const [user, setUser] = useState<LegacyUser | null>(null);
+  const [user, setUser] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const { collapsed, toggle } = useSidebarState();
@@ -57,7 +57,7 @@ export function DashboardLayout() {
       return;
     }
 
-    void fetchLegacyUser(token).then((u) => {
+    void fetchSessionUser(token).then((u) => {
       if (!u) {
         localStorage.removeItem("frodo_access_token");
         localStorage.removeItem("frodo_refresh_token");

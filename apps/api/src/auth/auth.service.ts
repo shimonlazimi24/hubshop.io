@@ -12,7 +12,7 @@ import {
   users,
   workspaces,
 } from "@frodo/db";
-import { randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import bcrypt from "bcrypt";
 import { eq } from "drizzle-orm";
 import type { FrodoDb } from "@frodo/db";
@@ -98,7 +98,6 @@ export class AuthService {
     }
 
     const hashed = await bcrypt.hash(input.password, 10);
-    const orgSlug = slugifyOrg(input.organization_name);
 
     const out = await this.db.transaction(async (tx) => {
       const [u] = await tx
@@ -110,11 +109,32 @@ export class AuthService {
         })
         .returning({ id: users.id });
 
+      const baseSlug = slugifyOrg(input.organization_name) || "org";
+      let orgSlug = baseSlug;
+      for (let attempt = 0; attempt < 16; attempt++) {
+        if (attempt > 0) {
+          orgSlug = `${baseSlug}-${randomBytes(3).toString("hex")}`;
+        }
+        const clash = await tx
+          .select({ id: organizations.id })
+          .from(organizations)
+          .where(eq(organizations.slug, orgSlug))
+          .limit(1);
+        if (!clash.length) {
+          break;
+        }
+        if (attempt === 15) {
+          throw new ConflictException(
+            "Could not create organization — try a different organization name.",
+          );
+        }
+      }
+
       const [org] = await tx
         .insert(organizations)
         .values({
           name: input.organization_name,
-          slug: orgSlug || "org",
+          slug: orgSlug,
         })
         .returning({ id: organizations.id });
 

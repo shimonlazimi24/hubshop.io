@@ -1,5 +1,8 @@
 # Frodo Architecture Plan: Unified TikTok SaaS Platform
 
+> **Canonical platform (v2):** [docs/v2/README.md](./docs/v2/README.md) and [docs/v2/ADR-001-frodo-v2-stack.md](./docs/v2/ADR-001-frodo-v2-stack.md) — NestJS, Drizzle, Vite, **AWS SQS**, Node worker.  
+> **This file** is a **historical / legacy** description (Python, FastAPI, Celery, Next.js). **Do not merge** it with v2 runbooks; legacy runtime detail lives under [docs/legacy/README.md](./docs/legacy/README.md).
+
 ## Context
 
 TikTok's ecosystem is fragmented across 4 completely separate platforms (Shop, Developer, Marketing, LIVE) with no cross-authentication, different signing mechanisms, different webhook formats, and different rate limits. Agencies managing brands on TikTok must juggle 3+ dashboards, 3+ developer portals, and 3+ sets of credentials.

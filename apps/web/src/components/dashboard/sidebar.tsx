@@ -11,7 +11,7 @@ import { Fragment, useMemo, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { Tooltip } from "@/components/ui/tooltip";
 import { NAV_ITEMS, SETTINGS_ITEM } from "@/config/navigation";
-import type { LegacyUser } from "@/lib/user-profile";
+import type { SessionUser } from "@/lib/user-profile";
 import { cn } from "@/lib/utils";
 
 const GROUPS = ["Main", "Modules", "Insights"] as const;
@@ -24,7 +24,7 @@ const SHORTCUT_HINTS: Record<string, string> = {
 interface SidebarProps {
   collapsed: boolean;
   onToggle: () => void;
-  user: LegacyUser | null;
+  user: SessionUser | null;
   onLogout: () => void;
 }
 

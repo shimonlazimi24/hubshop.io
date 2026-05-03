@@ -3,7 +3,11 @@ import { Check } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "../components/ui";
-import { getApiPrefix } from "../lib/api";
+import {
+  API_DOWN_HINT,
+  errorMessageFromFailedResponse,
+  getApiPrefix,
+} from "../lib/api";
 import { persistProfile } from "../lib/user-profile";
 
 const containerVariants = {
@@ -42,8 +46,7 @@ export function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
       if (!r.ok) {
-        const j = (await r.json().catch(() => ({}))) as { message?: string };
-        setErr(j.message ?? `HTTP ${r.status}`);
+        setErr(await errorMessageFromFailedResponse(r));
         return;
       }
       const j = (await r.json()) as {
@@ -59,6 +62,14 @@ export function LoginPage() {
       persistProfile(friendly, email);
       setSuccess(true);
       setTimeout(() => nav("/workspace"), 600);
+    } catch (e) {
+      setErr(
+        e instanceof TypeError
+          ? API_DOWN_HINT
+          : e instanceof Error
+            ? e.message
+            : "Request failed",
+      );
     } finally {
       setLoading(false);
     }

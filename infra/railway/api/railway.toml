@@ -1,0 +1,15 @@
+# NestJS API — set in Railway: Settings → Config-as-code path → /infra/railway/api/railway.toml
+# Repo root directory must stay "." so pnpm workspaces resolve.
+
+[build]
+builder = "RAILPACK"
+buildCommand = "pnpm install --frozen-lockfile && pnpm --filter @frodo/contracts build && pnpm --filter @frodo/config build && pnpm --filter @frodo/db build && pnpm --filter @frodo/domain build && pnpm --filter @frodo/api build"
+watchPatterns = [ "apps/api/**", "packages/**" ]
+
+[deploy]
+startCommand = "pnpm --filter @frodo/api start"
+healthcheckPath = "/api/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+# Requires DATABASE_URL on the service. Remove if you migrate elsewhere.
+preDeployCommand = "pnpm install --frozen-lockfile && pnpm --filter @frodo/db build && pnpm db:migrate"

@@ -1,6 +1,10 @@
 # Frodo v2 — local development (Node monorepo)
 
-The root **`docker-compose.yml`** targets the **legacy Python** stack (`uvicorn`, Celery). For **`apps/api`**, **`apps/worker`**, and **`apps/web`**, run the Node toolchain directly.
+This doc is **v2-only**. Legacy Python / `docker-compose` / `Dockerfile.legacy` are **not** part of this workflow — see **[docs/legacy/README.md](../legacy/README.md)** if you maintain that archive.
+
+**Async ([ADR-001](./ADR-001-frodo-v2-stack.md)):** **`apps/api`** → **AWS SQS** → **`apps/worker`** (same **`SQS_QUEUE_URL`**). Redis is optional for cache/realtime — **not** the job broker. Prefer a **real dev queue** (or LocalStack) for parity with staging; **`ALLOW_ASYNC_SKIP=true`** is API-only and dev-only.
+
+**Postgres / Redis locally:** use any method you like (Docker Desktop, Colima, cloud). Example Postgres: `docker run -d --name frodo-pg -e POSTGRES_USER=frodo -e POSTGRES_PASSWORD=frodo -e POSTGRES_DB=frodo -p 5432:5432 postgres:16-alpine`.
 
 The **`apps/web`** SPA uses **Tailwind CSS v3**, **lucide-react** icons, and small reusable UI components under `src/components/ui/` — no heavy UI framework.
 
@@ -76,7 +80,8 @@ cp apps/api/.env.example apps/api/.env
 Minimal **development** flags:
 
 - **`APP_ENV=development`**
-- **`ALLOW_ASYNC_SKIP=true`** — allows API startup **without** SQS (Shop Connect enqueue will still fail closed unless you configure AWS or use mocks).
+- Prefer configuring **`AWS_REGION`**, **`AWS_ACCESS_KEY_ID`**, **`AWS_SECRET_ACCESS_KEY`**, **`SQS_QUEUE_URL`** (same queue URL you give the worker) so Shop Connect and other enqueue paths match production.
+- **`ALLOW_ASYNC_SKIP=true`** — **only** if you intentionally run **without** SQS; API starts but enqueue-heavy flows return **503** or skip work — **do not use in Railway/staging/production**.
 
 Set **`PUBLIC_WEB_ORIGIN=http://localhost:5173`** so CORS matches the Vite dev server.
 
@@ -89,13 +94,13 @@ pnpm dev:api    # Nest watch — http://localhost:8001 (or PORT)
 pnpm dev:web    # Vite — http://localhost:5173
 ```
 
-Worker (needs real SQS unless you only develop API-only flows):
+**Worker (SQS — plan-default):** run alongside the API when testing jobs end-to-end:
 
 ```bash
 pnpm dev:worker
 ```
 
-For worker locally without AWS, you still need **`AWS_REGION`**, **`SQS_QUEUE_URL`**, and IAM vars — there is no async skip on the worker.
+The worker **always** needs **`AWS_REGION`**, **`SQS_QUEUE_URL`**, and IAM credentials (same queue as the API). Load them via **`apps/worker`** env (same keys as API — copy from `apps/api/.env` or use a shared shell `export`). There is **`ALLOW_ASYNC_SKIP`** only on the API, not on the worker.
 
 ## 5. Common failures
 
@@ -105,7 +110,8 @@ For worker locally without AWS, you still need **`AWS_REGION`**, **`SQS_QUEUE_UR
 | `DATABASE_URL is required` / invalid env | Missing **`apps/api/.env`** or wrong variable names. |
 | Postgres connection errors | Wrong URL, DB down, or **`+asyncpg`** in URL. |
 | `ALLOW_ASYNC_SKIP is only permitted when APP_ENV=development` | Set **`APP_ENV=development`** if using async skip. |
-| Shop connect rolls back / 503 on enqueue | SQS not configured — expected without AWS; configure **`AWS_REGION`** + **`SQS_QUEUE_URL`** or test non-shop flows first. |
+| Shop connect rolls back / 503 on enqueue | SQS not configured — expected without AWS; configure **`AWS_REGION`** + **`SQS_QUEUE_URL`** (+ IAM) on API or use **`ALLOW_ASYNC_SKIP`** only for limited UI dev. |
+| Worker exits / errors on start | Worker has **no** async skip — set **`SQS_QUEUE_URL`** and AWS credentials (same queue as API). |
 | CORS errors from browser | **`PUBLIC_WEB_ORIGIN`** must exactly match the web origin (scheme + host + port). |
 
 ## 6. Health check

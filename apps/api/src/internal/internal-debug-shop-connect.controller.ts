@@ -30,6 +30,10 @@ export type ShopConnectDebugStatusResponse = Omit<
   checks: Array<{ name: string; ok: boolean; detail: string }>;
 };
 
+/**
+ * Ops/validation endpoint — does **not** check JWT or WorkspaceMembershipGuard.
+ * Non-production: open on local networks; production: hidden unless INTERNAL_CRON_SECRET + header (see ShopConnectDebugGuard).
+ */
 @Controller("internal/debug")
 @UseGuards(ShopConnectDebugGuard)
 export class InternalDebugShopConnectController {

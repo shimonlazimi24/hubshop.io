@@ -12,7 +12,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { NotificationBell } from "@/components/ui/notification-bell";
-import type { LegacyUser } from "@/lib/user-profile";
+import type { SessionUser } from "@/lib/user-profile";
 import { cn } from "@/lib/utils";
 import { MobileNav } from "./mobile-nav";
 
@@ -76,7 +76,7 @@ function UserAvatarDropdown({
   user,
   onLogout,
 }: {
-  user: LegacyUser | null;
+  user: SessionUser | null;
   onLogout: () => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -191,7 +191,7 @@ function UserAvatarDropdown({
 
 interface TopBarProps {
   onOpenCommandPalette: () => void;
-  user: LegacyUser | null;
+  user: SessionUser | null;
   onLogout: () => void;
 }
 

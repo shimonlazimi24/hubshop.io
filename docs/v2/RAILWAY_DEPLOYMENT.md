@@ -2,7 +2,13 @@
 
 Deploy the TypeScript monorepo **without** Railway’s Postgres plugin: database is **Supabase** (or any external Postgres). Redis is **optional** but recommended for staging/production JWT blacklist unless you explicitly disable `REQUIRE_REDIS_FOR_AUTH`.
 
-See **`ENVIRONMENT.md`** for variable semantics (`DATABASE_URL` vs `DATABASE_MIGRATION_URL`, TikTok, etc.).
+**Async jobs (canonical plan):** per **[ADR-001](./ADR-001-frodo-v2-stack.md)**, durable work flows through **AWS SQS** — the **API enqueues**, the **`apps/worker` service polls** the same **`SQS_QUEUE_URL`**. **Staging and production must set `AWS_REGION`, `SQS_QUEUE_URL`, and IAM credentials** on both API and worker. Redis is **not** the job broker. **`ALLOW_ASYNC_SKIP`** exists **only** for local `APP_ENV=development` and must stay **off** in Railway.
+
+See **`ENVIRONMENT.md`** for variable semantics (`DATABASE_URL` vs `DATABASE_MIGRATION_URL`, TikTok, SQS IAM, etc.).
+
+**Config-as-code:** copy-ready **`railway.toml`** files live under **`infra/railway/`** (`api`, `web`, `worker`). See **`infra/railway/README.md`** for wiring each Railway service (Config file path, root directory `.`, deleting legacy Python Docker services).
+
+The legacy Python stack is **`Dockerfile.legacy`** (used only by root **`docker compose`**). There is **no** root `Dockerfile`, so Railway defaults to **Railpack** instead of building the wrong image.
 
 ---
 
@@ -12,8 +18,9 @@ See **`ENVIRONMENT.md`** for variable semantics (`DATABASE_URL` vs `DATABASE_MIG
 |---------|---------|-------------|
 | **frodo-api** | NestJS API | Yes (custom domain) |
 | **frodo-worker** | SQS consumer loop | **No** |
-| **frodo-web** | Static SPA (or tiny preview server) | Yes (custom domain) |
-| **frodo-scheduler** | One-shot HTTP client → API cron | **No** (or replace with Railway Cron) |
+| **frodo-web** | Static SPA (`vite preview` on Railway) | Yes (custom domain) |
+
+**Cron:** use **Railway Cron** → `POST /api/internal/cron/tick` with `X-Cron-Secret` (see §7). Do **not** add a separate **`frodo-scheduler`** service unless you explicitly want `apps/scheduler` as a one-shot container.
 
 **Do not** add Railway **PostgreSQL**. Use Supabase connection strings as **`DATABASE_URL`** on API + worker.
 
@@ -94,7 +101,7 @@ pnpm --filter @frodo/api start
 | `INTERNAL_CRON_SECRET` | **Required** for `/api/internal/cron/tick` — same value as scheduler/cron job |
 | `REDIS_URL` | Recommended default for staging/prod auth blacklist |
 
-Plus TikTok Shop vars if using Shop Connect (`TIKTOK_SHOP_*`, `TIKTOK_OPEN_API_BASE` on worker mainly).
+Plus TikTok Shop vars if using Shop Connect: **`TIKTOK_SHOP_APP_KEY`**, **`TIKTOK_SHOP_APP_SECRET`** (required in staging/prod on API — also used for **`POST /api/webhooks/shop`** signature verification), **`TIKTOK_SHOP_SERVICE_ID`**, **`TIKTOK_SHOP_REDIRECT_URI`**, **`TOKEN_ENCRYPTION_KEY`**; worker **`TIKTOK_OPEN_API_BASE`** as needed.
 
 **Never** set `DATABASE_MIGRATION_URL` on the API — migrations-only.
 

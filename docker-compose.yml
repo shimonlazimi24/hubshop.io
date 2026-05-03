@@ -1,6 +1,8 @@
 services:
   api:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.legacy
     ports:
       - "8000:8000"
     env_file: .env
@@ -19,30 +21,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-
-  celery-worker:
-    build: .
-    env_file: .env
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    command: celery -A backend.workers.celery_app worker --loglevel=info --concurrency=4
-    volumes:
-      - .:/app
-
-  celery-beat:
-    build: .
-    env_file: .env
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    command: celery -A backend.workers.celery_app beat --loglevel=info
-    volumes:
-      - .:/app
 
   postgres:
     image: postgres:16-alpine
