@@ -32,12 +32,11 @@ function useBreadcrumbs() {
 }
 
 function useThemeToggle() {
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    setIsDark(root.classList.contains("dark"));
-  }, []);
+  const [isDark, setIsDark] = useState(
+    () =>
+      typeof document !== "undefined" &&
+      document.documentElement.classList.contains("dark"),
+  );
 
   const toggle = useCallback(() => {
     const root = document.documentElement;
@@ -54,15 +53,19 @@ function useThemeToggle() {
   useEffect(() => {
     try {
       const stored = localStorage.getItem("frodo_theme");
+      const root = document.documentElement;
       if (stored === "dark") {
-        document.documentElement.classList.add("dark");
+        root.classList.add("dark");
         setIsDark(true);
       } else if (stored === "light") {
-        document.documentElement.classList.remove("dark");
+        root.classList.remove("dark");
         setIsDark(false);
       } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-        document.documentElement.classList.add("dark");
+        root.classList.add("dark");
         setIsDark(true);
+      } else {
+        root.classList.remove("dark");
+        setIsDark(false);
       }
     } catch {
       // ignore

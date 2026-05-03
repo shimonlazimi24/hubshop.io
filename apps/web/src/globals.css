@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Class-based dark mode (toggle + localStorage). Tailwind v4 defaults `dark:` to prefers-color-scheme only. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Self-hosted Geist (copied from official `geist` package → public/fonts/ by scripts/copy-geist-fonts.mjs) */
 @font-face {
   font-family: "Geist";
