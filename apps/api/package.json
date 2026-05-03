@@ -4,6 +4,7 @@
   "private": true,
   "description": "Nest API for Railway @frodo/api",
   "scripts": {
+    "prebuild": "pnpm --filter @frodo/contracts build && pnpm --filter @frodo/config build && pnpm --filter @frodo/db build && pnpm --filter @frodo/domain build",
     "build": "nest build",
     "start": "node dist/main.js",
     "start:dev": "nest start --watch",

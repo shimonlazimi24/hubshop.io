@@ -4,6 +4,7 @@
   "private": true,
   "description": "SQS worker for Railway @frodo/worker",
   "scripts": {
+    "prebuild": "pnpm --filter @frodo/contracts build && pnpm --filter @frodo/config build && pnpm --filter @frodo/db build && pnpm --filter @frodo/domain build",
     "build": "tsc -p tsconfig.json",
     "dev": "tsx src/main.ts",
     "start": "node dist/main.js",
