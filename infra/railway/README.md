@@ -2,6 +2,8 @@
 
 Railway picks **Dockerfile** over Railpack when a root `Dockerfile` exists. This repo keeps the Python stack in **`Dockerfile.legacy`** only for `docker compose`, so Railway uses **Railpack + pnpm**.
 
+Root **`pyproject.toml`** is legacy Python metadata only. **`railpack.json`** sets **`provider`: `"node"`** so Railpack still installs Node and pnpm (via Corepack); otherwise detection can choose Python and **`pnpm: not found`** during build.
+
 ## What to run on Railway
 
 | Deploy | Use |
