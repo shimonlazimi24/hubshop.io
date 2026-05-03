@@ -35,14 +35,14 @@ export function ToastContainer() {
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
               transition={{ duration: 0.25 }}
               className={cn(
-                "flex items-start gap-3 rounded-lg border bg-white px-4 py-3 shadow-[var(--shadow-panel)]"
+                "flex items-start gap-3 rounded-lg border border-border bg-background px-4 py-3 shadow-[var(--shadow-panel)]"
               )}
             >
               <Icon className={cn("h-5 w-5 mt-0.5 flex-shrink-0", STYLE_MAP[t.variant])} />
-              <p className="text-sm text-gray-700 flex-1">{t.message}</p>
+              <p className="text-sm text-foreground flex-1">{t.message}</p>
               <button
                 onClick={() => removeToast(t.id)}
-                className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+                className="text-foreground-secondary hover:text-foreground transition-colors flex-shrink-0"
               >
                 <X className="h-4 w-4" />
               </button>
