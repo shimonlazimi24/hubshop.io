@@ -10,6 +10,7 @@ export function createDb(connectionString: string) {
 }
 
 export { schema };
+export { runDrizzleMigrationsFromEnv } from "./run-migrations";
 export * from "./schema";
 export * from "./shop-connect-validation";
 export * from "./shop-commerce-validation";

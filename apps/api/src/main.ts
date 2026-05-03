@@ -20,6 +20,17 @@ async function bootstrap(): Promise<void> {
     return;
   }
 
+  const runMigrationsOnStart =
+    process.env.RUN_DB_MIGRATIONS_ON_STARTUP === "true" ||
+    process.env.RUN_DB_MIGRATIONS_ON_STARTUP === "1";
+  if (runMigrationsOnStart) {
+    const { runDrizzleMigrationsFromEnv } = await import("@frodo/db");
+    console.log(
+      "RUN_DB_MIGRATIONS_ON_STARTUP: applying Drizzle migrations (advisory lock)…",
+    );
+    await runDrizzleMigrationsFromEnv({ useAdvisoryLock: true });
+  }
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bodyParser: false,
   });

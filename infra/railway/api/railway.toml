@@ -21,5 +21,6 @@ startCommand = "pnpm --filter @frodo/api start"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
-# Requires DATABASE_URL on the service. Remove if you migrate elsewhere.
-preDeployCommand = "pnpm install --frozen-lockfile && pnpm --filter @frodo/db build && pnpm db:migrate"
+# Uses artifacts from the build image (pnpm db:migrate = node packages/db/dist/migrate.js).
+# Also set RUN_DB_MIGRATIONS_ON_STARTUP=true on the service so migrations run even if pre-deploy is skipped.
+preDeployCommand = "pnpm db:migrate"
