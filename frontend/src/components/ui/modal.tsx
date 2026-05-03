@@ -66,21 +66,21 @@ export function Modal({
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.25 }}
             className={cn(
-              "relative w-full rounded-2xl bg-white shadow-[var(--shadow-modal)]",
+              "relative w-full rounded-2xl bg-background border border-border shadow-[var(--shadow-modal)]",
               SIZE_MAP[size],
               className
             )}
           >
             {/* Header */}
             {(title || description) && (
-              <div className="flex items-start justify-between border-b border-gray-100 px-6 py-4">
+              <div className="flex items-start justify-between border-b border-border px-6 py-4">
                 <div>
-                  {title && <h2 className="text-lg font-semibold text-gray-900">{title}</h2>}
-                  {description && <p className="text-sm text-gray-500 mt-0.5">{description}</p>}
+                  {title && <h2 className="text-lg font-semibold text-foreground">{title}</h2>}
+                  {description && <p className="text-sm text-foreground-secondary mt-0.5">{description}</p>}
                 </div>
                 <button
                   onClick={onClose}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-foreground-secondary hover:bg-surface hover:text-foreground transition-colors"
                 >
                   <X className="h-4 w-4" />
                 </button>

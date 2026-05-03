@@ -1,9 +1,23 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hubshop</title>
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("frodo_theme");
+          var dark =
+            stored === "dark" ||
+            (stored !== "light" &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches);
+          document.documentElement.classList.toggle("dark", dark);
+        } catch (_) {
+          /* ignore */
+        }
+      })();
+    </script>
   </head>
   <body class="antialiased">
     <div id="root"></div>

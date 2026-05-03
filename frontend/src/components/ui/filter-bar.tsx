@@ -23,7 +23,7 @@ export function FilterDropdown({ label, value, options, onChange, className }: F
       value={value}
       onChange={(e) => onChange(e.target.value)}
       className={cn(
-        "h-9 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-coral/30 focus:border-coral appearance-none cursor-pointer",
+        "h-9 rounded-lg border border-border bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-coral/30 focus:border-coral appearance-none cursor-pointer",
         className
       )}
     >
@@ -58,18 +58,18 @@ export function FilterBar({
     <div className={cn("flex flex-wrap items-center gap-3 mb-4", className)}>
       {/* Search input */}
       <div className="relative flex-1 min-w-[200px] max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground-secondary" />
         <input
           type="text"
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder={searchPlaceholder}
-          className="h-9 w-full rounded-lg border border-gray-200 bg-white pl-9 pr-8 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-coral/30 focus:border-coral"
+          className="h-9 w-full rounded-lg border border-border bg-background pl-9 pr-8 text-sm text-foreground placeholder:text-foreground-secondary focus:outline-none focus:ring-2 focus:ring-coral/30 focus:border-coral"
         />
         {searchValue && (
           <button
             onClick={() => onSearchChange("")}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-foreground-secondary hover:text-foreground"
           >
             <X className="h-3.5 w-3.5" />
           </button>

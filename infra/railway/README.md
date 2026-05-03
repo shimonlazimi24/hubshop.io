@@ -32,6 +32,8 @@ The **API** and **worker** must share one **Standard** queue (plus a **DLQ** in 
 | `AWS_SECRET_ACCESS_KEY` | ✅ | ✅ |
 | `SQS_QUEUE_URL` | ✅ | ✅ (same URL) |
 
+Optional: **`AWS_SESSION_TOKEN`** when using temporary AWS credentials (STS). Worker-only tuning: **`SQS_VISIBILITY_TIMEOUT_SECONDS`**, **`SQS_VISIBILITY_EXTENSION_SECONDS`** — see **`infra/railway/.env.example`** (full checklist).
+
 Do **not** set **`ALLOW_ASYNC_SKIP`** on Railway (`APP_ENV` must be `staging` or `production`). Cron ticks enqueue via the API → SQS → worker — see **`docs/v2/RAILWAY_DEPLOYMENT.md`** §7 and **`docs/v2/ENVIRONMENT.md`** § AWS SQS.
 
 ### Remove unused services
