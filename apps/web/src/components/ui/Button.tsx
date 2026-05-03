@@ -17,7 +17,8 @@ function normalizeVariant(v: ButtonVariant): LegacyVariant {
 }
 
 const variantStyles: Record<LegacyVariant, string> = {
-  default: "bg-foreground text-white hover:bg-foreground/90",
+  default:
+    "bg-foreground text-background hover:bg-foreground/90",
   gradient:
     "gradient-bg text-white hover:opacity-90 shadow-lg shadow-coral/25",
   outline:
