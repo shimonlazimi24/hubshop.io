@@ -76,6 +76,11 @@ export class ConnectService {
         "TikTok Shop OAuth is not configured (TIKTOK_SHOP_APP_KEY, TIKTOK_SHOP_APP_SECRET, TIKTOK_SHOP_SERVICE_ID, TIKTOK_SHOP_REDIRECT_URI)",
       );
     }
+    if (serviceId.toLowerCase() === "svc") {
+      throw new BadRequestException(
+        "TIKTOK_SHOP_SERVICE_ID must be the real Service ID from TikTok Partner Center (Applications → your app). The value \"svc\" is invalid and TikTok will show \"This service does not exist\".",
+      );
+    }
     const authBase =
       this.config.get<string>("TIKTOK_SHOP_AUTH_BASE")?.trim() ??
       "https://services.tiktokshop.com/open/authorize";

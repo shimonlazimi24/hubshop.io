@@ -59,7 +59,7 @@ function configMap(): Record<string, string | boolean> {
     SHOP_OAUTH_STATE_SECRET: OAUTH_SECRET,
     TIKTOK_SHOP_APP_KEY: "app-key",
     TIKTOK_SHOP_APP_SECRET: "app-secret-32-chars-minimum-pad-00",
-    TIKTOK_SHOP_SERVICE_ID: "svc",
+    TIKTOK_SHOP_SERVICE_ID: "1234567890",
     TIKTOK_SHOP_REDIRECT_URI: "http://localhost:8001/api/connect/shop/callback",
     TOKEN_ENCRYPTION_KEY: TOKEN_MASTER,
     TIKTOK_SHOP_AUTH_BASE: "https://auth.example/authorize",

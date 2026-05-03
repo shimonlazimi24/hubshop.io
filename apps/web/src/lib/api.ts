@@ -1,12 +1,24 @@
 const prefix = import.meta.env.VITE_API_URL ?? "";
 
 /** Shown when fetch fails or Vite proxy cannot reach the API (e.g. ECONNREFUSED). */
-export const API_DOWN_HINT =
-  "Could not reach the API. In another terminal run: npx --yes pnpm@9.15.4 dev:api (from the frodo folder). Needs Postgres and apps/api/.env.";
+export const API_DOWN_HINT = import.meta.env.DEV
+  ? "Could not reach the API. In another terminal run: npx --yes pnpm@9.15.4 dev:api (from the frodo folder). Needs Postgres and apps/api/.env."
+  : "Could not reach the server. Check your connection or try again later.";
 
-/** Response reached the API but the server failed (5xx) — check API logs / DB / migrations. */
-export const API_SERVER_ERROR_HINT =
-  "The API returned a server error (HTTP 5xx). Check the terminal running dev:api: Postgres reachable? DATABASE_URL correct? Did you run pnpm db:migrate?";
+const USER_FACING_5XX =
+  "We couldn’t complete this request. Please try again in a few minutes. If it keeps happening, contact support.";
+
+const DEV_5XX_SUFFIX =
+  " — Dev: check the API process (Postgres running? DATABASE_URL set? run pnpm db:migrate).";
+
+function isGenericServerErrorMessage(msg: string): boolean {
+  const s = msg.trim().toLowerCase();
+  return (
+    s.length === 0 ||
+    s === "internal server error" ||
+    s.startsWith("internal server error")
+  );
+}
 
 export function formatApiErr(body: unknown): string | undefined {
   if (!body || typeof body !== "object") return undefined;
@@ -33,11 +45,25 @@ export async function errorMessageFromFailedResponse(
     }
   }
   const fromApi = formatApiErr(body);
+
+  if (res.status >= 500) {
+    if (import.meta.env.DEV) {
+      const detail =
+        fromApi && !isGenericServerErrorMessage(fromApi)
+          ? fromApi
+          : text.trim() && !text.trim().startsWith("<")
+            ? text.trim().slice(0, 300)
+            : null;
+      if (detail) {
+        return `${detail}${DEV_5XX_SUFFIX}`;
+      }
+      return `${USER_FACING_5XX}${DEV_5XX_SUFFIX}`;
+    }
+    return USER_FACING_5XX;
+  }
+
   if (fromApi) return fromApi;
   if (text.trim()) return text.trim().slice(0, 400);
-  if (res.status >= 500) {
-    return `${API_SERVER_ERROR_HINT} (HTTP ${res.status})`;
-  }
   return `HTTP ${res.status}`;
 }
 
