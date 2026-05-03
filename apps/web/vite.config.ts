@@ -18,4 +18,8 @@ export default defineConfig({
       },
     },
   },
+  // Railway (and other PaaS) assigns a public hostname for `vite preview`; Vite 6 blocks unknown Host headers by default.
+  preview: {
+    allowedHosts: true,
+  },
 });
