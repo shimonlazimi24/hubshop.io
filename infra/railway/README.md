@@ -52,3 +52,5 @@ Prefer **Railway Cron** calling `POST https://<api-host>/api/internal/cron/tick`
 ### API migrations
 
 `infra/railway/api/railway.toml` runs **`pnpm db:migrate`** as `preDeployCommand`. Omit or adjust if you run migrations manually.
+
+If the DB was created under an **older migration set** (partial `__drizzle_migrations` rows) and deploys fail or tables stay missing, connect with `psql` and run `DELETE FROM "__drizzle_migrations";` (or drop/recreate the database), then redeploy so the current **`0000_frodo_v2_initial`** baseline applies cleanly.

@@ -5,29 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1738281600000,
-      "tag": "0000_v2_scheduled_job_runs_feature_flags",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1738281700000,
-      "tag": "0001_worker_dedupe_keys",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1738281800000,
-      "tag": "0002_shops_discovery_connected_unique",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1738281900000,
-      "tag": "0003_shop_commerce_snapshots",
+      "when": 1777795000000,
+      "tag": "0000_frodo_v2_initial",
       "breakpoints": true
     }
   ]
