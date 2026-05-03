@@ -24,7 +24,22 @@ try {
   );
   process.exit(1);
 }
-const sqs = new SQSClient({ region: env.AWS_REGION });
+
+if (env.WORKER_SQS_DISABLED === true) {
+  console.warn(
+    "WORKER_SQS_DISABLED: SQS polling is off (APP_ENV=development only). Set AWS_REGION + SQS_QUEUE_URL and unset WORKER_SQS_DISABLED to consume jobs.",
+  );
+  const id = setInterval(() => {
+    console.info("worker idle (WORKER_SQS_DISABLED)");
+  }, 300_000);
+  const shutdown = (): void => {
+    clearInterval(id);
+    process.exit(0);
+  };
+  process.once("SIGINT", shutdown);
+  process.once("SIGTERM", shutdown);
+} else {
+const sqs = new SQSClient({ region: env.AWS_REGION! });
 const db = createDb(env.DATABASE_URL);
 const redisClient = env.REDIS_URL ? new Redis(env.REDIS_URL) : null;
 
@@ -174,3 +189,4 @@ run().catch((e) => {
   console.error(e);
   process.exit(1);
 });
+}
