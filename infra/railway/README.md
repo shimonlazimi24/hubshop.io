@@ -11,6 +11,11 @@ Root **`pyproject.toml`** is legacy Python metadata only. **`railpack.json`** se
 | **API** | Config file `/infra/railway/api/railway.toml` |
 | **Web** | Config file `/infra/railway/web/railway.toml` |
 | **Worker** | Config file `/infra/railway/worker/railway.toml` |
+| **Scheduler** (optional container) | Config file `/infra/railway/scheduler/railway.toml` — prefer [Railway Cron → API](#cron-instead-of-a-scheduler-container) when possible |
+
+### Watch patterns (build triggers)
+
+Each `railway.toml` watches its app and `packages/**`, plus **repo root** files (`railpack.json`, `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `tsconfig.base.json`, `pyproject.toml`). That way a change to **`railpack.json`** (Node provider for Railpack) or lockfiles always retriggers a build instead of a “No changes to watched files” skip.
 
 Do **not** deploy the legacy Python image (`Dockerfile.legacy`) or duplicate “Dockerfile builder” services for v2.
 

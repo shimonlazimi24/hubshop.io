@@ -1,0 +1,19 @@
+# Cron-style tick runner — set Config-as-code path → /infra/railway/scheduler/railway.toml
+
+[build]
+builder = "RAILPACK"
+buildCommand = "pnpm install --frozen-lockfile && pnpm --filter @frodo/config build && pnpm --filter @frodo/scheduler build"
+watchPatterns = [
+  "apps/scheduler/**",
+  "packages/config/**",
+  "railpack.json",
+  "package.json",
+  "pnpm-lock.yaml",
+  "pnpm-workspace.yaml",
+  "tsconfig.base.json",
+  "pyproject.toml",
+]
+
+[deploy]
+startCommand = "pnpm --filter @frodo/scheduler start"
+restartPolicyType = "ON_FAILURE"
