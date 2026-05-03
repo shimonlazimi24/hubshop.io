@@ -179,7 +179,7 @@ function UserAvatarDropdown({
                   setMenuOpen(false);
                   onLogout();
                 }}
-                className="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-500/10"
+                className="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10"
               >
                 <LogOut className="h-3.5 w-3.5" />
                 Sign out

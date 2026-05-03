@@ -69,14 +69,16 @@ export function Sidebar({
     const activeClass = ({ isActive }: { isActive: boolean }) =>
       cn(
         "group/item relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors duration-150",
-        isActive ? "text-zinc-100" : "text-zinc-400 hover:text-zinc-200",
+        isActive
+          ? "text-gray-900 dark:text-zinc-100"
+          : "text-gray-600 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-200",
         collapsed && "justify-center px-0",
       );
 
     const pill = (
       <motion.div
         layoutId="sidebar-active-pill"
-        className="absolute inset-0 rounded-lg border border-zinc-700/50 bg-zinc-800/80"
+        className="absolute inset-0 rounded-lg border border-gray-200/90 bg-gray-100 dark:border-zinc-700/50 dark:bg-zinc-800/80"
         transition={{
           type: "spring",
           stiffness: 350,
@@ -89,19 +91,21 @@ export function Sidebar({
       <>
         {isActive && pill}
         {!isActive && (
-          <span className="absolute inset-0 rounded-lg bg-zinc-800/0 transition-colors duration-150 group-hover/item:bg-zinc-800/50" />
+          <span className="absolute inset-0 rounded-lg bg-transparent transition-colors duration-150 group-hover/item:bg-gray-100/90 dark:group-hover/item:bg-zinc-800/50" />
         )}
         <Icon
           className={cn(
             "relative z-10 h-[18px] w-[18px] shrink-0 transition-colors duration-150",
-            isActive ? "text-coral" : "text-zinc-500 group-hover/item:text-zinc-300",
+            isActive
+              ? "text-coral"
+              : "text-gray-500 group-hover/item:text-gray-800 dark:text-zinc-500 dark:group-hover/item:text-zinc-300",
           )}
         />
         {!collapsed && (
           <>
             <span className="relative z-10 truncate">{item.label}</span>
             {shortcut && (
-              <span className="relative z-10 ml-auto hidden items-center rounded bg-zinc-800 px-1 py-0.5 font-mono text-[9px] text-zinc-500 xl:inline-flex">
+              <span className="relative z-10 ml-auto hidden items-center rounded bg-gray-100 px-1 py-0.5 font-mono text-[9px] text-gray-500 dark:bg-zinc-800 dark:text-zinc-500 xl:inline-flex">
                 {shortcut}
               </span>
             )}
@@ -126,7 +130,7 @@ export function Sidebar({
       const disabledRow = (
         <div
           className={cn(
-            "relative flex cursor-not-allowed items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium text-zinc-500 opacity-45",
+            "relative flex cursor-not-allowed items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium text-gray-400 opacity-50 dark:text-zinc-500",
             collapsed && "justify-center px-0",
           )}
           aria-disabled
@@ -166,15 +170,15 @@ export function Sidebar({
   return (
     <motion.aside
       className={cn(
-        "hidden flex-col bg-zinc-950 text-zinc-300 transition-colors md:flex",
-        "border-r border-zinc-800/60",
+        "hidden flex-col border-r border-gray-200 bg-gray-50 text-gray-700 transition-colors md:flex",
+        "dark:border-zinc-800/60 dark:bg-zinc-950 dark:text-zinc-300",
       )}
       animate={{ width: collapsed ? 64 : 256 }}
       transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
     >
       <div
         className={cn(
-          "border-b border-zinc-800/60",
+          "border-b border-gray-200 dark:border-zinc-800/60",
           collapsed ? "px-3 py-4" : "p-4",
         )}
       >
@@ -194,10 +198,10 @@ export function Sidebar({
                 exit={{ opacity: 0, x: -8 }}
                 transition={{ duration: 0.15 }}
               >
-                <h1 className="truncate text-sm font-semibold text-zinc-100">
+                <h1 className="truncate text-sm font-semibold text-gray-900 dark:text-zinc-100">
                   Hubshop
                 </h1>
-                <p className="truncate text-[10px] text-zinc-500">
+                <p className="truncate text-[10px] text-gray-500 dark:text-zinc-500">
                   One platform to rule them all
                 </p>
               </motion.div>
@@ -213,15 +217,15 @@ export function Sidebar({
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.15 }}
               type="button"
-              className="mt-3 flex w-full items-center gap-2 overflow-hidden rounded-lg border border-zinc-800 px-2.5 py-1.5 text-xs text-zinc-400 transition-colors hover:border-zinc-700 hover:bg-zinc-900"
+              className="mt-3 flex w-full items-center gap-2 overflow-hidden rounded-lg border border-gray-200 bg-white/80 px-2.5 py-1.5 text-xs text-gray-600 transition-colors hover:border-gray-300 hover:bg-white dark:border-zinc-800 dark:bg-transparent dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:bg-zinc-900"
               aria-disabled="true"
               title="Workspace switcher coming soon"
             >
-              <Building2 className="h-3.5 w-3.5 text-zinc-500" />
+              <Building2 className="h-3.5 w-3.5 text-gray-500 dark:text-zinc-500" />
               <span className="flex-1 truncate text-left">
                 {user?.full_name?.split(" ")[0] ?? "My"}&apos;s Workspace
               </span>
-              <ChevronDown className="h-3 w-3 text-zinc-500" />
+              <ChevronDown className="h-3 w-3 text-gray-500 dark:text-zinc-500" />
             </motion.button>
           )}
         </AnimatePresence>
@@ -237,7 +241,7 @@ export function Sidebar({
                 <button
                   type="button"
                   onClick={() => toggleGroup(group)}
-                  className="flex w-full items-center gap-1 px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-500 transition-colors hover:text-zinc-300"
+                  className="flex w-full items-center gap-1 px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-gray-500 transition-colors hover:text-gray-800 dark:text-zinc-500 dark:hover:text-zinc-300"
                 >
                   <motion.span
                     animate={{ rotate: isExpanded ? 90 : 0 }}
@@ -249,7 +253,7 @@ export function Sidebar({
                   <span>{group}</span>
                 </button>
               ) : (
-                <div className="mx-auto my-1.5 h-px w-6 bg-zinc-800" />
+                <div className="mx-auto my-1.5 h-px w-6 bg-gray-200 dark:bg-zinc-800" />
               )}
 
               <AnimatePresence initial={false}>
@@ -276,7 +280,7 @@ export function Sidebar({
 
       <div
         className={cn(
-          "border-t border-zinc-800/60",
+          "border-t border-gray-200 dark:border-zinc-800/60",
           collapsed ? "px-2 py-3" : "px-2 py-3",
         )}
       >
@@ -287,7 +291,7 @@ export function Sidebar({
               className={({ isActive }) =>
                 cn(
                   "group/item relative flex items-center justify-center rounded-lg py-2 text-sm transition-colors",
-                  isActive ? "text-coral" : "text-zinc-500 hover:text-zinc-300",
+                  isActive ? "text-coral" : "text-gray-500 hover:text-gray-800 dark:text-zinc-500 dark:hover:text-zinc-300",
                 )
               }
             >
@@ -296,7 +300,7 @@ export function Sidebar({
                   {isActive && (
                     <motion.div
                       layoutId="sidebar-active-pill"
-                      className="absolute inset-0 rounded-lg border border-zinc-700/50 bg-zinc-800/80"
+                      className="absolute inset-0 rounded-lg border border-gray-200/90 bg-gray-100 dark:border-zinc-700/50 dark:bg-zinc-800/80"
                       transition={{
                         type: "spring",
                         stiffness: 350,
@@ -315,7 +319,9 @@ export function Sidebar({
             className={({ isActive }) =>
               cn(
                 "group/item relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors",
-                isActive ? "text-zinc-100" : "text-zinc-400 hover:text-zinc-200",
+                isActive
+                  ? "text-gray-900 dark:text-zinc-100"
+                  : "text-gray-600 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-200",
               )
             }
           >
@@ -324,7 +330,7 @@ export function Sidebar({
                 {isActive && (
                   <motion.div
                     layoutId="sidebar-active-pill"
-                    className="absolute inset-0 rounded-lg border border-zinc-700/50 bg-zinc-800/80"
+                    className="absolute inset-0 rounded-lg border border-gray-200/90 bg-gray-100 dark:border-zinc-700/50 dark:bg-zinc-800/80"
                     transition={{
                       type: "spring",
                       stiffness: 350,
@@ -333,12 +339,12 @@ export function Sidebar({
                   />
                 )}
                 {!isActive && (
-                  <span className="absolute inset-0 rounded-lg bg-zinc-800/0 transition-colors duration-150 group-hover/item:bg-zinc-800/50" />
+                  <span className="absolute inset-0 rounded-lg bg-transparent transition-colors duration-150 group-hover/item:bg-gray-100/90 dark:group-hover/item:bg-zinc-800/50" />
                 )}
                 <SETTINGS_ITEM.icon
                   className={cn(
                     "relative z-10 h-[18px] w-[18px]",
-                    isActive ? "text-coral" : "text-zinc-500",
+                    isActive ? "text-coral" : "text-gray-500 dark:text-zinc-500",
                   )}
                 />
                 <span className="relative z-10">Settings</span>
@@ -360,17 +366,17 @@ export function Sidebar({
                 {getInitials(user.full_name)}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-medium text-zinc-200">
+                <p className="truncate text-xs font-medium text-gray-800 dark:text-zinc-200">
                   {user.full_name}
                 </p>
-                <p className="truncate text-[10px] text-zinc-500">
+                <p className="truncate text-[10px] text-gray-500 dark:text-zinc-500">
                   {user.email || "—"}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={onLogout}
-                className="text-[10px] text-zinc-500 transition-colors hover:text-red-400"
+                className="text-[10px] text-gray-500 transition-colors hover:text-red-600 dark:text-zinc-500 dark:hover:text-red-400"
               >
                 Sign out
               </button>
@@ -383,7 +389,7 @@ export function Sidebar({
             <button
               type="button"
               onClick={onLogout}
-              className="mt-1 flex w-full items-center justify-center rounded-lg py-2 text-zinc-500 transition-colors hover:bg-red-950/40 hover:text-red-400"
+              className="mt-1 flex w-full items-center justify-center rounded-lg py-2 text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:text-zinc-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
             >
               <LogOut className="h-[18px] w-[18px]" />
             </button>
@@ -393,7 +399,7 @@ export function Sidebar({
         <button
           type="button"
           onClick={onToggle}
-          className="mt-1 flex w-full items-center justify-center rounded-lg py-1.5 text-zinc-500 transition-colors hover:bg-zinc-800/50 hover:text-zinc-300"
+          className="mt-1 flex w-full items-center justify-center rounded-lg py-1.5 text-gray-500 transition-colors hover:bg-gray-200/80 hover:text-gray-800 dark:text-zinc-500 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-300"
         >
           {collapsed ? (
             <ChevronsRight className="h-4 w-4" />
