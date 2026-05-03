@@ -11,7 +11,7 @@ Root **`pyproject.toml`** is legacy Python metadata only. **`railpack.json`** se
 | **API** | Config file `/infra/railway/api/railway.toml` |
 | **Web** | Config file `/infra/railway/web/railway.toml` |
 | **Worker** | Config file `/infra/railway/worker/railway.toml` |
-| **Scheduler** (optional container) | Config file `/infra/railway/scheduler/railway.toml` — prefer [Railway Cron → API](#cron-instead-of-a-scheduler-container) when possible |
+| **Scheduler** (optional container) | Config file `/infra/railway/scheduler/railway.toml` — long-running **daemon** (default 60s between ticks). Prefer [Railway Cron → API](#cron-instead-of-a-scheduler-container) when possible; use `pnpm --filter @frodo/scheduler start:once` for one-shot. |
 
 ### Watch patterns (build triggers)
 

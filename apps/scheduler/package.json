@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "prebuild": "pnpm --filter @frodo/config build",
-    "start": "node dist/tick.js",
+    "start": "node dist/daemon.js",
+    "start:once": "node dist/tick.js",
     "dev": "tsx src/tick.ts",
     "build": "tsc -p tsconfig.json",
     "lint": "tsc --noEmit"
