@@ -2,6 +2,7 @@
   "name": "@frodo/scheduler",
   "version": "0.1.0",
   "private": true,
+  "description": "Cron tick client for Railway @frodo/scheduler",
   "type": "module",
   "scripts": {
     "start": "node dist/tick.js",

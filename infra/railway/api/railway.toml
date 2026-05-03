@@ -5,14 +5,15 @@
 builder = "RAILPACK"
 buildCommand = "pnpm install --frozen-lockfile && pnpm --filter @frodo/contracts build && pnpm --filter @frodo/config build && pnpm --filter @frodo/db build && pnpm --filter @frodo/domain build && pnpm --filter @frodo/api build"
 watchPatterns = [
-  "apps/api/**",
-  "packages/**",
-  "railpack.json",
-  "package.json",
-  "pnpm-lock.yaml",
-  "pnpm-workspace.yaml",
-  "tsconfig.base.json",
-  "pyproject.toml",
+  "/apps/api/**",
+  "/packages/**",
+  "/infra/railway/**",
+  "/railpack.json",
+  "/package.json",
+  "/pnpm-lock.yaml",
+  "/pnpm-workspace.yaml",
+  "/tsconfig.base.json",
+  "/pyproject.toml",
 ]
 
 [deploy]

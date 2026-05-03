@@ -15,7 +15,9 @@ Root **`pyproject.toml`** is legacy Python metadata only. **`railpack.json`** se
 
 ### Watch patterns (build triggers)
 
-Each `railway.toml` watches its app and `packages/**`, plus **repo root** files (`railpack.json`, `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `tsconfig.base.json`, `pyproject.toml`). That way a change to **`railpack.json`** (Node provider for Railpack) or lockfiles always retriggers a build instead of a “No changes to watched files” skip.
+Each `railway.toml` uses **gitignore-style patterns from the repo root with a leading `/`** (see [Configure watch paths](https://docs.railway.com/builds/build-configuration#configure-watch-paths)). Watches include the matching app, **`/packages/**`**, **`/infra/railway/**`** (so edits to these config files always redeploy that service), and root **`railpack.json`**, **`package.json`**, lock/workspace files, **`tsconfig.base.json`**, and **`pyproject.toml`**.
+
+If Railway still skips once because it evaluated the push with **old** watch rules, use **Redeploy** in the service UI, or push any change under the app path (e.g. `apps/web/`).
 
 Do **not** deploy the legacy Python image (`Dockerfile.legacy`) or duplicate “Dockerfile builder” services for v2.
 

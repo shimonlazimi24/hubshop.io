@@ -2,6 +2,7 @@
   "name": "@frodo/web",
   "version": "0.1.0",
   "private": true,
+  "description": "Vite SPA for Railway @frodo/web",
   "type": "module",
   "scripts": {
     "copy-fonts": "node ./scripts/copy-geist-fonts.mjs",

@@ -2,6 +2,7 @@
   "name": "@frodo/api",
   "version": "0.1.0",
   "private": true,
+  "description": "Nest API for Railway @frodo/api",
   "scripts": {
     "build": "nest build",
     "start": "node dist/main.js",
